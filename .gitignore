@@ -1,0 +1,35 @@
+# Auxiliares de LaTeX
+*.aux
+*.bbl
+*.blg
+*.bcf
+*.run.xml
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.toc
+*.lof
+*.lot
+*.lol
+*.synctex.gz
+*.synctex(busy)
+*.nav
+*.snm
+*.vrb
+*.glo
+*.gls
+*.glg
+*.ist
+*.acn
+*.acr
+*.alg
+*.idx
+*.ind
+*.ilg
+*.xdv
+
+# PDFs: ignorar todos menos el de la memoria
+*.pdf
+!tfg.pdf
+!img/**/*.pdf
