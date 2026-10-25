@@ -1,0 +1,903 @@
+Tutores: Francisco Herrera e Iván Sevillano
+
+0. Índice
+
+\hyperref[entrenamiento-de-distintos-modelos]{\textbf{1. Entrenamiento
+de distintos modelos 3}}
+
+\begin{quote}
+\hyperref[base-de-dato-de-entrenamientoid]{1.1. Base de dato de
+entrenamiento(ID) 3}
+
+\hyperref[dataloader]{1.2. DataLoader 4}
+
+\hyperref[learner]{1.3. Learner 4}
+
+\hyperref[anuxe1lisis-de-resultados]{1.4. Análisis de resultados 5}
+
+\hyperref[gruxe1ficos-y-resultados-del-entrenamiento-de-cada-modelo]{1.5.
+Gráficos y resultados del entrenamiento de cada modelo 6}
+
+\hyperref[modelo-primero]{1.5.1. Modelo Primero: 6}
+
+\hyperref[modelo-2]{1.5.2. Modelo 2 7}
+
+\hyperref[modelo-3]{1.5.3. Modelo 3: 7}
+
+\hyperref[modelo-4]{1.5.4. Modelo 4: 8}
+
+\hyperref[comparativa-de-los-modelos-obtenidos-y-sus-resultados-asociados.]{1.6.
+Comparativa de los modelos obtenidos y sus resultados asociados. 9}
+\end{quote}
+
+\hyperref[out-of-distribution]{\textbf{2. Out of Distribution 9}}
+
+\begin{quote}
+\hyperref[conjunto-de-datos]{\textbf{2.1. Conjunto de Datos 10}}
+
+\hyperref[muxe9tricas]{\textbf{2.2. Métricas 13}}
+
+\hyperref[muxe9todos-de-detecciuxf3n-ood-post-hoc]{2.3. Métodos de
+detección OOD post hoc 13}
+
+\hyperref[grupo-1]{2.3.1. Grupo 1 13}
+
+\hyperref[grupo-2-comparan-con-la-informaciuxf3n-de-las-features-de-entrenamiento]{2.3.2.
+Grupo 2: comparan con la información de las features de entrenamiento
+14}
+
+\hyperref[grupo-3-muxe9todos-basados-en-la-modificaciuxf3n-de-activaciones]{2.3.3.
+Grupo 3: métodos basados en la modificación de activaciones 14}
+
+\hyperref[resultados-obtenidos]{2.3.3. Resultados obtenidos 15}
+
+\hyperref[anuxe1lisis-de-los-resultados-de-detecciuxf3n-ood]{2.3.4.
+Análisis de los resultados de detección OOD 15}
+
+\hyperref[stood-x]{2.3.5. STOOD-X 16}
+\end{quote}
+
+\section{Entrenamiento de distintos
+modelos}\label{entrenamiento-de-distintos-modelos}
+
+\subsection{1.1. Base de dato de
+entrenamiento(ID)}\label{base-de-dato-de-entrenamientoid}
+
+Con punto de partida contábamos con una base de datos de imágenes
+médicas clasificadas según el tipo de enfermad que presentaban. La base
+contaba con las siguientes clases: Adenocarcinoma\_ductal,
+Glandulas\_no\_neoplasicas, Gleason\_4\_fusionadas
+,Gleason\_5\_comedonecrosis, No\_Cancer ,Carcinoma\_intraductal
+Gleason\_3 , Gleason\_4\_glomeruloide, Gleason\_5\_no\_glandulas,
+PIN\_de\_alto\_grado, Estroma , Gleason\_4\_cribiformes,
+Gleason\_4\_pobremente\_formadas, Inflamatorio. Inicialmente el
+repositorio cuenta de partida con dos subcarpetas que son train y val,
+con un total de 126192 imágenes, cuya distribución de imágenes por cada
+clase es la siguiente:
+
+\includegraphics[width=4.36979in,height=3.27371in]{notas/media/image3.png}
+
+Contado con un total de 90800 imágenes para train, 22691 para validation
+y 12618 para test.
+
+El primer reto al que nos enfrentamos es el de poder crear un modelo de
+aprendizaje supervisado que dado una imágen de nuestro conjunto de datos
+sea capaz de clasificarla en una de las respectivas clases con la mayor
+precisión posible.
+
+Para comenzar se necesita un conjunto train, val y test. Así pues dada
+estructura inicial del conjunto de datos, se optó por utilizar el
+directorio val, que presentaba una menor cantidad de imágenes en
+comparación con train para realizar el testing, y a su vez de train se
+separaría en dos carpetas, una mayor para el entrenamiento y una menor
+para la validación.
+
+\subsection{1.2. DataLoader}\label{dataloader}
+
+Para una primera aproximación del modelo hemos decidido crear un
+conjunto de imágenes menor apartir del original, el cual sirve para
+pruebas de testeo y comprobar el funcionamiento correcto de nuestro
+modelo antes de pasarlo a entrar con el conjunto de datos original. Este
+al igual que el conjunto de datos original cuenta con tres carpetas,
+inicialmente se seleccionaron 10 imágenes de cada carpeta de la
+estructura original del dataset para crear uno nuevo pero con un número
+mucho más reducido de imágenes. Posteriormente se aplico el mismo
+procedimiento de separar train en dos nuevas carpetas de train y val, y
+el val original pasó a ser test. Debido a esto el resultado final ha
+sido una estructura de tres carpetas train con 139 imágenes, val con 55
+y test con 167.
+
+\includegraphics[width=3.5464in,height=2.6576in]{notas/media/image18.png}
+
+\subsection{1.3. Learner}\label{learner}
+
+En cuanto al optimizador vamos a usar el AdamW {[}1{]} pues se trata de
+una versión mejorada del optimizador Adam con la mejora añadida de que
+cuenta con Weight Decay. En la implementación de FastAi es cierto que el
+nombre asociado es el de Adam, pero es debido a una decisión de FastAi
+de adoptar la versión mejorarda del optimizado bajo el nombre de la
+original.
+
+Debido a la complejidad del problema no tardó en saltar el problema de
+memoria CUDA out of Memory Error. Para plantearnos manejar este problema
+sin alterar la arquitectura del modelo {[}3{]} se optó por reducir el
+tamaño del batch size a la mitad, pasando así entonces de 128 imágenes
+por lote a 64. Las otras medidas tomadas fueron adaptar el learner para
+trabajar con precisión de 16 bits, ahorrando así memoria, liberar la
+caché de la memoria al iniciar la ejecución, y por último se ha reducido
+el número de workers de 8 a 4, planteando la posiblidad de que la
+creación de hebras separadas para el tratamiento del problema pudiera
+estar infiriendo en una mayor lentitud de ejecución del modelo.
+
+Llegados a este punto solo queda probar con diversos modelos ya
+preentrenados, hacerles un fine tuning y analizar cual genera mejor
+resultados y el que será por tanto con el que sigamos trabajando a lo
+largo del proyecto:
+
+\subsection{1.4. Análisis de
+resultados}\label{anuxe1lisis-de-resultados}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}ll@{}}
+\toprule\noalign{}
+\textbf{RESUMEN} & test\_accuracy \\
+vit\_base\_patch16\_224 & 0,9525281190872192 \\
+resnet50 & 0.8963385820388794 \\
+convnext\_small & 0.9667934775352478 \\
+tf\_efficientnetv2\_s & 0.9537961483001709 \\
+swin\_small\_patch4\_window7\_224 & 0.9686955213546753 \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+\end{longtable}
+}
+
+El modelo Swin Transformer obtiene la mayor accuracy (96,87\%), seguido
+muy de cerca por ConvNeXt (96,68\%). Dada la escasa diferencia entre
+ambos, cualquiera de los dos sería una base adecuada; se selecciona Swin
+por ser el que mejor resultado ha obtenido.''
+
+La superioridad de esta arquitectura radica en tres pilares
+fundamentales:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  \textbf{Jerarquización y Ventanas Desplazadas (Shifted Windows):} A
+  diferencia de los Vision Transformers (ViT) estándar, que operan con
+  parches globales, el Swin Transformer utiliza un mecanismo de ventanas
+  jerárquicas. Esto permite capturar relaciones espaciales tanto a nivel
+  local (textura, morfología de tejidos) como global (anatomía
+  estructural de la lesión).
+\item
+  \textbf{Eficiencia en el Contexto Local:} La capacidad de
+  contextualizar parches mediante window7 permite que el modelo se
+  enfoque en características relevantes sin verse afectado por el ruido
+  de fondo, algo que los modelos de atención global (como
+  vit\_base\_patch16) pueden ignorar al tratar todas las regiones por
+  igual.
+\item
+  \textbf{Inductividad de la Imagen:} Al igual que ConvNeXt, el Swin
+  Transformer integra principios de las redes convolucionales (sesgo
+  inductivo), lo que facilita el aprendizaje de características
+  jerárquicas desde resoluciones finas a gruesas. Esto permite una
+  convergencia más eficiente y un mejor aprovechamiento de la
+  información contenida en las imágenes médicas.
+\end{enumerate}
+
+La diferencia obtenida mínima entre el \emph{Swin Transformer} y
+\emph{ConvNeXt} (0.0019) indica que ambas arquitecturas están alcanzando
+un techo de rendimiento cercano al límite de información útil extraíble
+del conjunto de datos.
+
+\begin{itemize}
+\item
+  \textbf{Complementariedad de enfoques:} El hecho de que modelos
+  basados en atención jerárquica y arquitecturas convolucionales
+  modernas compitan por el primer puesto sugiere que las características
+  más relevantes para el diagnóstico están siendo bien capturadas por
+  ambos paradigmas.
+\end{itemize}
+
+Por tanto el modelo con el que nos vamos a quedar para proseguir en
+nuestro estudio es el swin\_small\_patch4\_window7\_224.
+
+\subsubsection{}\label{section}
+
+\subsection{1.5. Gráficos y resultados del entrenamiento de cada
+modelo}\label{gruxe1ficos-y-resultados-del-entrenamiento-de-cada-modelo}
+
+\subsubsection{1.5.1. Modelo Primero:}\label{modelo-primero}
+
+\includegraphics[width=7.45869in,height=1.89565in]{notas/media/image4.png}
+
+\includegraphics[width=3.52826in,height=3.51984in]{notas/media/image5.png}
+
+Test Loss: 0.6787635087966919, Test Accuracy: 0.9525281190872192
+
+\subsubsection[1.5.2. Modelo 2]{\texorpdfstring{1.5.2. Modelo
+2\protect\includegraphics[width=7.44094in,height=1.86024in]{notas/media/image15.png}}{1.5.2. Modelo 2}}\label{modelo-2}
+
+\includegraphics[width=3.52756in,height=3.5236in]{notas/media/image1.png}
+
+Test Loss: 0.8891878724098206, Test Accuracy: 0.8963385820388794
+
+\subsubsection[1.5.3. Modelo 3:]{\texorpdfstring{1.5.3. Modelo
+3:\protect\includegraphics[width=7.44094in,height=1.93465in]{notas/media/image7.png}}{1.5.3. Modelo 3:}}\label{modelo-3}
+
+\includegraphics[width=3.52756in,height=3.5236in]{notas/media/image16.png}
+
+Test Loss: 0.6424340009689331, Test Accuracy: 0.9667934775352478
+
+\subsubsection[1.5.4. Modelo 4:]{\texorpdfstring{1.5.4. Modelo
+4:\protect\includegraphics[width=7.44094in,height=1.93465in]{notas/media/image2.png}}{1.5.4. Modelo 4:}}\label{modelo-4}
+
+\includegraphics[width=3.52756in,height=3.5236in]{notas/media/image14.png}
+
+\subsection{\texorpdfstring{1.6. Comparativa de los modelos obtenidos y
+sus resultados asociados.
+}{1.6. Comparativa de los modelos obtenidos y sus resultados asociados. }}\label{comparativa-de-los-modelos-obtenidos-y-sus-resultados-asociados.}
+
+\section{2. Out of Distribution}\label{out-of-distribution}
+
+Vamos a usar el repositorio alojado en este
+\href{https://github.com/Jingkang50/OpenOOD}{\ul{github}} para continuar
+con nuestro análisis de resultados, particularmente en este
+\href{https://colab.research.google.com/drive/1tvTpCM1_ju82Yygu40fy7Lc0L1YrlkQF?usp=sharing\#scrollTo=3jf2U83Apcru}{\ul{enlace}}
+se encuentra una explicación de uso del material:
+
+\includegraphics[width=4.81352in,height=2.88651in]{notas/media/image9.png}
+
+\subsection{2.1. Conjunto de Datos}\label{conjunto-de-datos}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}ll@{}}
+\toprule\noalign{}
+\textbf{Conjunto} & \textbf{Imágenes (14 clases)} \\
+Train ID & 90.800 \\
+Validación ID & 22.691 \\
+Test ID & 12.618 \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+\end{longtable}
+}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2500}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2500}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2500}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2500}}@{}}
+\toprule\noalign{}
+\textbf{Conjunto} & \textbf{Papel} & \textbf{¿Qué cambia respecto al
+ID?} & \textbf{Objetivo} \\
+NCT-CRC: TUM + NORM (23080)
+
+(A) & Near OOD & Otro órgano (colon, tejido glandular) y otro centro;
+misma escala & Buscamos ver si un tejido muy parecido al original es
+capaz de rechazarlo \\
+NCT-CRC: STR, LYM, MUS (por separado)
+
+(B) & Control interno & Otro centro; tejidos parecidos a clases de
+entrenamiento (Estroma e inflamatorio) & Tejidos nuevamente parecidos a
+ID, determinamos si descarta por el centro por el tejido \\
+PANDA(10000)
+
+(C) & Covariate shift & Mismo órgano (próstata), otro centro y escáner;
+menor resolución (128 px) & En este caso al repetir el organo lo único
+que cambia que afecta es el covariate shift por lo que una detección OOD
+reflejaría su discrminación por este motivo \\
+Control de resolución (12618) & Control & Las mismas imágenes del test
+ID, reducidas a 128 px y ampliadas a 224 & Buscamos ver si se están
+clasificando imágenes en OOD solo por la resolución \\
+DTD / Textures & Far -OOD & No es tejido: texturas genéricas &
+Clasificación sencilla, ha de clasificarla directamente como OOD \\
+NCT-CRC:ADI, BACK, DEB, MUC & ANEXO & Grasa, fondo, restos, moco & \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+\end{longtable}
+}
+
+\textbf{ID (información extraída del paper de Iván Sevillano sobre
+Cáncer de Próstata)}
+
+El muestreo tisular fueron realizados por residentes de anatomía
+patológica o por patólogos titulados. Las piezas se procesaron en un
+procesador automático de tejidos, se deshidrataron y se incluyeron en
+parafina. Se obtuvieron cortes de 3--5 μm de grosor con un micrótomo,
+que se montaron en portaobjetos de vidrio, se desparafinaron y se
+tiñeron con hematoxilina y eosina (H\&E).
+
+Las preparaciones teñidas con H\&E se digitalizaron con un escáner de
+preparaciones completas Aperio/Leica AT2 a 20× aumentos, con una
+resolución de escaneo de 50 000 píxeles por pulgada (0,5 μm/píxel).
+Todas las imágenes fueron segmentadas manualmente por patólogos
+experimentados con un amplio conocimiento de la histología del cáncer de
+próstata. Las regiones anotadas se clasificaron en 14 categorías
+histológicas distintas que reflejan patrones morfológicos reconocidos en
+la práctica clínica.
+
+Cada WSI anotada se dividió en parches cuadrados de tamaño H × H = 224 ×
+224 píxeles, extraídos con un paso (\emph{stride}) de p = 256 píxeles.
+Un parche se asignaba a una clase concreta si más del 75 \% de sus
+píxeles pertenecían a una región anotada como dicha clase; en caso
+contrario, se descartaba.
+
+\textbf{NCT-CRC-HE-100K-NONORM}
+
+\begin{itemize}
+\item
+  Este es un conjunto de 100.000 parches de imágenes no superpuestas de
+  imágenes histológicas teñidas con hematoxilina y eosina (H\&E) de
+  cáncer colorrectal humano (CRC) y tejido normal.
+\item
+  Todas las imágenes son 224x224 píxeles (px) a 0,5 micras por píxel
+  (MPP).Se utiliza la versión NONORM, generada a partir de los mismos
+  datos originales pero sin normalización de color, para no introducir
+  un cambio artificial en la
+  distribución.''(http://ieeexplore.ieee.org/abstract/document/5193250/,
+  \href{https://doi.org/10.1109/ISBI.2009.5193250}{\ul{DOI
+  10.1109/ISBI.2009.}}5193250).
+\item
+  Las clases de tejido son: tejido adiposo (ADI), fondo (BACK), desechos
+  (DEB), linfocitos (LYM), moco (MUC), músculo liso (MUS), mucosa normal
+  del colon (NORM), estroma asociado al cáncer (STR), epitelio de
+  adenocarcinoma colorrectal (TUM).
+\item
+  Estas imágenes se extrajeron manualmente de N=86 H\&E portaobjetos de
+  tejido de cáncer humano teñidos de muestras de parafina embebidas en
+  formalina (FFPE) del NCT Biobank (Centro Nacional de Enfermedades
+  Tumorales, Heidelberg, Alemania) y el archivo de patología UMM
+  (University Medical Center Mannheim, Mannheim, Alemania). Las muestras
+  de tejido contenían portaobjetos tumorales primarios de CRC y tejido
+  tumoral de metástasis hepáticas de CRC; las clases de tejido normal se
+  aumentaron con regiones no tumorales de la muestra de gastrectomía
+  para aumentar la variabilidad.
+\end{itemize}
+
+\begin{enumerate}
+\def\labelenumi{(\Alph{enumi})}
+\item
+  TUM y NORM hacen referencia epitelio de adenocarcinoma colorrectal y a
+  mucosa normal del colon
+\end{enumerate}
+
+\begin{quote}
+\includegraphics[width=1.83482in,height=1.84167in]{notas/media/image11.png}\includegraphics[width=1.83232in,height=1.8711in]{notas/media/image10.png}
+
+Comparativa de la adenocarcinoma colorrectal versus adenocarcinoma
+ductal del ID
+\end{quote}
+
+\begin{enumerate}
+\def\labelenumi{(\Alph{enumi})}
+\setcounter{enumi}{1}
+\item
+  STR, LYM y MUS hacen referencia a estroma asociado al cáncer,
+  linfocitos y músculo liso
+\end{enumerate}
+
+\begin{quote}
+\includegraphics[width=2.15208in,height=2.13626in]{notas/media/image12.png}\includegraphics[width=2.1625in,height=2.11444in]{notas/media/image13.png}
+
+Ejemplos de imágenes de STR y LYM
+
+(C) Panda
+
+\includegraphics[width=1.59375in,height=1.63542in]{notas/media/image6.png}\includegraphics[width=1.61875in,height=1.63065in]{notas/media/image17.png}
+
+Panda versus nuestras imagenes de ID
+\end{quote}
+
+\href{https://zenodo.org/records/1214456}{\ul{Enlace al conjunto de
+datos}}
+
+\textbf{Covariate Shift--- PANDA (próstata de otro centro):} Biopsias
+del mismo órgano (próstata) y mismo tipo de tinción, pero de escáneres y
+hospitales distintos (Karolinska Institute / Radboud University).
+
+\href{https://www.kaggle.com/c/prostate-cancer-grade-assessment}{\ul{https://www.kaggle.com/c/prostate-cancer-grade-assessment}}
+
+\href{https://www.kaggle.com/iafoss/panda-16x128x128-tiles-data}{\ul{https://www.kaggle.com/iafoss/panda-16x128x128-tiles-data}}
+
+\subsection{2.2. Métricas}\label{muxe9tricas}
+
+Hay tres métricas que miden lo bien que mi clasificador separa ID de
+OOD. El inconveniente está en que no mide si la clasificación de las 14
+clases es correcta. Para ello conviene mejor usar CCR@FPRx. Al final
+estas métricas se comportan como modelos de clasificación binaria en ID
+y OOD:
+
+\begin{itemize}
+\item
+  \textbf{AUROC}: representa la probabilidad de que el modelo asigne una
+  puntuación o probabilidad más alta a un ejemplo positivo elegido al
+  azar que a uno negativo. \textbf{Rango de valores:} Va de 0 a 1.0
+  representado 0.5 que el modelo no tiene capacidad discriminatoria
+  (equivale a adivinar al azar), \textbf{1.0} que el modelo tiene una
+  clasificación perfecta y aquellos casos con \emph{valores inferiores a
+  0.5 i}ndican que el modelo invierte las clases (si se invierte la
+  predicción, el valor pasa a ser 1 - valor). En este caso también la
+  clase positiva es la OOD.
+\item
+  \textbf{FPR@95:} consiste en ajustar el umbral que delimita un caso
+  como ID de forma que dicho umbral detecte el 95\% de las OOD.
+\item
+  AUPR: esta métrica va acompañada de AUROC, ya que AUROC no es sensible
+  a desbalance entre clases mientras que AUPR sí. Principalmente se basa
+  en dos conceptos Precisión y Recall. De esta métrica obtenemos dos
+  versiones AUPR-In (mide lo bien que se recuperan imágenes de próstata
+  sin que se cuelen OOD) y AUPR-Out (mide lo bien que se encuentran las
+  OOD sin falsas alarmas sobre las próstata), en el primer caso los
+  casos positivos en ID y por eso mismo nos interesa un valor alto y en
+  el segundo el caso positivo es el OOD por lo que interesa un valor más
+  bajo.
+\item
+  \textbf{CCR@FPRx}: Se fija el umbral de modo que solo se acepte un x
+  \% de las imágenes OOD, y se mide la proporción de imágenes del test
+  ID que son aceptadas y además correctamente clasificadas. Se calcula
+  solo sobre el test ID; su máximo es la exactitud del clasificador.
+\end{itemize}
+
+\subsection{2.3. Métodos de detección OOD post
+hoc}\label{muxe9todos-de-detecciuxf3n-ood-post-hoc}
+
+\subsubsection{2.3.1. Grupo 1}\label{grupo-1}
+
+Grupo de los logits (números producidos por la red justo al final, antes
+de convertirlos en probabilidades):
+
+\begin{itemize}
+\item
+  \textbf{MSP (Maximum Softmax Probability)}: la probabilidad de la
+  clase ganadora tras el softmax.
+\item
+  \textbf{MLS (MaxLogit)}: lo mismo que MSP pero con el logit máximo sin
+  pasar por softmax. La ventaja que ofrece este método es que el softmax
+  normaliza y pierde información sobre la magnitud absoluta; el logit
+  bruto la conserva.
+\item
+  \textbf{EBO (Energy-Based OOD)}: el logaritmo de la suma de las
+  exponenciales de los argumentos de todos los logits. Funciona como una
+  versión "suave" y diferenciable de la función max(x).
+\end{itemize}
+
+\subsubsection{2.3.2. Grupo 2: comparan con la información de las
+features de
+entrenamiento}\label{grupo-2-comparan-con-la-informaciuxf3n-de-las-features-de-entrenamiento}
+
+\begin{itemize}
+\item
+  \textbf{KNN}: guarda las features de entrenamiento (normalizadas) y,
+  para cada imagen de test, mide la distancia a su k-ésimo vecino más
+  cercano. Si está lejos de todo lo visto, es OOD.
+\item
+  \textbf{MDS (Mahalanobis)}: calcula la media de las features de cada
+  clase y una covarianza compartida. La puntuación es la distancia de
+  Mahalanobis a la media de la clase más cercana
+\item
+  \textbf{RMDS (Relative Mahalanobis)}: igual que MDS, pero resta la
+  distancia a una gaussiana global de todo el dataset. Así corrige el
+  hecho de que algunas direcciones del espacio de features son ``fondo''
+  común a todas las imágenes y no información de clase. Suele funcionar
+  mejor en near-OOD.
+\item
+  \textbf{ViM (Virtual-logit Matching)}: busca las direcciones
+  principales del espacio de features de entrenamiento (análisis de
+  componentes principales). Lo que queda fuera de ese subespacio
+  principal (el residuo) se considera señal de OOD. Combina la norma de
+  ese residuo con la energía de los logits.
+\item
+  \textbf{SHE (Simplified Hopfield Energy)}: en el setup() pasa el train
+  por la red y, para cada clase, calcula la media de las features sólo
+  de las imágenes que el modelo clasifica correctamente (etiqueta real =
+  predicción). Eso le da 14 ``patrones'' de referencia. En test, mira
+  qué clase predice el modelo para la imagen y compara su feature con el
+  patrón de esa clase (por producto escalar, distancia euclídea o
+  coseno, según la configuración).
+\end{itemize}
+
+\subsubsection{2.3.3. Grupo 3: métodos basados en la modificación de
+activaciones}\label{grupo-3-muxe9todos-basados-en-la-modificaciuxf3n-de-activaciones}
+
+Estos métodos modifican las activaciones o los pesos de la última capa
+del modelo antes de calcular la puntuación, con el objetivo de atenuar
+las señales anómalas que producen las imágenes OOD. Los tres calculan
+finalmente una puntuación de tipo Energy sobre los logits resultantes y
+fueron diseñados y evaluados originalmente sobre redes convolucionales
+con activaciones ReLU.
+
+\begin{itemize}
+\item
+  \textbf{ReAct (Rectified Activations)} (Sun et al., 2021): parte de la
+  observación de que las imágenes OOD tienden a producir activaciones
+  anormalmente altas en algunas unidades de la penúltima capa, lo que
+  sus autores atribuyen al uso de estadísticas de BatchNorm estimadas
+  con datos ID y aplicadas sin cambios a datos OOD. Para atenuarlo,
+  recorta cada activación del vector de características por encima de un
+  umbral c, h̃ = mín(h, c), y calcula la puntuación Energy sobre los
+  logits obtenidos a partir de las características recortadas. El umbral
+  c se fija como el percentil 90 de las activaciones en el conjunto de
+  validación ID.
+\item
+  \textbf{ASH (Activation Shaping)} (Djurisic et al., 2023): actúa sobre
+  el vector de características de cada imagen de forma individual.
+  Conserva solo el 10 \% de las activaciones de mayor valor (percentil
+  90), pone a cero el resto y ajusta las conservadas para compensar la
+  información eliminada. En la variante empleada (ASH-B), todas las
+  activaciones conservadas toman el mismo valor, igual a la suma total
+  de las activaciones de la imagen dividida entre el número de
+  activaciones conservadas. Después se calcula la puntuación Energy. Se
+  aplica sobre las 768 características agregadas tras el \emph{pooling},
+  como en la implementación de OpenOOD.
+\item
+  \textbf{DICE (Directed Sparsification)} (Sun y Li, 2022): actúa sobre
+  los pesos de la última capa lineal en lugar de sobre las activaciones.
+  Para cada conexión entre una característica y una clase, calcula su
+  contribución media en el conjunto de entrenamiento ID (el peso
+  multiplicado por la activación media de esa característica), conserva
+  solo las conexiones de mayor contribución y pone a cero el resto
+  (esparsidad del 90 \%). Al eliminar las conexiones poco relevantes
+  para los datos ID, reduce la varianza de la salida en las imágenes OOD
+  y mejora su separación. La puntuación es la Energy de los logits
+  calculados con la capa podada.
+\end{itemize}
+
+\subsubsection{2.3.3. Resultados obtenidos}\label{resultados-obtenidos}
+
+pdf - tabla\_principal\_ood.tex
+
+\subsubsection{2.3.4. Análisis de los resultados de detección
+OOD}\label{anuxe1lisis-de-los-resultados-de-detecciuxf3n-ood}
+
+Los resultados muestran una separación clara entre familias de métodos.
+Los métodos que operan sobre el espacio de características (ViM, MDS,
+KNN, RMDS y STOOD-X) superan de forma sistemática a los basados
+únicamente en los logits, en todos los conjuntos evaluados. En el
+near-OOD principal (NCT-CRC TUM + NORM), los primeros alcanzan un AUROC
+de entre 0,953 y 0,969, frente a 0,821--0,876 de MSP, MaxLogit y Energy.
+La diferencia es aún mayor en el punto de trabajo: el FPR@95 baja de
+0,879 (MSP) a valores entre 0,128 y 0,173, y el CCR@FPR5 sube de 0,118 a
+más de 0,82. Esto indica que el vector de características de 768
+dimensiones contiene información sobre la pertenencia a la distribución
+que se pierde al proyectarlo sobre los 14 logits.
+
+\textbf{Near-OOD principal.} ViM (0,969 {[}0,968; 0,971{]}) y MDS
+(0,968) obtienen el mejor AUROC, mientras que RMDS logra el mejor FPR@95
+(0,128) y el mejor CCR@FPR5 (0,868), con un AUROC significativamente
+inferior (0,954). Ambos resultados no son contradictorios: el AUROC
+resume la separación en todos los umbrales, mientras que FPR@95 y
+CCR@FPR5 evalúan la zona de umbral exigente, que es la relevante en un
+contexto clínico. Con el umbral que deja pasar solo el 5 \% de las
+imágenes de colon, RMDS acepta y clasifica correctamente el 86,8 \% del
+test ID, frente a un máximo posible de 96,9 \%. No obstante, RMDS
+presenta un fallo marcado en la clase LYM (FPR@95 = 0,992; CCR@FPR5 =
+0,008): una parte de los linfocitos de colon recibe puntuaciones
+superiores a las de las propias imágenes ID, por lo que ningún umbral
+permite rechazarlos sin descartar casi todo el ID.
+
+\textbf{Control interno: centro frente a tejido.} Las clases afines de
+NCT-CRC permiten separar el efecto del cambio de centro del efecto del
+tipo de tejido. En ViM, MDS y KNN, los linfocitos (LYM), el tejido más
+similar entre órganos, se detectan con un AUROC (0,948--0,969)
+prácticamente igual al del tejido glandular de colon (TUM: 0,952--0,966;
+NORM: 0,963--0,975). Por tanto, estos detectores responden
+principalmente al \textbf{cambio de centro} (laboratorio, tinción,
+escáner) y no a la naturaleza del tejido. Este resultado es coherente
+con lo señalado por Yang et al. (2024): los detectores OOD tienden a ser
+más sensibles al desplazamiento de covariables que al cambio semántico.
+
+\textbf{Cambio de centro y resolución.} PANDA, compuesto por tejido
+prostático de otros centros, se detecta con AUROC ≈ 0,91 en los mejores
+métodos (ViM 0,912; RMDS 0,912; MDS 0,911). El control de resolución,
+formado por las mismas imágenes del test ID degradadas a 128 px, alcanza
+entre 0,753 y 0,789 en esos métodos. Al ser claramente inferior, la
+detección de PANDA no se explica únicamente por la pérdida de nitidez:
+el cambio de centro contribuye de forma propia. STOOD-X es la excepción,
+con valores prácticamente iguales en ambos conjuntos (0,895 y 0,894).
+Desde el punto de vista clínico, estos resultados implican que un
+sistema validado en un hospital rechazaría una fracción importante de
+imágenes de otro centro aun siendo del mismo órgano, lo que exigiría
+recalibrar el detector antes de su despliegue.
+
+\textbf{Far-OOD.} En DTD, STOOD-X obtiene el mejor resultado (AUROC
+0,991; FPR@95 0,028). Llama la atención que, para ViM, MDS y KNN, el
+far-OOD no resulta más fácil que el near-OOD (0,936--0,959 frente a
+0,956--0,969). Esto refuerza la idea de que estos métodos son
+especialmente sensibles a las características de adquisición de las
+imágenes histológicas más que a su contenido semántico.
+
+\textbf{Métodos basados en logits y en modificación de activaciones.}
+MSP supera a MaxLogit y a Energy en los nueve conjuntos, al contrario de
+lo habitual en la literatura. Una explicación plausible es el uso de
+label smoothing durante el entrenamiento, que comprime la escala de los
+logits; comprobarlo requeriría entrenar el modelo sin esta técnica. Los
+métodos que modifican activaciones, diseñados para redes con
+activaciones ReLU y BatchNorm, no se trasladan bien a un Swin
+Transformer con LayerNorm. ReAct mejora a Energy, pero no a MSP. DICE
+queda por debajo de Energy en ocho de los nueve conjuntos, con un AUROC
+inferior al azar en DTD (0,436). ASH colapsa por completo: al
+redistribuir la suma de las activaciones, que es negativa en el 27,5 \%
+de las imágenes, invierte los logits y reduce la exactitud ID al 68,3
+\%. Por último, SHE con producto escalar resulta irregular (0,795),
+mientras que sus variantes con distancia coseno (0,938) y euclídea
+(0,942) mejoran notablemente, lo que apunta de nuevo a la
+incompatibilidad entre las características con signo del Swin y los
+supuestos del método.
+
+\textbf{Conclusión.} Ningún método domina en todas las métricas y
+conjuntos. ViM ofrece el mejor equilibrio global en AUROC; RMDS, el
+mejor comportamiento con umbrales exigentes, aunque con un fallo severo
+en LYM; y STOOD-X destaca en far-OOD y en varias clases de NCT-CRC, pero
+es el más sensible a la resolución. El hallazgo más relevante es que los
+mejores detectores responden sobre todo a las condiciones de
+adquisición, lo que condiciona su uso en un entorno multicéntrico.
+
+\subsubsection{2.3.5. STOOD-X}\label{stood-x}
+
+\begin{quote}
+Se trata de una metodología post hoc de detección OOD en dos etapas: una
+primera de detección, basada en un test estadístico no paramétrico sobre
+distancias en el espacio de características, y una segunda de
+explicación, que muestra al usuario los vecinos más cercanos y las
+características más relevantes compartidas con ellos.
+
+Sea x una imagen cuya clase predicha por el modelo es c, y sea X\_set el
+conjunto de características de entrenamiento de esa clase. Se denota
+X\_k = \{x\_1, \ldots, x\_K\} el conjunto de los K vecinos más cercanos
+de x en X\_set según una distancia d, y, para cada vecino x\_i, X\_kⁱ el
+conjunto de sus K vecinos más cercanos en X\_set \textbackslash{}
+\{x\_i\}. La hipótesis del método es que, si x pertenece a la
+distribución de entrenamiento, las distancias D(x, X\_k) y D(x\_i,
+X\_kⁱ) siguen la misma distribución; si x es OOD, las primeras serán
+mayores. Para contrastarlo se aplica el test unilateral de
+Wilcoxon-Mann-Whitney entre ambos conjuntos de distancias, con un total
+de M = K + K² distancias, y el p-valor resultante se utiliza como
+puntuación: valores altos indican pertenencia a la distribución.
+
+\textbf{Implementación.} El método se ha implementado siguiendo la
+descripción del artículo.Se realiza un único test por imagen entre las K
+distancias de x y las K² distancias de sus vecinos mediante
+scipy.stats.mannwhitneyu (Virtanen et al., 2020).
+
+\textbf{Configuración.} Se emplean la distancia coseno, K = 500 (el
+valor seleccionado en el artículo), el conjunto de entrenamiento ID de
+la clase predicha como referencia y dos configuraciones de
+características: el 100 \% y el 87,5 \% más presente. Dado que el
+criterio de relevancia del artículo se basa en CRP, que no es
+directamente aplicable a un Swin Transformer, la selección del 87,5 \%
+se realiza mediante la presencia de cada característica (suma de sus
+valores absolutos en la clase), criterio utilizado en la implementación
+pública. Ningún hiperparámetro se ha ajustado con datos OOD.
+
+\textbf{Puntuación.}Como puntuación de detección se utiliza el
+estadístico tipificado del test de Mann-Whitney, z, obtenido mediante la
+aproximación normal del estadístico U con corrección por empates y por
+continuidad. Dado que p = 1 − Φ(z) es una función monótona decreciente
+de z, la puntuación −z induce la misma ordenación que el p-valor
+propuesto en STOOD-X, pero evita el subdesbordamiento numérico que se
+produce cuando p \textless{} 10⁻³⁰⁸. Cuando todas las distancias de x
+superan a las de sus vecinos (separación completa), el estadístico
+alcanza su valor máximo y varias imágenes quedan empatadas. Esto afecta
+al 66 \% de TUM + NORM pero solo al 0,6 \% del test ID; su efecto está
+acotado en ±0,003 en AUROC, y no altera FPR@95 ni CCR@FPR5.
+
+\textbf{Resultados.} En el near-OOD principal (TUM + NORM), STOOD-X
+obtiene un AUROC de 0,953, estadísticamente indistinguible del de RMDS
+(0,954; p = 0,75 en el bootstrap pareado), aunque con un FPR@95
+claramente mayor (0,349 frente a 0,128). Es el mejor método en NORM
+(AUROC 0,990), STR (0,978), MUS (0,968) y DTD (0,991). En PANDA alcanza
+0,895, prácticamente igual que en el control de resolución (0,894), lo
+que indica que su detección del cambio de centro se explica casi por
+completo por la diferencia de resolución. Las configuraciones con el 100
+\% y el 87,5 \% de las características son indistinguibles.
+
+\textbf{Análisis.}
+\end{quote}
+
+\begin{itemize}
+\item
+  \emph{Calibración.} Aunque el método propone el p-valor como medida de
+  pertenencia, en el conjunto de validación ID el 82 \% de las imágenes
+  obtiene p \textless{} 0,05, con una distribución bimodal. Por tanto,
+  el p-valor permite ordenar las imágenes, pero no puede interpretarse
+  como nivel de significación. La causa probable es que las K²
+  distancias de referencia no son independientes, ya que los vecinos
+  comparten vecinos. La calibración conforme sobre el conjunto de
+  validación (sección X) recupera una tasa de falsas alarmas controlada.
+\item
+  \emph{Sensibilidad a K.} En un análisis de sensibilidad sobre un
+  subconjunto (tabla X), el rendimiento mejora hasta K ≈ 72--288 y se
+  degrada con K = 500. La degradación se concentra en las imágenes
+  predichas en clases con pocas imágenes de entrenamiento
+  (Gleason\_5\_comedonecrosis, 399; Inflamatorio, 568; No\_Cancer, 868),
+  donde K se aproxima al tamaño de la clase y se pierde la localidad del
+  vecindario. En particular, el 10 \% de las imágenes de TUM + NORM se
+  predice como Gleason\_5\_comedonecrosis. Al excluir esas clases, la
+  caída desaparece. Este análisis no se ha utilizado para elegir K, que
+  se mantiene en el valor del artículo; una variante que adapta K al
+  tamaño de la clase (K\_c = mín(500, ⌊n\_c/2⌋)) no mejoró los
+  resultados.
+\end{itemize}
+
+\begin{quote}
+\textbf{Explicaciones por ejemplos.} Siguiendo la segunda etapa del
+método, la siguiente figura muestra imágenes representativas junto a sus
+cinco vecinos más cercanos de entrenamiento. Las imágenes de colon
+aceptadas como ID se predicen en su totalidad como
+Gleason\_5\_comedonecrosis, lo que ilustra visualmente el efecto
+descrito.
+
+En cada figura, la primera columna es la imagen evaluada y las cinco
+siguientes, sus vecinos de entrenamiento, con la clase predicha, la
+puntuación (p y z) y las distancias en los títulos.
+
+\includegraphics[width=6.26772in,height=5.80556in]{notas/media/image19.png}
+\end{quote}
+
+\textbf{Frases para usar en el TFG}
+
+\emph{``Ambos conjuntos producen un cambio de distribución respecto al
+conjunto ID, pero de naturaleza distinta: PANDA corresponde a un
+desplazamiento de covariables, mientras que DTD introduce un cambio
+semántico.''}
+
+\emph{la detección OOD protege frente a imágenes raras o desconocidas,
+pero no frente a cambios en el criterio diagnóstico. Para eso hace falta
+revisar y reetiquetar los datos periódicamente.}
+
+\includegraphics[width=6.26772in,height=2.02778in]{notas/media/image8.png}
+
+\emph{Citar esta imagen y justificar:}
+
+\emph{. En la memoria puedes usar esta figura (citándola) para situar tu
+trabajo en (d) y justificar que incluyes PANDA porque, en un contexto
+clínico, también interesa avisar de cambios de apariencia que degradan
+el clasificador. Tu propio control lo demuestra: la exactitud cae del
+96,87 \% al 90,77 \%.}
+
+\emph{Cierta literatura previa clasifica las anomalías en tres tipos:
+anomalías puntuales, anomalías condicionales o contextuales y anomalías
+grupales o colectivas (Pang et al., 2020; Chalapathy y Chawla, 2019;
+Ruff et al., 2021). En este estudio, nos centramos principalmente en la
+detección de anomalías puntuales debido a su popularidad en aplicaciones
+prácticas y a su idoneidad para esclarecer las similitudes y diferencias
+entre las subtareas.}
+
+\emph{Esto te sirve de respaldo teórico: puedes citar este párrafo, o
+directamente a Fawcett (2006) para la curva ROC, al explicar tus
+métricas.}
+
+\emph{Formalmente, OSR aborda el caso en el que las muestras OOD
+experimentan un cambio semántico durante las pruebas, es decir, P(Y) ≠
+P′(Y). El objetivo de OSR es similar al de la detección de conjuntos
+abiertos multiclase (ND); la única diferencia radica en que OSR
+requiere, además, una clasificación precisa de las muestras ID de P(Y).
+(CITAR)}
+
+\textbf{Evaluación OSR TFG:}
+
+Evaluación: Al igual que en AD y ND, las métricas para OSR incluyen
+puntuaciones F (*F-scores*), AUROC y AUPR. Asimismo, el rendimiento de
+la clasificación se evalúa mediante la precisión estándar para ID. Si
+bien las métricas mencionadas evalúan de forma independiente las
+capacidades de detección de novedades y de clasificación ID, algunos
+trabajos proponen criterios para una evaluación conjunta, como CCR@FPRx
+(Dhamija et al., 2018), que calcula la tasa de recuperación (*recall*)
+por clase cuando se alcanza una determinada tasa de falsos positivos
+(FPR) igual a *x* (por ejemplo, 10⁻¹).
+
+\textbf{Evaluación OOD}
+
+Evaluación Además de las puntuaciones F, AUROC y AUPR, otra métrica
+
+comúnmente utilizada es FPR@TPRx, que mide la FPR cuando la TPR es x
+
+(por ejemplo, 0,95). Algunos trabajos también utilizan una métrica
+alternativa,
+
+TNR@TPRx, que es equivalente a 1 - FPR@TPRx. La detección de OOD
+
+también afecta al rendimiento de la clasificación de ID.
+
+Aunque en clasificación general la detección OOD suele restringirse al
+cambio semántico, Yang et al. (2024) señalan que en tareas de alto
+riesgo, como la clasificación de imágenes médicas (Zimmerer et al.,
+2022), se espera que los modelos sean conservadores y rechacen cualquier
+muestra que se desvíe de la distribución de entrenamiento. Siguiendo
+este criterio, en este trabajo se considera OOD tanto el cambio
+semántico (DTD) como el desplazamiento de covariables debido al cambio
+de centro (PANDA).''
+
+\textbf{Añadir esta parte de Inferencia Estadística:}
+
+Predicción Conforme La predicción conforme (CP) se erige como un marco
+estadístico
+
+robusto en el aprendizaje automático, diseñado principalmente para
+proporcionar
+
+medidas de confianza para las predicciones (Shafer y Vovk, 2008;
+Angelopoulos y
+
+Bates, 2021).
+
+\emph{No se han incluido métodos basados en gradientes, como ODIN (Liang
+et al., 2018) o GradNorm (Huang et al., 2021), por dos motivos. En
+primer lugar, requieren una pasada hacia atrás por cada imagen, lo que
+incrementa notablemente el coste de inferencia y dificulta su despliegue
+en un entorno clínico. En segundo lugar, Igoe et al. (2022) indican que
+la eficacia de estos métodos no se debe tanto a la información del
+gradiente como a la magnitud de las características y a la distribución
+de salida, aspectos que ya quedan cubiertos por los métodos basados en
+características y en logits evaluados en este trabajo.''}
+
+\emph{``Dentro de los métodos basados en densidad se distinguen dos
+enfoques. El modelado mediante gaussianas condicionales por clase en el
+espacio de características (Lee et al., 2018b) se ha incluido en la
+evaluación a través de MDS y RMDS. En cambio, no se han considerado los
+modelos generativos sobre el espacio de entrada, como los basados en
+flujos, por tres motivos: su entrenamiento resulta costoso y difícil de
+optimizar sobre imágenes de alta resolución; su verosimilitud presenta
+un fuerte sesgo hacia la complejidad de la entrada (Serrà et al., 2020),
+lo que en histopatología podría favorecer parches de baja complejidad,
+como regiones de fondo o estroma; y su rendimiento suele quedar por
+detrás de los enfoques basados en clasificación (Yang et al., 2024).''}
+
+\emph{Yang et al. (2024) identifican la explicabilidad como uno de los
+retos abiertos en la detección OOD. Este trabajo aborda dicho aspecto
+desde dos perspectivas complementarias: mediante STOOD-X, que
+proporciona explicaciones de las decisiones de detección, y mediante
+técnicas de relevancia por conceptos (CRP), que permiten identificar y
+eliminar características sesgadas del clasificador y analizar su efecto
+sobre la fiabilidad del sistema.''}
+
+\emph{Como puntuación de detección se utiliza el estadístico tipificado
+del test de Mann-Whitney, z, obtenido mediante la aproximación normal
+del estadístico U con corrección por empates y por continuidad. Dado que
+p = 1 − Φ(z) es una función monótona decreciente de z, la puntuación −z
+induce la misma ordenación que el p-valor propuesto en STOOD-X, pero
+evita el subdesbordamiento numérico que se produce cuando p \textless{}
+10⁻³⁰⁸.}
+
+\emph{Hablar del efecto Clever Hans en XAI, y de como los modelos
+aprender relaciones espurias para la clasificación de imággnes}
+
+\emph{La diferencia que tiene CRP frente a los método de explicabilidad
+local, es que estos otros reflejan las zonas en las que se ha fijado el
+modelo pero no son capaces de determinar la importancia de estas
+características para la decisión final}
+
+\emph{Utilizar el concepto de glocal CRP al igual que se usa en el paper
+que describe CRP}
+
+{[}1{]} Kingma, D.; Ba, J. Adam: A Method for Stochastic Optimization.
+arXiv 2014, arXiv:1412.6980.
+
+Paper para métodos
+
+{[}2{]} Kandel, I., \& Castelli, M. (2020). How Deeply to Fine-Tune a
+Convolutional Neural Network: A Case Study Using a Histopathology
+Dataset. \emph{Applied Sciences}, \emph{10}(10), 3359.
+https://doi.org/10.3390/app10103359
+
+Resolver problema CUDA out of memory
+
+{[}3{]}
+\href{https://saturncloud.io/blog/what-is-the-cuda-out-of-memory-error-and-how-to-fix-it/}{\ul{https://saturncloud.io/blog/what-is-the-cuda-out-of-memory-error-and-how-to-fix-it/}}
+
+Paper con la explicación OOD
+
+{[}4{]} Yang, J., Zhou, K., Li, Y. \emph{et al.} Generalized
+Out-of-Distribution Detection: A Survey. \emph{Int J Comput Vis}
+\textbf{132}, 5635--5662 (2024).
+\href{https://doi.org/10.1007/s11263-024-02117-4}{\ul{https://doi.org/10.1007/s11263-024-02117-4}}
+
+Explicación Test de Wilcoxon Mann Whitney
+
+https://cienciadedatos.net/documentos/17\_mann\%E2\%80\%93whitney\_u\_test
