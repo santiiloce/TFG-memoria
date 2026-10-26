@@ -1,0 +1,100 @@
+% !TeX root = tfg.tex
+% !TeX encoding = utf8
+%
+%*******************************************************
+% Preámbulo propio: paquetes y macros añadidos a la clase ugrTFG
+% (se carga justo después de \documentclass; no modificar ugrTFG.cls)
+%*******************************************************
+
+% -------------------------------------------------------------------
+% Versión borrador / final
+% -------------------------------------------------------------------
+% Con \borradortrue se muestran las marcas [PENDIENTE] y [REVISAR];
+% con \borradorfalse desaparecen en la versión final.
+\newif\ifborrador
+\borradortrue
+
+\ifborrador
+  \newcommand{\pendiente}[1]{\textcolor{red}{\textbf{[PENDIENTE: #1]}}}
+  \newcommand{\revisar}[1]{\textcolor{orange}{\textbf{[REVISAR: #1]}}}
+\else
+  \newcommand{\pendiente}[1]{}
+  \newcommand{\revisar}[1]{}
+\fi
+
+% -------------------------------------------------------------------
+% Paquetes
+% -------------------------------------------------------------------
+\usepackage{siunitx}
+\sisetup{output-decimal-marker={,}, group-separator={.}, group-minimum-digits=4}
+\usepackage{subcaption}
+\usepackage{multirow}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{pgfgantt}
+
+% cleveref siempre después de hyperref (que carga la clase)
+\usepackage[spanish, noabbrev]{cleveref}
+\crefname{teorema}{teorema}{teoremas}
+\Crefname{teorema}{Teorema}{Teoremas}
+\crefname{proposicion}{proposición}{proposiciones}
+\Crefname{proposicion}{Proposición}{Proposiciones}
+\crefname{lema}{lema}{lemas}
+\Crefname{lema}{Lema}{Lemas}
+\crefname{corolario}{corolario}{corolarios}
+\Crefname{corolario}{Corolario}{Corolarios}
+\crefname{definicion}{definición}{definiciones}
+\Crefname{definicion}{Definición}{Definiciones}
+\crefname{observacion}{observación}{observaciones}
+\Crefname{observacion}{Observación}{Observaciones}
+\crefname{ejemplo}{ejemplo}{ejemplos}
+\Crefname{ejemplo}{Ejemplo}{Ejemplos}
+\crefname{part}{parte}{partes}
+\Crefname{part}{Parte}{Partes}
+
+% -------------------------------------------------------------------
+% Entornos
+% -------------------------------------------------------------------
+% La clase no define "demostracion": se construye sobre proof de amsthm,
+% que con babel en español ya imprime «Demostración».
+\newenvironment{demostracion}{\begin{proof}}{\end{proof}}
+
+% -------------------------------------------------------------------
+% Notación recurrente (definida una sola vez)
+% -------------------------------------------------------------------
+% Conjuntos y probabilidad
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\DeclareMathOperator{\E}{\mathbb{E}}
+\newcommand{\Prob}{\mathbb{P}}
+\newcommand{\Ind}{\mathbb{1}}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator{\softmax}{softmax}
+\DeclareMathOperator{\Var}{Var}
+
+% Distribuciones y conjuntos ID / OOD
+\newcommand{\Pin}{P_{\mathrm{in}}}
+\newcommand{\Pout}{P_{\mathrm{out}}}
+\newcommand{\Din}{\mathcal{D}_{\mathrm{in}}}
+\newcommand{\Dout}{\mathcal{D}_{\mathrm{out}}}
+\newcommand{\Xin}{X_{\mathrm{in}}}
+\newcommand{\Xout}{X_{\mathrm{out}}}
+
+% Métricas (válidas en texto y en modo matemático)
+\newcommand{\AUROC}{\ensuremath{\mathrm{AUROC}}\xspace}
+\newcommand{\AUPRin}{\ensuremath{\mathrm{AUPR\text{-}In}}\xspace}
+\newcommand{\AUPRout}{\ensuremath{\mathrm{AUPR\text{-}Out}}\xspace}
+\newcommand{\FPR}{\ensuremath{\mathrm{FPR}}\xspace}
+\newcommand{\TPR}{\ensuremath{\mathrm{TPR}}\xspace}
+\newcommand{\CCR}{\ensuremath{\mathrm{CCR}}\xspace}
+\newcommand{\FPRn}[1]{\ensuremath{\mathrm{FPR@}#1}\xspace}
+\newcommand{\CCRn}[1]{\ensuremath{\mathrm{CCR@FPR}#1}\xspace}
+
+% Nombres de métodos y conjuntos (formato consistente en el texto)
+\newcommand{\stoodx}{STOOD-X\xspace}
+\newcommand{\nctcrc}{NCT-CRC-HE-100K-NONORM\xspace}
+\newcommand{\clase}[1]{\texttt{#1}}
+
+\endinput

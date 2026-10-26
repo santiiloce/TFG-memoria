@@ -2,17 +2,27 @@
 % !TeX encoding = utf8
 %
 %*******************************************************
-% Summary
+% Summary (800--1500 palabras, en inglés)
 %*******************************************************
 
 \selectlanguage{english}
 \chapter{Summary}
 
-An english summary of the project (around 800 and 1500 words are recommended).
-
-File: \texttt{preliminares/summary.tex}
-
+% Puntos que debería cubrir (se escribe al final):
+% - Context: deep learning for prostate histopathology classification (14 classes, H&E patches).
+% - Problem: models deployed in clinics receive inputs outside the training distribution (OOD).
+% - Research questions and hypotheses.
+% - Mathematical part: formalisation of OOD detection, ROC/AUROC and its link with the
+%   Mann-Whitney U statistic, post hoc detectors (logits, activations, features/distances),
+%   Mann-Whitney test, bootstrap/McNemar, conformal prediction (marginal coverage theorem,
+%   APS/LAC, Mondrian), LRP/CRP.
+% - Computer science part: five architectures compared, Swin-S selected; 16 OOD detectors
+%   evaluated on near-OOD (NCT-CRC), internal control, covariate shift (PANDA), resolution
+%   control and far-OOD (DTD); STOOD-X reimplementation; conformal prediction; slide leakage.
+% - Main results and conclusions; limitations; future work (explainability and bias removal).
+% - Keywords.
+\pendiente{summary en inglés (800--1500 palabras)}
 
 % Al finalizar el resumen en inglés, volvemos a seleccionar el idioma español para el documento
-\selectlanguage{spanish} 
+\selectlanguage{spanish}
 \endinput

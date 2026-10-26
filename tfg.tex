@@ -6,6 +6,7 @@
 % Francisco Torralbo Torralbo
 
 \documentclass{ugrTFG}
+\input{preambulo-propio} % Paquetes y macros propios (no modificar ugrTFG.cls)
 
 % VERSIÓN ELECTRÓNICA PARA TABLETA
 % Activando la opción "tablet" generaremos un pdf adaptado para leerlo en tabletas de 9 pulgadas:
@@ -41,44 +42,19 @@
 \input{preliminares/declaracion-originalidad}
 \input{preliminares/dedicatoria}                % Opcional
 \input{preliminares/agradecimientos}            % Opcional
+\input{preliminares/acronimos}
 
 \input{preliminares/summary}
+\input{preliminares/resumen}
 
 \input{preliminares/tablacontenidos}
-\input{preliminares/introduccion}
 
 % -------------------------------------------------------------------
 % MAINMATTER
 % -------------------------------------------------------------------
 \mainmatter % activa la numeración de capítulos, resetea la numeración de las páginas y usa números arábigos
 
-\part{Primera parte} % Dividir un TFG en partes OPCIONAL
-
-% Información relevante para la elaboración del trabajo.
-\input{capitulos/documentacion}
-\input{capitulos/recomendaciones}
-
-% Añadir tantos capítulos como sea necesario
-
-\cleardoublepage
-\part{Segunda parte}
-\input{capitulos/capitulo-ejemplo}
-
-% -------------------------------------------------------------------
-% APPENDIX: Opcional
-% -------------------------------------------------------------------
-
-\appendix % Reinicia la numeración de los capítulos y usa letras para numerarlos
-\pdfbookmark[-1]{Apéndices}{appendix} % Alternativamente podemos agrupar los apéndices con un nuevo \part{Apéndices}
-
-\input{apendices/apendice-ejemplo}
-% Añadir tantos apéndices como sea necesario
-
-% -------------------------------------------------------------------
-% GLOSARIO: Opcional
-% -------------------------------------------------------------------
-
-\input{glosario}
+\input{capitulos/01-introduccion}
 
 % -------------------------------------------------------------------
 % BACKMATTER
@@ -91,7 +67,7 @@
 % BIBLIOGRAFÍA
 %-------------------------------------------------------------------
 
-\bibliographystyle{abbrv}
+\bibliographystyle{plain-es}
 % Otros estilos bibliográficos: alpha-es, amsalpha, plain
 \begin{small}
   \bibliography{library.bib}
