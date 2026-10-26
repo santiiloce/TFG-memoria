@@ -29,9 +29,8 @@
 *.ilg
 *.xdv
 
-# PDFs: ignorar todos menos el de la memoria
+# PDFs: ignorar todos (también tfg.pdf), salvo las figuras en img/
 *.pdf
-!tfg.pdf
 !img/**/*.pdf
 
 # Carpeta de trabajo (no se compila): solo se versiona la conversión de pandoc

@@ -26,13 +26,6 @@
 % de Yang et al. (2024), y en qué categoría se sitúa este trabajo.
 \pendiente{presentación de la taxonomía de Yang et al.~\cite{yang2024}}
 
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[width=\textwidth]{img/cap02/yang2024_fig2_taxonomia.pdf}
-  \caption{Subtareas de la detección OOD generalizada: (a) detección de anomalías sensoriales, (b) detección de novedades de una clase, (c) detección de novedades multiclase, (d) reconocimiento en conjunto abierto y detección OOD y (e) detección de valores atípicos. Fuente: Yang et al.~\cite{yang2024} (figura~2).}
-  \label{fig:taxonomia-yang}
-\end{figure}
-
 % Nota de las notas: «Citar esta imagen y justificar: [...] situar tu trabajo en (d) y justificar
 % que incluyes PANDA porque, en un contexto clínico, también interesa avisar de cambios de
 % apariencia que degradan el clasificador. Tu propio control lo demuestra: la exactitud cae del
@@ -40,6 +33,13 @@
 % Cifras: exactitud del Swin-S en el test ID 0,9688 (results_fase1; las notas daban 96,87 %) y en
 % el control de resolución 0,9077 (faseA, columna ACC_control_res_128).
 \pendiente{situar el trabajo en la subtarea (d) de la \cref{fig:taxonomia-yang} y justificar la inclusión de PANDA: en un contexto clínico también interesa avisar de cambios de apariencia que degradan el clasificador (la exactitud cae del 96,88\,\% en el test ID al 90,77\,\% en el control de resolución)}
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=\textwidth]{img/cap02/yang2024_fig2_taxonomia.pdf}
+  \caption{Subtareas de la detección OOD generalizada: (a) detección de anomalías sensoriales, (b) detección de novedades de una clase, (c) detección de novedades multiclase, (d) reconocimiento en conjunto abierto y detección OOD y (e) detección de valores atípicos. Fuente: Yang et al.~\cite{yang2024} (figura~2).}
+  \label{fig:taxonomia-yang}
+\end{figure}
 
 Cierta literatura previa clasifica las anomalías en tres tipos: anomalías puntuales, anomalías condicionales o contextuales y anomalías grupales o colectivas (Pang et al.~\cite{pang2020}; Chalapathy y Chawla~\cite{chalapathy2019}; Ruff et al.~\cite{ruff2021}). En este estudio, nos centramos principalmente en la detección de anomalías puntuales debido a su popularidad en aplicaciones prácticas y a su idoneidad para esclarecer las similitudes y diferencias entre las subtareas.
 \revisar{traducción casi literal; parafrasear y citar}
@@ -74,11 +74,9 @@ Aunque en clasificación general la detección OOD suele restringirse al cambio 
 
 No se han incluido métodos basados en gradientes, como ODIN (Liang et al.~\cite{liang2018}) o GradNorm (Huang et al.~\cite{huang2021}), por dos motivos. En primer lugar, requieren una pasada hacia atrás por cada imagen, lo que incrementa notablemente el coste de inferencia y dificulta su despliegue en un entorno clínico. En segundo lugar, Igoe et al.~\cite{igoe2022} indican que la eficacia de estos métodos no se debe tanto a la información del gradiente como a la magnitud de las características y a la distribución de salida, aspectos que ya quedan cubiertos por los métodos basados en características y en logits evaluados en este trabajo.
 
-Dentro de los métodos basados en densidad se distinguen dos enfoques. El modelado mediante gaussianas condicionales por clase en el espacio de características (Lee et al.~\cite{lee2018}) se ha incluido en la evaluación a través de MDS y RMDS. En cambio, no se han considerado los modelos generativos sobre el espacio de entrada, como los basados en flujos, por tres motivos: su entrenamiento resulta costoso y difícil de optimizar sobre imágenes de alta resolución; su verosimilitud presenta un fuerte sesgo hacia la complejidad de la entrada (Serrà et al.~\cite{serra2020}), lo que en histopatología podría favorecer parches de baja complejidad, como regiones de fondo o estroma; y su rendimiento suele quedar por detrás de los enfoques basados en clasificación (Yang et al.~\cite{yang2024}).
+Dentro de los métodos basados en densidad se distinguen dos enfoques. El modelado mediante gaussianas condicionales por clase en el espacio de características (Lee et al.~\cite{lee2018}) se ha incluido en la evaluación a través de MDS y RMDS. En cambio, no se han considerado los modelos generativos sobre el espacio de entrada, como los basados en flujos, por tres motivos: su entrenamiento resulta costoso y difícil de optimizar sobre imágenes de alta resolución; su verosimilitud presenta un fuerte sesgo hacia la complejidad de la entrada (Serrà et al.~\cite{serra2020}; Zhang et al.~\cite{zhang2021}), lo que en histopatología podría favorecer parches de baja complejidad, como regiones de fondo o estroma; y su rendimiento suele quedar por detrás de los enfoques basados en clasificación (Yang et al.~\cite{yang2024}).
 
-% Las notas citan también Zhang et al. (2021) y Fang et al. (2022) entre las referencias sobre
-% limitaciones y métodos generativos; decidir dónde se citan.
-\pendiente{ubicar las citas a Zhang et al. (2021) y Fang et al. (2022)}
+\revisar{añadida la cita a Zhang et al. (2021) junto a Serrà et al.}
 
 \section{Explicabilidad}\label{sec:ea-explicabilidad}
 

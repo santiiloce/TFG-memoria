@@ -1,6 +1,6 @@
 # Estado de la memoria (borrador del 26/10/2026)
 
-Compila sin errores con `latexmk -pdf tfg.tex` (108 páginas en total). No hay referencias ni citas sin definir. Las marcas `\pendiente` (rojo) y `\revisar` (naranja) se ocultan con `\borradorfalse` en `preambulo-propio.tex`.
+Compila sin errores con `latexmk -pdf tfg.tex` (114 páginas en total). `tfg.pdf` ya no se versiona. No hay referencias ni citas sin definir. Las marcas `\pendiente` (rojo) y `\revisar` (naranja) se ocultan con `\borradorfalse` en `preambulo-propio.tex`.
 
 ## Secciones con contenido y secciones en esqueleto
 
@@ -17,16 +17,16 @@ Palabras de prosa del autor por capítulo (sin comentarios, marcas, tablas, figu
 | 6. Inferencia estadística | 31 | Esqueleto: Mann-Whitney, bootstrap y McNemar, predicción conforme (teorema de cobertura, APS/LAC, Mondrian). |
 | 7. Explicabilidad (LRP, CRP) | 0 | Esqueleto. |
 | 8. Materiales y métodos | 989 | Con contenido: conjunto ID, partición, conjuntos OOD, NCT-CRC, PANDA, DataLoader y Learner. Esqueleto: integridad, control/DTD, entorno, configuración del entrenamiento. |
-| 9. Clasificación ID | 302 | Tablas y figuras de los cinco modelos y elección del Swin (texto de las notas, con marcas). Esqueleto: análisis de cada tabla, agrupaciones y discusión. |
+| 9. Clasificación ID | 302 | Tablas y figuras de los cinco modelos (curvas y matrices de confusión a ancho completo, en figuras separadas) y elección del Swin (texto de las notas, con marcas). Esqueleto: análisis de cada tabla, agrupaciones y discusión. |
 | 10. Detección OOD | 740 | Con contenido: cinco bloques con tabla, figura y análisis de las notas; «Conclusión» abre la discusión. Pendientes: conclusiones parciales e integración. |
-| 11. STOOD-X | 539 | Con contenido: configuración, puntuación, resultados, calibración, sensibilidad a K y ejemplos. Pendientes: diferencias con la implementación pública, conclusiones parciales y discusión. |
+| 11. STOOD-X | 539 | Con contenido: configuración, puntuación, resultados, calibración, sensibilidad a K y ejemplos (solo la figura de colon aceptado; el resto, en el apéndice C). Pendientes: diferencias con la implementación pública, conclusiones parciales y discusión. |
 | 12. Predicción conforme | 0 | Esqueleto con tablas y figuras y las cifras en comentarios. |
 | 13. Fuga por lámina | 0 | Esqueleto con tablas y figuras y las cifras en comentarios. |
 | 14. Explicabilidad y sesgos | 0 | Esqueleto (en desarrollo). |
 | 15. Conclusiones | 25 | Solo la frase de limitaciones de las notas; resto en esqueleto. |
 | Apéndice A (AUPR) | — | Tablas completas. |
 | Apéndice B (anexo NCT) | — | Tabla completa; falta el texto. |
-| Apéndice C | — | Esqueleto. |
+| Apéndice C | — | Figuras complementarias de STOOD-X: 5 con $K=500$ y 6 con $K_c$. Falta el texto. |
 
 ## Figuras que hay que regenerar
 
@@ -44,23 +44,30 @@ El resto de las figuras son copias de los originales (`tfg/executions/def1/param
 - `vovk2005`: Crossref no da los autores de la 1.ª edición; se han tomado de la 2.ª (2022).
 - `wilcoxon1945`: Crossref solo da la página inicial (80).
 - `storas2025`: confirmar que es el artículo al que se refieren las notas; falta el número de artículo.
+- `kagglepanda128`: el autor sale del nombre de usuario de la URL (`iafoss`) y falta la fecha de publicación (la página de Kaggle no la muestra sin iniciar sesión). Consultado el 26/10/2026.
 
-Otras observaciones de la bibliografía:
+Otras observaciones de la bibliografía (59 entradas):
 
 - STOOD-X se publicó en *Pattern Recognition* 177 (2026): clave `sevillano2026`. El artículo del conjunto de datos, en IEEE CAI 2026: clave `ayensa2026`.
 - Pang et al. se publicó en 2021 (las notas dicen 2020).
-- La sede de los artículos de congresos sin DOI (NeurIPS, ICLR, ICML) sale del comentario de los autores en arXiv. No se han añadido volúmenes ni páginas que no estuvieran confirmados.
-- Se ha añadido `macenko2009` (DOI enlazado en las notas) y `kather2018` (registro de Zenodo del conjunto NCT-CRC).
+- La sede de los artículos de congresos sin DOI sale del comentario de los autores en arXiv. Excepciones: Energy (verificada en proceedings.neurips.cc) y SHE (en iclr.cc, que no tiene arXiv).
+- Artículos originales añadidos y citados donde se describe cada método:
+  - MSP, MaxLogit, Energy, KNN, MDS, RMDS, ViM y SHE: capítulo 5.
+  - *Label smoothing*: capítulo 3.
+  - LRP y descomposición de Taylor profunda: capítulo 7.
+  - Bootstrap, McNemar, APS y RAPS: capítulo 6, con una nueva definición esqueleto para RAPS.
+- Citas nuevas: Zhang et al. (2021) en métodos excluidos; Fang et al. (2022) como `\pendiente` en el capítulo 4 y en las limitaciones del 15; Micikevicius et al. en la precisión mixta; PANDA (Bulten et al. y el conjunto de Kaggle) en la tabla de diseño de los conjuntos OOD.
 
 ## Dudas abiertas
 
-1. Fuente de los parches de 128 px de PANDA (conjunto de Kaggle `panda-16x128x128-tiles-data`): cómo citarla.
-2. Dónde citar Zhang et al. (2021) y Fang et al. (2022), que aparecen en la lista de referencias pero no en el texto.
-3. Si se cita a Micikevicius et al. (2018) para la precisión mixta.
-4. Artículos originales de KNN, RMDS, ViM y SHE: no aparecen en las notas ni en la lista; ¿se añaden?
-5. Contenido del apéndice C (material complementario).
-6. Gantt: `pgfgantt` ya está cargado; faltan las fechas.
-7. Para compilar se han instalado en el TeX Live del usuario (`~/texlive/2026`) los paquetes `siunitx`, `cleveref`, `multirow` y `pgfgantt`.
+1. Gantt: `pgfgantt` ya está cargado; faltan las fechas.
+2. Los paquetes `siunitx`, `cleveref`, `multirow` y `pgfgantt` se han instalado en el TeX Live del usuario (`~/texlive/2026`).
+3. Flotantes que no cita ningún `\cref` del texto. Se han colocado tras el primer párrafo de su sección; añadir la referencia al redactar:
+   - Capítulo 8: `fig:nct-tum-vs-id`, `fig:nct-str-lym`, `fig:panda-vs-id`.
+   - Capítulo 9: las diez figuras `fig:curvas-*` y `fig:confusion-*`.
+   - Capítulo 10: `fig:ood-global`, `fig:ood-control-interno`, `fig:ood-panda-control`, `tab:ood-panda-control`, `tab:ood-far`, `tab:ood-familias`.
+   - Capítulo 11: `tab:stoodx-resultados`, `tab:stoodx-calibracion`, `fig:stoodx-calibracion`, `fig:stoodx-barrido-k`.
+   - Apéndices: `tab:aupr-in`, `tab:aupr-out`, `tab:anexo-nct` y las figuras `fig:stoodx-kc-*` salvo `fig:stoodx-kc-id-alta`.
 
 ## Tablas
 
@@ -85,14 +92,13 @@ Se generan con `python3 scripts/generar_tablas.py` a partir de `OpenOOD/results_
 - `capitulos/01-introduccion.tex:109` — planificación económica
 - `capitulos/02-estado-arte.tex:19` — estado del arte de la clasificación histopatológica
 - `capitulos/02-estado-arte.tex:27` — presentación de la taxonomía de Yang et al.~\cite{yang2024}
-- `capitulos/02-estado-arte.tex:42` — situar el trabajo en la subtarea (d) de la \cref{fig:taxonomia-yang} y justificar la inclusión de PANDA: en un contexto clínico también interesa avisar de cambios de apariencia que degradan el clasificador (la exactitud cae del 96,88\,\% en el test ID al 90,77\,\% en el control de resolución)
+- `capitulos/02-estado-arte.tex:35` — situar el trabajo en la subtarea (d) de la \cref{fig:taxonomia-yang} y justificar la inclusión de PANDA: en un contexto clínico también interesa avisar de cambios de apariencia que degradan el clasificador (la exactitud cae del 96,88\,\% en el test ID al 90,77\,\% en el control de resolución)
 - `capitulos/02-estado-arte.tex:49` — citar
 - `capitulos/02-estado-arte.tex:59` — introducción al cambio semántico y al desplazamiento de covariables
 - `capitulos/02-estado-arte.tex:67` — near-OOD y far-OOD
-- `capitulos/02-estado-arte.tex:81` — ubicar las citas a Zhang et al. (2021) y Fang et al. (2022)
-- `capitulos/02-estado-arte.tex:96` — efecto Clever Hans en XAI y aprendizaje de relaciones espurias en la clasificación de imágenes
-- `capitulos/02-estado-arte.tex:101` — desarrollar y citar (Achtibat et al.~\cite{achtibat2023})
-- `capitulos/02-estado-arte.tex:109` — LRP, CRP y explicaciones glocales, usando el concepto de CRP glocal como en el artículo de CRP
+- `capitulos/02-estado-arte.tex:94` — efecto Clever Hans en XAI y aprendizaje de relaciones espurias en la clasificación de imágenes
+- `capitulos/02-estado-arte.tex:99` — desarrollar y citar (Achtibat et al.~\cite{achtibat2023})
+- `capitulos/02-estado-arte.tex:107` — LRP, CRP y explicaciones glocales, usando el concepto de CRP glocal como en el artículo de CRP
 - `capitulos/03-aprendizaje-supervisado.tex:20` — definición formal
 - `capitulos/03-aprendizaje-supervisado.tex:25` — enunciado
 - `capitulos/03-aprendizaje-supervisado.tex:28` — demostración
@@ -113,35 +119,35 @@ Se generan con `python3 scripts/generar_tablas.py` a partir de `OpenOOD/results_
 - `capitulos/04-ood-metricas.tex:15` — introducción: factorización $P(X,Y) = P(Y \mid X)\,P(X)$
 - `capitulos/04-ood-metricas.tex:18` — definición
 - `capitulos/04-ood-metricas.tex:22` — definición
-- `capitulos/04-ood-metricas.tex:30` — definición
-- `capitulos/04-ood-metricas.tex:46` — citar a Fawcett~\cite{fawcett2006} para la curva ROC
-- `capitulos/04-ood-metricas.tex:50` — definición
-- `capitulos/04-ood-metricas.tex:56` — enunciado
-- `capitulos/04-ood-metricas.tex:59` — demostración
-- `capitulos/04-ood-metricas.tex:64` — enunciado
-- `capitulos/04-ood-metricas.tex:67` — demostración
-- `capitulos/04-ood-metricas.tex:75` — completar qué se mide con ese umbral (la proporción de ID rechazadas como OOD; más bajo es mejor)
-- `capitulos/04-ood-metricas.tex:78` — definición
-- `capitulos/04-ood-metricas.tex:87` — definición
-- `capitulos/04-ood-metricas.tex:97` — definición
+- `capitulos/04-ood-metricas.tex:27` — aprendibilidad de la detección OOD (Fang et al.~\cite{fang2022})
+- `capitulos/04-ood-metricas.tex:34` — definición
+- `capitulos/04-ood-metricas.tex:50` — citar a Fawcett~\cite{fawcett2006} para la curva ROC
+- `capitulos/04-ood-metricas.tex:54` — definición
+- `capitulos/04-ood-metricas.tex:60` — enunciado
+- `capitulos/04-ood-metricas.tex:63` — demostración
+- `capitulos/04-ood-metricas.tex:68` — enunciado
+- `capitulos/04-ood-metricas.tex:71` — demostración
+- `capitulos/04-ood-metricas.tex:79` — completar qué se mide con ese umbral (la proporción de ID rechazadas como OOD; más bajo es mejor)
+- `capitulos/04-ood-metricas.tex:82` — definición
+- `capitulos/04-ood-metricas.tex:91` — definición
+- `capitulos/04-ood-metricas.tex:101` — definición
 - `capitulos/05-metodos-posthoc.tex:13` — introducción del capítulo y notación común
-- `capitulos/05-metodos-posthoc.tex:29` — definición formal
-- `capitulos/05-metodos-posthoc.tex:34` — enunciado
-- `capitulos/05-metodos-posthoc.tex:37` — demostración
-- `capitulos/05-metodos-posthoc.tex:43` — desarrollo
-- `capitulos/05-metodos-posthoc.tex:61` — definición formal
-- `capitulos/05-metodos-posthoc.tex:67` — desarrollo
-- `capitulos/05-metodos-posthoc.tex:82` — citar los artículos originales de KNN, RMDS, ViM y SHE (no aparecen en las notas)
-- `capitulos/05-metodos-posthoc.tex:86` — definición
-- `capitulos/05-metodos-posthoc.tex:91` — definición
-- `capitulos/05-metodos-posthoc.tex:98` — enunciado
-- `capitulos/05-metodos-posthoc.tex:101` — demostración
-- `capitulos/05-metodos-posthoc.tex:106` — definición
-- `capitulos/05-metodos-posthoc.tex:113` — definición
-- `capitulos/05-metodos-posthoc.tex:117` — enunciado
-- `capitulos/05-metodos-posthoc.tex:121` — definición
-- `capitulos/05-metodos-posthoc.tex:134` — definición formal
-- `capitulos/05-metodos-posthoc.tex:139` — segunda etapa del método: explicaciones
+- `capitulos/05-metodos-posthoc.tex:30` — definición formal
+- `capitulos/05-metodos-posthoc.tex:35` — enunciado
+- `capitulos/05-metodos-posthoc.tex:38` — demostración
+- `capitulos/05-metodos-posthoc.tex:44` — desarrollo
+- `capitulos/05-metodos-posthoc.tex:62` — definición formal
+- `capitulos/05-metodos-posthoc.tex:68` — desarrollo
+- `capitulos/05-metodos-posthoc.tex:87` — definición
+- `capitulos/05-metodos-posthoc.tex:92` — definición
+- `capitulos/05-metodos-posthoc.tex:99` — enunciado
+- `capitulos/05-metodos-posthoc.tex:102` — demostración
+- `capitulos/05-metodos-posthoc.tex:107` — definición
+- `capitulos/05-metodos-posthoc.tex:114` — definición
+- `capitulos/05-metodos-posthoc.tex:118` — enunciado
+- `capitulos/05-metodos-posthoc.tex:122` — definición
+- `capitulos/05-metodos-posthoc.tex:135` — definición formal
+- `capitulos/05-metodos-posthoc.tex:140` — segunda etapa del método: explicaciones
 - `capitulos/06-inferencia.tex:15` — introducción al test (Mann y Whitney~\cite{mann1947}; Wilcoxon~\cite{wilcoxon1945})
 - `capitulos/06-inferencia.tex:16` — sustituir por fuente académica (la explicación del test de las notas enlaza a un blog)
 - `capitulos/06-inferencia.tex:20` — definición
@@ -158,37 +164,36 @@ Se generan con `python3 scripts/generar_tablas.py` a partir de `OpenOOD/results_
 - `capitulos/06-inferencia.tex:94` — enunciado
 - `capitulos/06-inferencia.tex:99` — demostración
 - `capitulos/06-inferencia.tex:105` — definición
-- `capitulos/06-inferencia.tex:111` — definición
-- `capitulos/06-inferencia.tex:118` — enunciado
-- `capitulos/06-inferencia.tex:121` — demostración
+- `capitulos/06-inferencia.tex:110` — definición
+- `capitulos/06-inferencia.tex:116` — definición
+- `capitulos/06-inferencia.tex:123` — enunciado
+- `capitulos/06-inferencia.tex:126` — demostración
 - `capitulos/07-explicabilidad.tex:18` — definición
 - `capitulos/07-explicabilidad.tex:22` — enunciado
 - `capitulos/07-explicabilidad.tex:25` — demostración
 - `capitulos/07-explicabilidad.tex:29` — definición
 - `capitulos/07-explicabilidad.tex:40` — CRP
 - `capitulos/08-materiales-metodos.tex:52` — verificación de la integridad de la partición
-- `capitulos/08-materiales-metodos.tex:135` — fuente de los parches de 128\,px de PANDA (conjunto de Kaggle «panda-16x128x128-tiles-data»): decidir cómo citarla
 - `capitulos/08-materiales-metodos.tex:161` — control de resolución y DTD~\cite{cimpoi2014}
 - `capitulos/08-materiales-metodos.tex:175` — hardware y software
 - `capitulos/08-materiales-metodos.tex:189` — sustituir por fuente académica
-- `capitulos/08-materiales-metodos.tex:191` — ¿citar a Micikevicius et al.~\cite{micikevicius2018} para el entrenamiento con precisión mixta?
 - `capitulos/08-materiales-metodos.tex:200` — completar la configuración del entrenamiento (preprocesado, pérdida con \emph{label smoothing}, política de entrenamiento y parada temprana)
 - `capitulos/09-clasificacion-id.tex:12` — introducción del capítulo: cinco arquitecturas preentrenadas con ajuste fino (ViT-B/16, ResNet-50, ConvNeXt-S, EfficientNetV2-S y Swin-S) y evaluación en el test ID
-- `capitulos/09-clasificacion-id.tex:24` — análisis de la \cref{tab:modelos}
-- `capitulos/09-clasificacion-id.tex:26` — conclusión parcial
-- `capitulos/09-clasificacion-id.tex:50` — análisis
+- `capitulos/09-clasificacion-id.tex:23` — análisis de la \cref{tab:modelos}
+- `capitulos/09-clasificacion-id.tex:27` — conclusión parcial
+- `capitulos/09-clasificacion-id.tex:35` — análisis
+- `capitulos/09-clasificacion-id.tex:53` — análisis
 - `capitulos/09-clasificacion-id.tex:70` — análisis
-- `capitulos/09-clasificacion-id.tex:89` — análisis
-- `capitulos/09-clasificacion-id.tex:109` — análisis (pérdida en test: 0,6757; exactitud en test: 0,9538)
-- `capitulos/09-clasificacion-id.tex:131` — análisis (pérdida en test: 0,6356; exactitud en test: 0,9688)
-- `capitulos/09-clasificacion-id.tex:133` — conclusión parcial de las curvas y matrices de confusión
-- `capitulos/09-clasificacion-id.tex:145` — análisis de la \cref{tab:recall-clase}
-- `capitulos/09-clasificacion-id.tex:147` — conclusión parcial
-- `capitulos/09-clasificacion-id.tex:175` — conclusión parcial
-- `capitulos/09-clasificacion-id.tex:194` — análisis de la \cref{tab:agrupaciones}
-- `capitulos/09-clasificacion-id.tex:211` — análisis de la \cref{tab:sensibilidad-gleason} y de la \cref{fig:confusion-5clases}
-- `capitulos/09-clasificacion-id.tex:213` — conclusión parcial
-- `capitulos/09-clasificacion-id.tex:224` — discusión global
+- `capitulos/09-clasificacion-id.tex:88` — análisis (pérdida en test: 0,6757; exactitud en test: 0,9538)
+- `capitulos/09-clasificacion-id.tex:108` — análisis (pérdida en test: 0,6356; exactitud en test: 0,9688)
+- `capitulos/09-clasificacion-id.tex:124` — conclusión parcial de las curvas y matrices de confusión
+- `capitulos/09-clasificacion-id.tex:134` — análisis de la \cref{tab:recall-clase}
+- `capitulos/09-clasificacion-id.tex:138` — conclusión parcial
+- `capitulos/09-clasificacion-id.tex:166` — conclusión parcial
+- `capitulos/09-clasificacion-id.tex:183` — análisis de la \cref{tab:agrupaciones}
+- `capitulos/09-clasificacion-id.tex:193` — análisis de la \cref{tab:sensibilidad-gleason} y de la \cref{fig:confusion-5clases}
+- `capitulos/09-clasificacion-id.tex:204` — conclusión parcial
+- `capitulos/09-clasificacion-id.tex:215` — discusión global
 - `capitulos/10-deteccion-ood.tex:13` — introducción del capítulo: modelo, 16 métodos (13 de OpenOOD y tres configuraciones de STOOD-X), nueve conjuntos (\cref{tab:diseno-ood}) y métricas (\cref{sec:auroc,sec:fpr95,sec:ccr}); IC por \emph{bootstrap} (\cref{sec:bootstrap-mcnemar})
 - `capitulos/10-deteccion-ood.tex:48` — conclusión parcial
 - `capitulos/10-deteccion-ood.tex:67` — conclusión parcial
@@ -202,35 +207,37 @@ Se generan con `python3 scripts/generar_tablas.py` a partir de `OpenOOD/results_
 - `capitulos/11-stoodx.tex:58` — conclusión parcial
 - `capitulos/11-stoodx.tex:75` — conclusión parcial
 - `capitulos/11-stoodx.tex:93` — conclusión parcial
-- `capitulos/11-stoodx.tex:131` — análisis de las \cref{fig:stoodx-ejemplos-detectadas,fig:stoodx-ejemplos-id,fig:stoodx-ejemplos-falsas}
-- `capitulos/11-stoodx.tex:139` — discusión global
+- `capitulos/11-stoodx.tex:111` — análisis de los ejemplos del \cref{ap:complementario} (\cref{fig:stoodx-ejemplos-detectadas,fig:stoodx-ejemplos-id,fig:stoodx-ejemplos-falsas,fig:stoodx-ejemplos-lym,fig:stoodx-ejemplos-dtd}; variante $K_c$: \cref{fig:stoodx-kc-id-alta})
+- `capitulos/11-stoodx.tex:119` — discusión global
 - `capitulos/12-prediccion-conforme.tex:16` — introducción del capítulo y limitación de intercambiabilidad entre validación y test
-- `capitulos/12-prediccion-conforme.tex:31` — análisis de la \cref{tab:conforme-ood}
+- `capitulos/12-prediccion-conforme.tex:29` — análisis de la \cref{tab:conforme-ood}
 - `capitulos/12-prediccion-conforme.tex:33` — conclusión parcial
-- `capitulos/12-prediccion-conforme.tex:54` — análisis de la \cref{tab:conforme-aps} y de la \cref{fig:conforme-cobertura}
-- `capitulos/12-prediccion-conforme.tex:72` — análisis de la \cref{tab:conforme-tamano-ood} y de la \cref{fig:conforme-tamanos-clase}
+- `capitulos/12-prediccion-conforme.tex:45` — análisis de la \cref{tab:conforme-aps} y de la \cref{fig:conforme-cobertura}
+- `capitulos/12-prediccion-conforme.tex:63` — análisis de la \cref{tab:conforme-tamano-ood} y de la \cref{fig:conforme-tamanos-clase}
 - `capitulos/12-prediccion-conforme.tex:74` — conclusión parcial
-- `capitulos/12-prediccion-conforme.tex:86` — análisis de la \cref{tab:mondrian-global}
-- `capitulos/12-prediccion-conforme.tex:102` — análisis de la \cref{tab:mondrian-clase} y de la \cref{fig:mondrian-cobertura-clase}
-- `capitulos/12-prediccion-conforme.tex:119` — análisis de la \cref{fig:mondrian-beta}
-- `capitulos/12-prediccion-conforme.tex:146` — análisis de la \cref{fig:mondrian-glomeruloide}
+- `capitulos/12-prediccion-conforme.tex:84` — análisis de la \cref{tab:mondrian-global}
+- `capitulos/12-prediccion-conforme.tex:93` — análisis de la \cref{tab:mondrian-clase} y de la \cref{fig:mondrian-cobertura-clase}
+- `capitulos/12-prediccion-conforme.tex:112` — análisis de la \cref{fig:mondrian-beta}
+- `capitulos/12-prediccion-conforme.tex:129` — análisis de la \cref{fig:mondrian-glomeruloide}
 - `capitulos/12-prediccion-conforme.tex:148` — conclusión parcial
 - `capitulos/12-prediccion-conforme.tex:156` — discusión global
 - `capitulos/13-fuga-lamina.tex:12` — introducción del capítulo
 - `capitulos/13-fuga-lamina.tex:27` — identificación de las láminas a partir de los nombres de fichero
-- `capitulos/13-fuga-lamina.tex:35` — análisis de la \cref{tab:fuga-contiguidad}
-- `capitulos/13-fuga-lamina.tex:44` — análisis de la \cref{tab:fuga-vecino}
+- `capitulos/13-fuga-lamina.tex:33` — análisis de la \cref{tab:fuga-contiguidad}
+- `capitulos/13-fuga-lamina.tex:42` — análisis de la \cref{tab:fuga-vecino}
 - `capitulos/13-fuga-lamina.tex:46` — conclusión parcial
-- `capitulos/13-fuga-lamina.tex:56` — análisis de la \cref{tab:fuga-loso}
-- `capitulos/13-fuga-lamina.tex:70` — análisis de la \cref{tab:fuga-control-interno} y de la \cref{fig:fuga-control-interno}
+- `capitulos/13-fuga-lamina.tex:54` — análisis de la \cref{tab:fuga-loso}
+- `capitulos/13-fuga-lamina.tex:61` — análisis de la \cref{tab:fuga-control-interno} y de la \cref{fig:fuga-control-interno}
 - `capitulos/13-fuga-lamina.tex:72` — conclusión parcial
 - `capitulos/13-fuga-lamina.tex:83` — limitación metodológica
 - `capitulos/14-explicabilidad-sesgos.tex:18` — capítulo en desarrollo
 - `capitulos/15-conclusiones.tex:14` — conclusiones, objetivo por objetivo
-- `capitulos/15-conclusiones.tex:26` — resto de limitaciones
-- `capitulos/15-conclusiones.tex:33` — trabajo futuro
+- `capitulos/15-conclusiones.tex:27` — límites teóricos de la detección OOD: aprendibilidad (Fang et al.~\cite{fang2022})
+- `capitulos/15-conclusiones.tex:28` — resto de limitaciones
+- `capitulos/15-conclusiones.tex:35` — trabajo futuro
 - `apendices/B-anexo-nct.tex:9` — breve introducción del anexo y análisis
-- `apendices/C-material-complementario.tex:11` — material complementario
+- `apendices/C-material-complementario.tex:12` — presentación de las figuras
+- `apendices/C-material-complementario.tex:55` — presentación de las figuras
 
 Total: 161
 
@@ -240,9 +247,12 @@ Total: 161
 - `capitulos/02-estado-arte.tex:46` — «En este estudio» se refiere al survey de Yang et al., no a este TFG
 - `capitulos/02-estado-arte.tex:50` — traducción casi literal; parafrasear y citar
 - `capitulos/02-estado-arte.tex:53` — traducción casi literal; parafrasear y citar
-- `capitulos/04-ood-metricas.tex:38` — traducción casi literal; parafrasear y citar
-- `capitulos/04-ood-metricas.tex:84` — las notas decían que en AUPR-Out interesa un valor «más bajo»; es incorrecto: en ambas versiones interesa un valor alto
-- `capitulos/05-metodos-posthoc.tex:24` — en EBO, «de las exponenciales de los argumentos de todos los logits» se ha simplificado a «de las exponenciales de todos los logits»
+- `capitulos/02-estado-arte.tex:79` — añadida la cita a Zhang et al. (2021) junto a Serrà et al.
+- `capitulos/04-ood-metricas.tex:42` — traducción casi literal; parafrasear y citar
+- `capitulos/04-ood-metricas.tex:88` — las notas decían que en AUPR-Out interesa un valor «más bajo»; es incorrecto: en ambas versiones interesa un valor alto
+- `capitulos/05-metodos-posthoc.tex:24` — añadidas las citas a los artículos originales de MSP, MaxLogit y Energy
+- `capitulos/05-metodos-posthoc.tex:25` — en EBO, «de las exponenciales de los argumentos de todos los logits» se ha simplificado a «de las exponenciales de todos los logits»
+- `capitulos/05-metodos-posthoc.tex:83` — añadidas las citas a los artículos originales de KNN, MDS, RMDS, ViM y SHE
 - `capitulos/06-inferencia.tex:74` — posible traducción casi literal (en las notas aparece bajo «Añadir esta parte de Inferencia Estadística»); comprobar la fuente, parafrasear y citar
 - `capitulos/08-materiales-metodos.tex:20` — traducción casi literal; parafrasear y citar
 - `capitulos/08-materiales-metodos.tex:21` — añadida la frase de las 85 WSI anotadas (dato del artículo, como se pidió); la primera frase atribuye el apartado al artículo, en lugar del título «información extraída del paper de Iván Sevillano» de las notas
@@ -256,28 +266,30 @@ Total: 161
 - `capitulos/08-materiales-metodos.tex:108` — figura extraída del docx, regenerar; indicar qué panel es cada tejido
 - `capitulos/08-materiales-metodos.tex:125` — figura extraída del docx, regenerar; comprobar el orden de los paneles
 - `capitulos/08-materiales-metodos.tex:132` — los enlaces a Kaggle de las notas se sustituyen por la cita a Bulten et al.
+- `capitulos/08-materiales-metodos.tex:135` — la fuente de los parches de 128\,px (conjunto de Kaggle) se cita en la \cref{tab:diseno-ood}
 - `capitulos/08-materiales-metodos.tex:150` — figura extraída del docx, regenerar; indicar qué panel es cada conjunto
 - `capitulos/08-materiales-metodos.tex:166` — el enlace a GitHub se sustituye por la cita; el enlace al cuaderno de Colab con la explicación de uso y su captura de pantalla no van a la memoria
 - `capitulos/08-materiales-metodos.tex:182` — la figura de tarta del conjunto reducido de las notas no se incluye; las cifras quedan en el texto
 - `capitulos/08-materiales-metodos.tex:187` — las notas citaban solo a Kingma y Ba (Adam); para AdamW la cita correcta es Loshchilov y Hutter (2019)
 - `capitulos/08-materiales-metodos.tex:190` — «infiriendo» corregido a «influyendo»
-- `capitulos/09-clasificacion-id.tex:19` — la tabla de exactitudes de las notas (salida de \texttt{resultados.txt}) se sustituye por la \cref{tab:modelos}, generada a partir de results\_fase1, con IC; las exactitudes coinciden salvo Swin-S (0,96870 $\to$ 0,9688) y ResNet-50 (0,89634 $\to$ 0,8964), por una imagen de diferencia en la inferencia con precisión mixta
-- `capitulos/09-clasificacion-id.tex:69` — las notas daban 0,8963 (\texttt{resultados.txt}); se usa el valor de results\_fase1
-- `capitulos/09-clasificacion-id.tex:154` — exactitud del Swin-S: 96,87\,\% en las notas, 96,88\,\% en results\_fase1 (valor único de la memoria)
-- `capitulos/09-clasificacion-id.tex:155` — la diferencia no es estadísticamente significativa (McNemar $p = 0{,}19$, \cref{tab:mcnemar}; ConvNeXt-S tiene además mayor F1 macro y \emph{balanced accuracy}): la elección no puede justificarse por un mejor resultado, sino presentarse como elección entre dos modelos empatados
-- `capitulos/09-clasificacion-id.tex:158` — justificación sin respaldo bibliográfico; reformular o citar Liu et al. 2021
-- `capitulos/09-clasificacion-id.tex:162` — «mediante window7» se ha desarrollado como «mediante ventanas de $7 \times 7$ (\texttt{window7})»
-- `capitulos/09-clasificacion-id.tex:167` — diferencia corregida de 0,0019 a +0,0020 (results\_fase1); además, la afirmación del «techo de rendimiento» no está respaldada por los resultados
+- `capitulos/08-materiales-metodos.tex:191` — añadida la cita a Micikevicius et al. (2018) para la precisión mixta
+- `capitulos/09-clasificacion-id.tex:18` — la tabla de exactitudes de las notas (salida de \texttt{resultados.txt}) se sustituye por la \cref{tab:modelos}, generada a partir de results\_fase1, con IC; las exactitudes coinciden salvo Swin-S (0,96870 $\to$ 0,9688) y ResNet-50 (0,89634 $\to$ 0,8964), por una imagen de diferencia en la inferencia con precisión mixta
+- `capitulos/09-clasificacion-id.tex:52` — las notas daban 0,8963 (\texttt{resultados.txt}); se usa el valor de results\_fase1
+- `capitulos/09-clasificacion-id.tex:143` — exactitud del Swin-S: 96,87\,\% en las notas, 96,88\,\% en results\_fase1 (valor único de la memoria)
+- `capitulos/09-clasificacion-id.tex:144` — la diferencia no es estadísticamente significativa (McNemar $p = 0{,}19$, \cref{tab:mcnemar}; ConvNeXt-S tiene además mayor F1 macro y \emph{balanced accuracy}): la elección no puede justificarse por un mejor resultado, sino presentarse como elección entre dos modelos empatados
+- `capitulos/09-clasificacion-id.tex:149` — justificación sin respaldo bibliográfico; reformular o citar Liu et al. 2021
+- `capitulos/09-clasificacion-id.tex:153` — «mediante window7» se ha desarrollado como «mediante ventanas de $7 \times 7$ (\texttt{window7})»
+- `capitulos/09-clasificacion-id.tex:158` — diferencia corregida de 0,0019 a +0,0020 (results\_fase1); además, la afirmación del «techo de rendimiento» no está respaldada por los resultados
 - `capitulos/10-deteccion-ood.tex:15` — la tabla principal de las notas (\texttt{tabla\_principal\_ood.tex}) se divide en una tabla por bloque; las tablas de AUPR van al \cref{ap:aupr}
-- `capitulos/10-deteccion-ood.tex:29` — «de forma sistemática [...] en todos los conjuntos»: RMDS queda por debajo de MSP en LYM (AUROC 0,824 frente a 0,854, \cref{tab:ood-control-interno})
-- `capitulos/10-deteccion-ood.tex:30` — el rango de FPR@95 (0,128--0,173) y el CCR@FPR5 (más de 0,82) valen para ViM, MDS, KNN y RMDS, pero no para STOOD-X (0,349 y 0,646)
+- `capitulos/10-deteccion-ood.tex:27` — «de forma sistemática [...] en todos los conjuntos»: RMDS queda por debajo de MSP en LYM (AUROC 0,824 frente a 0,854, \cref{tab:ood-control-interno})
+- `capitulos/10-deteccion-ood.tex:28` — el rango de FPR@95 (0,128--0,173) y el CCR@FPR5 (más de 0,82) valen para ViM, MDS, KNN y RMDS, pero no para STOOD-X (0,349 y 0,646)
 - `capitulos/10-deteccion-ood.tex:33` — añadidas las referencias a la \cref{tab:ood-bootstrap-rmds} y a la \cref{fig:ood-roc}
-- `capitulos/10-deteccion-ood.tex:97` — «al contrario de lo habitual en la literatura»: falta cita
-- `capitulos/10-deteccion-ood.tex:98` — ReAct mejora a Energy en ocho de los nueve conjuntos; en el control de resolución queda por debajo (0,602 frente a 0,622)
-- `capitulos/10-deteccion-ood.tex:99` — el 27,5\,\% se midió en la validación ID
+- `capitulos/10-deteccion-ood.tex:95` — «al contrario de lo habitual en la literatura»: falta cita
+- `capitulos/10-deteccion-ood.tex:96` — ReAct mejora a Energy en ocho de los nueve conjuntos; en el control de resolución queda por debajo (0,602 frente a 0,622)
+- `capitulos/10-deteccion-ood.tex:97` — el 27,5\,\% se midió en la validación ID
 - `capitulos/11-stoodx.tex:28` — tono
 - `capitulos/11-stoodx.tex:33` — tono
 - `capitulos/13-fuga-lamina.tex:28` — deducción a partir de los nombres de fichero: 95 láminas y rejilla de 224\,px, frente a las 85 WSI y el paso de 256\,px del artículo
 
-Total: 42
+Total: 47
 

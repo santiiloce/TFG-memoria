@@ -17,8 +17,6 @@
 
 \section{Detección OOD conforme}\label{sec:conforme-ood}
 
-\input{tablas/t12_ood_conforme}
-
 % Puntos que debería cubrir:
 % - Umbral calibrado con las puntuaciones de la validación ID (n = 22.691):
 %   p(x) = (1 + #\{s_i \le s(x)\}) / (n + 1); OOD si p(x) \le \alpha.
@@ -30,18 +28,11 @@
 % - Con \alpha = 0,01, ViM y MDS detectan ~55 % de TUM+NORM y STOOD-X el 75 %.
 \pendiente{análisis de la \cref{tab:conforme-ood}}
 
+\input{tablas/t12_ood_conforme}
+
 \pendiente{conclusión parcial}
 
 \section{Conjuntos de predicción APS y RAPS}\label{sec:conforme-aps}
-
-\input{tablas/t12_aps_raps}
-
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[width=0.8\textwidth]{img/cap12/fig_cobertura.pdf}
-  \caption{Cobertura de los conjuntos de predicción APS y RAPS en el test ID y en el control de resolución frente al objetivo $1-\alpha$.}
-  \label{fig:conforme-cobertura}
-\end{figure}
 
 % Puntos que debería cubrir:
 % - Calibración con el 80 % de la validación ID (18.153); el 20 % restante (4.538) para ajustar RAPS
@@ -53,13 +44,13 @@
 % - Control de resolución: la garantía se rompe (APS 0,922 y RAPS 0,894 con \alpha = 0,05).
 \pendiente{análisis de la \cref{tab:conforme-aps} y de la \cref{fig:conforme-cobertura}}
 
-\input{tablas/t12_aps_tamano_ood}
+\input{tablas/t12_aps_raps}
 
-\begin{figure}[htbp]
+\begin{figure}[tbp]
   \centering
-  \includegraphics[width=0.8\textwidth]{img/cap12/fig_tamanos_por_clase.pdf}
-  \caption{Cobertura y tamaño medio de los conjuntos APS y RAPS por clase en el test ID.}
-  \label{fig:conforme-tamanos-clase}
+  \includegraphics[width=0.8\textwidth]{img/cap12/fig_cobertura.pdf}
+  \caption{Cobertura de los conjuntos de predicción APS y RAPS en el test ID y en el control de resolución frente al objetivo $1-\alpha$.}
+  \label{fig:conforme-cobertura}
 \end{figure}
 
 % Puntos que debería cubrir:
@@ -71,11 +62,18 @@
 %   Con RAPS esa señal desaparece.
 \pendiente{análisis de la \cref{tab:conforme-tamano-ood} y de la \cref{fig:conforme-tamanos-clase}}
 
+\input{tablas/t12_aps_tamano_ood}
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=0.8\textwidth]{img/cap12/fig_tamanos_por_clase.pdf}
+  \caption{Cobertura y tamaño medio de los conjuntos APS y RAPS por clase en el test ID.}
+  \label{fig:conforme-tamanos-clase}
+\end{figure}
+
 \pendiente{conclusión parcial}
 
 \section{Predicción conforme Mondrian}\label{sec:conforme-mondrian}
-
-\input{tablas/t12_mondrian_global}
 
 % Puntos que debería cubrir:
 % - Puntuaciones LAC (1 - softmax) y APS; misma calibración que la versión marginal.
@@ -85,14 +83,7 @@
 %   (0,859 -> 0,777).
 \pendiente{análisis de la \cref{tab:mondrian-global}}
 
-\input{tablas/t12_mondrian_clase}
-
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[width=0.85\textwidth]{img/cap12/mondrian_fig_cobertura_por_clase.pdf}
-  \caption{Cobertura por clase en el test ID de la predicción conforme marginal y Mondrian.}
-  \label{fig:mondrian-cobertura-clase}
-\end{figure}
+\input{tablas/t12_mondrian_global}
 
 % Puntos que debería cubrir:
 % - La versión marginal sobrecubre las clases grandes (0,97-0,99) e infracubre mucho las pequeñas
@@ -101,11 +92,13 @@
 %   por debajo de 0,95 con IC que no incluyen 0,95.
 \pendiente{análisis de la \cref{tab:mondrian-clase} y de la \cref{fig:mondrian-cobertura-clase}}
 
-\begin{figure}[htbp]
+\input{tablas/t12_mondrian_clase}
+
+\begin{figure}[tbp]
   \centering
-  \includegraphics[width=0.85\textwidth]{img/cap12/mondrian_fig_variabilidad_vs_beta.pdf}
-  \caption{Cobertura por clase en 100 particiones aleatorias de la validación ID (50\,\% calibración, 50\,\% evaluación) frente a la distribución teórica $\mathrm{Beta}(k_y, n_y + 1 - k_y)$.}
-  \label{fig:mondrian-beta}
+  \includegraphics[width=0.85\textwidth]{img/cap12/mondrian_fig_cobertura_por_clase.pdf}
+  \caption{Cobertura por clase en el test ID de la predicción conforme marginal y Mondrian.}
+  \label{fig:mondrian-cobertura-clase}
 \end{figure}
 
 % Puntos que debería cubrir:
@@ -118,7 +111,24 @@
 %   intercambiables en esas clases.
 \pendiente{análisis de la \cref{fig:mondrian-beta}}
 
-\begin{figure}[htbp]
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=0.85\textwidth]{img/cap12/mondrian_fig_variabilidad_vs_beta.pdf}
+  \caption{Cobertura por clase en 100 particiones aleatorias de la validación ID (50\,\% calibración, 50\,\% evaluación) frente a la distribución teórica $\mathrm{Beta}(k_y, n_y + 1 - k_y)$.}
+  \label{fig:mondrian-beta}
+\end{figure}
+
+% Puntos que debería cubrir:
+% - Con 33 imágenes de calibración, el umbral de glomeruloide es el máximo (\cref{prop:mondrian-ny}):
+%   \hat q_y = 0,995 (LAC), es decir, la clase entra si su softmax es \ge 0,005, lo que ocurre en el
+%   99,2 % del test ID. Sin esa clase, el tamaño medio sería 0,99. Lo fija una sola imagen
+%   (1449718_015457_039873_000224.png, predicha como cribiforme con 0,921).
+% - Label smoothing (\varepsilon = 0,1, \cref{prop:ls-optimo}): el óptimo da \varepsilon/K = 0,00714 a las
+%   clases no verdaderas; en el test, mediana 0,00682 y el 98,1 % entre \varepsilon/(2K) y 2\varepsilon/K.
+% - Con \alpha = 0,10 el efecto desaparece (glomeruloide en el 2,3 % de los conjuntos).
+\pendiente{análisis de la \cref{fig:mondrian-glomeruloide}}
+
+\begin{figure}[tbp]
   \centering
   \begin{subfigure}[b]{0.48\textwidth}
     \centering
@@ -134,16 +144,6 @@
   \caption{Causa del aumento del tamaño de los conjuntos con Mondrian y $\alpha = 0{,}05$.}
   \label{fig:mondrian-glomeruloide}
 \end{figure}
-
-% Puntos que debería cubrir:
-% - Con 33 imágenes de calibración, el umbral de glomeruloide es el máximo (\cref{prop:mondrian-ny}):
-%   \hat q_y = 0,995 (LAC), es decir, la clase entra si su softmax es \ge 0,005, lo que ocurre en el
-%   99,2 % del test ID. Sin esa clase, el tamaño medio sería 0,99. Lo fija una sola imagen
-%   (1449718_015457_039873_000224.png, predicha como cribiforme con 0,921).
-% - Label smoothing (\varepsilon = 0,1, \cref{prop:ls-optimo}): el óptimo da \varepsilon/K = 0,00714 a las
-%   clases no verdaderas; en el test, mediana 0,00682 y el 98,1 % entre \varepsilon/(2K) y 2\varepsilon/K.
-% - Con \alpha = 0,10 el efecto desaparece (glomeruloide en el 2,3 % de los conjuntos).
-\pendiente{análisis de la \cref{fig:mondrian-glomeruloide}}
 
 \pendiente{conclusión parcial}
 

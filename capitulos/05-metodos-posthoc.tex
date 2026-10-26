@@ -17,10 +17,11 @@
 Grupo de los logits (números producidos por la red justo al final, antes de convertirlos en probabilidades):
 
 \begin{itemize}
-  \item \textbf{MSP} (\emph{Maximum Softmax Probability}): la probabilidad de la clase ganadora tras el softmax.
-  \item \textbf{MLS} (\emph{MaxLogit}): lo mismo que MSP, pero con el logit máximo sin pasar por softmax. La ventaja que ofrece este método es que el softmax normaliza y pierde información sobre la magnitud absoluta; el logit bruto la conserva.
-  \item \textbf{EBO} (\emph{Energy-Based OOD}): el logaritmo de la suma de las exponenciales de todos los logits. Funciona como una versión «suave» y diferenciable de la función $\max(x)$.
+  \item \textbf{MSP} (\emph{Maximum Softmax Probability})~\cite{hendrycks2017}: la probabilidad de la clase ganadora tras el softmax.
+  \item \textbf{MLS} (\emph{MaxLogit})~\cite{hendrycks2022}: lo mismo que MSP, pero con el logit máximo sin pasar por softmax. La ventaja que ofrece este método es que el softmax normaliza y pierde información sobre la magnitud absoluta; el logit bruto la conserva.
+  \item \textbf{EBO} (\emph{Energy-Based OOD})~\cite{liu2020energy}: el logaritmo de la suma de las exponenciales de todos los logits. Funciona como una versión «suave» y diferenciable de la función $\max(x)$.
 \end{itemize}
+\revisar{añadidas las citas a los artículos originales de MSP, MaxLogit y Energy}
 \revisar{en EBO, «de las exponenciales de los argumentos de todos los logits» se ha simplificado a «de las exponenciales de todos los logits»}
 
 \begin{definicion}[Puntuaciones MSP, MaxLogit y Energy]\label{def:logits}
@@ -72,14 +73,14 @@ Estos métodos modifican las activaciones o los pesos de la última capa del mod
 Grupo de métodos que comparan con la información de las características (\emph{features}) de entrenamiento:
 
 \begin{itemize}
-  \item \textbf{KNN}: guarda las características de entrenamiento (normalizadas) y, para cada imagen de test, mide la distancia a su $k$-ésimo vecino más cercano. Si está lejos de todo lo visto, es OOD.
-  \item \textbf{MDS} (Mahalanobis): calcula la media de las características de cada clase y una covarianza compartida. La puntuación es la distancia de Mahalanobis a la media de la clase más cercana.
-  \item \textbf{RMDS} (\emph{Relative Mahalanobis}): igual que MDS, pero resta la distancia a una gaussiana global de todo el conjunto de datos. Así corrige el hecho de que algunas direcciones del espacio de características son «fondo» común a todas las imágenes y no información de clase. Suele funcionar mejor en near-OOD.
-  \item \textbf{ViM} (\emph{Virtual-logit Matching}): busca las direcciones principales del espacio de características de entrenamiento (análisis de componentes principales). Lo que queda fuera de ese subespacio principal (el residuo) se considera señal de OOD. Combina la norma de ese residuo con la energía de los logits.
-  \item \textbf{SHE} (\emph{Simplified Hopfield Energy}): en la preparación (\texttt{setup()}) pasa el conjunto de entrenamiento por la red y, para cada clase, calcula la media de las características solo de las imágenes que el modelo clasifica correctamente (etiqueta real igual a la predicción). Eso le da 14 «patrones» de referencia. En test, mira qué clase predice el modelo para la imagen y compara su característica con el patrón de esa clase (por producto escalar, distancia euclídea o coseno, según la configuración).
+  \item \textbf{KNN}~\cite{sun2022knn}: guarda las características de entrenamiento (normalizadas) y, para cada imagen de test, mide la distancia a su $k$-ésimo vecino más cercano. Si está lejos de todo lo visto, es OOD.
+  \item \textbf{MDS} (Mahalanobis)~\cite{lee2018}: calcula la media de las características de cada clase y una covarianza compartida. La puntuación es la distancia de Mahalanobis a la media de la clase más cercana.
+  \item \textbf{RMDS} (\emph{Relative Mahalanobis})~\cite{ren2021}: igual que MDS, pero resta la distancia a una gaussiana global de todo el conjunto de datos. Así corrige el hecho de que algunas direcciones del espacio de características son «fondo» común a todas las imágenes y no información de clase. Suele funcionar mejor en near-OOD.
+  \item \textbf{ViM} (\emph{Virtual-logit Matching})~\cite{wang2022vim}: busca las direcciones principales del espacio de características de entrenamiento (análisis de componentes principales). Lo que queda fuera de ese subespacio principal (el residuo) se considera señal de OOD. Combina la norma de ese residuo con la energía de los logits.
+  \item \textbf{SHE} (\emph{Simplified Hopfield Energy})~\cite{zhang2023she}: en la preparación (\texttt{setup()}) pasa el conjunto de entrenamiento por la red y, para cada clase, calcula la media de las características solo de las imágenes que el modelo clasifica correctamente (etiqueta real igual a la predicción). Eso le da 14 «patrones» de referencia. En test, mira qué clase predice el modelo para la imagen y compara su característica con el patrón de esa clase (por producto escalar, distancia euclídea o coseno, según la configuración).
 \end{itemize}
 
-\pendiente{citar los artículos originales de KNN, RMDS, ViM y SHE (no aparecen en las notas)}
+\revisar{añadidas las citas a los artículos originales de KNN, MDS, RMDS, ViM y SHE}
 
 \begin{definicion}[Puntuación KNN]\label{def:knn}
 % s(x) = -\| z(x) - z_{(k)} \|, con z = h / \|h\| y z_{(k)} el k-ésimo vecino normalizado.

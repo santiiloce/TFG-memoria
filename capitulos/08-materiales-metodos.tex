@@ -55,7 +55,7 @@ Para comenzar se necesita un conjunto de entrenamiento, uno de validación y uno
 
 \Cref{tab:diseno-ood} resume los conjuntos OOD empleados, el papel de cada uno y qué cambia respecto al conjunto ID.
 
-\begin{table}[htbp]
+\begin{table}[tbp]
   \centering
   \footnotesize
   \caption{Diseño de los conjuntos OOD: papel de cada conjunto, qué cambia respecto al conjunto ID y objetivo de su inclusión. Entre paréntesis, el número de imágenes.}
@@ -66,7 +66,7 @@ Para comenzar se necesita un conjunto de entrenamiento, uno de validación y uno
     \midrule
     (A) NCT-CRC: TUM + NORM (\num{23080}) & Near-OOD & Otro órgano (colon, tejido glandular) y otro centro; misma escala & Buscamos ver si es capaz de rechazar un tejido muy parecido al original \\
     (B) NCT-CRC: STR, LYM, MUS (por separado) & Control interno & Otro centro; tejidos parecidos a clases de entrenamiento (estroma e inflamatorio) & Tejidos nuevamente parecidos a ID: determinamos si descarta por el centro o por el tejido \\
-    (C) PANDA (\num{10000}) & \emph{Covariate shift} & Mismo órgano (próstata), otro centro y escáner; menor resolución (128\,px) & Al repetir el órgano, lo único que cambia es el \emph{covariate shift}, por lo que una detección OOD reflejaría su discriminación por este motivo \\
+    (C) PANDA (\num{10000})~\cite{bulten2022,kagglepanda128} & \emph{Covariate shift} & Mismo órgano (próstata), otro centro y escáner; menor resolución (128\,px) & Al repetir el órgano, lo único que cambia es el \emph{covariate shift}, por lo que una detección OOD reflejaría su discriminación por este motivo \\
     Control de resolución (\num{12618}) & Control & Las mismas imágenes del test ID, reducidas a 128\,px y ampliadas a 224\,px & Buscamos ver si se están clasificando imágenes como OOD solo por la resolución \\
     DTD / \emph{Textures} & Far-OOD & No es tejido: texturas genéricas & Clasificación sencilla: ha de clasificarla directamente como OOD \\
     NCT-CRC: ADI, BACK, DEB, MUC & Anexo (\cref{ap:anexo-nct}) & Grasa, fondo, restos, moco & \\
@@ -92,7 +92,7 @@ Para comenzar se necesita un conjunto de entrenamiento, uno de validación y uno
   \item[(B)] STR, LYM y MUS hacen referencia a estroma asociado al cáncer, linfocitos y músculo liso.
 \end{enumerate}
 
-\begin{figure}[htbp]
+\begin{figure}[tbp]
   \centering
   \begin{subfigure}[b]{0.3\textwidth}
     \centering
@@ -109,7 +109,7 @@ Para comenzar se necesita un conjunto de entrenamiento, uno de validación y uno
   \label{fig:nct-tum-vs-id}
 \end{figure}
 
-\begin{figure}[htbp]
+\begin{figure}[tbp]
   \centering
   \begin{subfigure}[b]{0.3\textwidth}
     \centering
@@ -132,9 +132,9 @@ Para comenzar se necesita un conjunto de entrenamiento, uno de validación y uno
 \revisar{los enlaces a Kaggle de las notas se sustituyen por la cita a Bulten et al.}
 % Las notas enlazan además al conjunto de parches de 128 px de Kaggle (iafoss,
 % panda-16x128x128-tiles-data), que es el origen de las 10.000 imágenes usadas.
-\pendiente{fuente de los parches de 128\,px de PANDA (conjunto de Kaggle «panda-16x128x128-tiles-data»): decidir cómo citarla}
+\revisar{la fuente de los parches de 128\,px (conjunto de Kaggle) se cita en la \cref{tab:diseno-ood}}
 
-\begin{figure}[htbp]
+\begin{figure}[tbp]
   \centering
   \begin{subfigure}[b]{0.25\textwidth}
     \centering
@@ -186,9 +186,9 @@ Para una primera aproximación del modelo hemos decidido crear un conjunto de im
 En cuanto al optimizador, vamos a usar AdamW (Loshchilov y Hutter~\cite{loshchilov2019}), pues se trata de una versión mejorada del optimizador Adam (Kingma y Ba~\cite{kingma2014}) con la mejora añadida de que cuenta con \emph{weight decay} (\cref{sec:adamw}). En la implementación de fastai es cierto que el nombre asociado es el de Adam, pero es debido a una decisión de fastai de adoptar la versión mejorada del optimizador bajo el nombre de la original.
 \revisar{las notas citaban solo a Kingma y Ba (Adam); para AdamW la cita correcta es Loshchilov y Hutter (2019)}
 
-Debido a la complejidad del problema, no tardó en aparecer el error de memoria \emph{CUDA out of memory}. Para manejar este problema sin alterar la arquitectura del modelo \pendiente{sustituir por fuente académica} se optó por reducir el tamaño del lote a la mitad, pasando así de 128 imágenes por lote a 64. Las otras medidas tomadas fueron adaptar el \emph{learner} para trabajar con precisión de 16 bits, ahorrando así memoria, liberar la caché de la memoria al iniciar la ejecución y, por último, reducir el número de \emph{workers} de 8 a 4, planteando la posibilidad de que la creación de hebras separadas para el tratamiento del problema pudiera estar influyendo en una mayor lentitud de ejecución del modelo.
+Debido a la complejidad del problema, no tardó en aparecer el error de memoria \emph{CUDA out of memory}. Para manejar este problema sin alterar la arquitectura del modelo \pendiente{sustituir por fuente académica} se optó por reducir el tamaño del lote a la mitad, pasando así de 128 imágenes por lote a 64. Las otras medidas tomadas fueron adaptar el \emph{learner} para trabajar con precisión de 16 bits~\cite{micikevicius2018}, ahorrando así memoria, liberar la caché de la memoria al iniciar la ejecución y, por último, reducir el número de \emph{workers} de 8 a 4, planteando la posibilidad de que la creación de hebras separadas para el tratamiento del problema pudiera estar influyendo en una mayor lentitud de ejecución del modelo.
 \revisar{«infiriendo» corregido a «influyendo»}
-\pendiente{¿citar a Micikevicius et al.~\cite{micikevicius2018} para el entrenamiento con precisión mixta?}
+\revisar{añadida la cita a Micikevicius et al. (2018) para la precisión mixta}
 
 % Configuración del entrenamiento (clasificador_svim.py), para completar este apartado:
 % - Preprocesado: Resize al tamaño de entrada con method='squish' (224 px; ConvNeXt-S a 256 px),

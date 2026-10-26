@@ -3,11 +3,102 @@
 
 \chapter{Material complementario}\label{ap:complementario}
 
-% Posible contenido (decidir):
+\section{Explicaciones por ejemplos de STOOD-X}\label{sec:apc-stoodx}
+
+% Complementa la \cref{sec:stoodx-ejemplos}. En cada figura, la primera columna es la imagen evaluada y
+% las cinco siguientes, sus vecinos de entrenamiento, con la clase predicha, la puntuación (p y z)
+% y las distancias en los títulos. Selección: entre el 10 % con -z más alto o más bajo, 5 al azar
+% con semilla 0 (RESUMEN_STOODX.md).
+\pendiente{presentación de las figuras}
+
+\subsection{Con $K = 500$}\label{sec:apc-k500}
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=\textwidth]{img/apC/ejemplos_K500_nct_tum_norm_baja_detectadas.jpg}
+  \caption{STOOD-X ($K = 500$): cinco imágenes de TUM+NORM bien detectadas como OOD y sus vecinos de entrenamiento de la clase predicha.}
+  \label{fig:stoodx-ejemplos-detectadas}
+\end{figure}
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=\textwidth]{img/apC/ejemplos_K500_id_alta.jpg}
+  \caption{STOOD-X ($K = 500$): cinco imágenes ID con puntuación alta y sus vecinos de entrenamiento de la clase predicha: casos ID típicos.}
+  \label{fig:stoodx-ejemplos-id}
+\end{figure}
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=\textwidth]{img/apC/ejemplos_K500_id_baja_falsas_alarmas.jpg}
+  \caption{STOOD-X ($K = 500$): cinco imágenes ID con puntuación baja (falsas alarmas) y sus vecinos de entrenamiento ($z$ saturada, $\approx 38$).}
+  \label{fig:stoodx-ejemplos-falsas}
+\end{figure}
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=\textwidth]{img/apC/ejemplos_K500_nct_lym_azar.jpg}
+  \caption{STOOD-X ($K = 500$): cinco imágenes de LYM elegidas al azar y sus vecinos de entrenamiento de la clase predicha.}
+  \label{fig:stoodx-ejemplos-lym}
+\end{figure}
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=\textwidth]{img/apC/ejemplos_K500_dtd_azar.jpg}
+  \caption{STOOD-X ($K = 500$): cinco imágenes de DTD elegidas al azar y sus vecinos de entrenamiento de la clase predicha.}
+  \label{fig:stoodx-ejemplos-dtd}
+\end{figure}
+
+\subsection{Con la variante exploratoria $K_c$}\label{sec:apc-kc}
+
+% Variante exploratoria K_c = min(500, floor(n_c/2)), con resultado negativo (\cref{sec:stoodx-k}).
+% Con K_c, las cinco TUM+NORM aceptadas también se predicen Gleason_5_comedonecrosis.
+\pendiente{presentación de las figuras}
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=\textwidth]{img/apC/ejemplos_kc_nct_tum_norm_alta_aceptadas.jpg}
+  \caption{STOOD-X (variante exploratoria $K_c$): cinco imágenes de TUM+NORM aceptadas como ID y sus vecinos de entrenamiento de la clase predicha.}
+  \label{fig:stoodx-kc-tumnorm-aceptadas}
+\end{figure}
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=\textwidth]{img/apC/ejemplos_kc_nct_tum_norm_baja_detectadas.jpg}
+  \caption{STOOD-X (variante exploratoria $K_c$): cinco imágenes de TUM+NORM bien detectadas como OOD y sus vecinos de entrenamiento de la clase predicha.}
+  \label{fig:stoodx-kc-tumnorm-detectadas}
+\end{figure}
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=\textwidth]{img/apC/ejemplos_kc_id_alta.jpg}
+  \caption{STOOD-X (variante exploratoria $K_c$): cinco imágenes ID con puntuación alta y sus vecinos de entrenamiento de la clase predicha.}
+  \label{fig:stoodx-kc-id-alta}
+\end{figure}
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=\textwidth]{img/apC/ejemplos_kc_id_baja_falsas_alarmas.jpg}
+  \caption{STOOD-X (variante exploratoria $K_c$): cinco imágenes ID con puntuación baja (falsas alarmas) y sus vecinos de entrenamiento de la clase predicha.}
+  \label{fig:stoodx-kc-id-falsas}
+\end{figure}
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=\textwidth]{img/apC/ejemplos_kc_nct_lym_azar.jpg}
+  \caption{STOOD-X (variante exploratoria $K_c$): cinco imágenes de LYM elegidas al azar y sus vecinos de entrenamiento de la clase predicha.}
+  \label{fig:stoodx-kc-lym}
+\end{figure}
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=\textwidth]{img/apC/ejemplos_kc_dtd_azar.jpg}
+  \caption{STOOD-X (variante exploratoria $K_c$): cinco imágenes de DTD elegidas al azar y sus vecinos de entrenamiento de la clase predicha.}
+  \label{fig:stoodx-kc-dtd}
+\end{figure}
+
+% Otro posible material complementario (decidir):
 % - Variantes de las agrupaciones clínicas (opción b ISUP y PIN no maligno; results_agrupaciones).
 % - Histogramas de puntuaciones por método y conjunto (fig3_histogramas de la fase C).
-% - Ejemplos de STOOD-X con la variante K_c.
 % - Configuración completa de los experimentos.
-\pendiente{material complementario}
 
 \endinput

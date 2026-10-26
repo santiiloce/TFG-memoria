@@ -8,10 +8,10 @@ Plantilla oficial https://github.com/latex-mat-ugr/Plantilla-TFG: clase `ugrTFG.
 
 1. **No inventar nada**: ni cifras, ni resultados, ni referencias, ni afirmaciones técnicas. Cada número sale de las notas del autor (`notas/memoria2-pandoc.tex`) o de los ficheros de resultados; si hay discrepancia, manda el fichero de resultados y se marca con `\revisar{}`. Si falta algo, `\pendiente{...}`.
 2. **El texto es del autor.** Se transcribe y reorganiza su redacción, sin reescribirla con otro estilo. Se pueden corregir ortografía, erratas y concordancias. Cualquier cambio de contenido, por pequeño que sea, se marca con `\revisar{qué se cambió y por qué}`.
-3. **Lo que el autor no ha escrito no se redacta en prosa.** Se deja un esqueleto: título, lista en comentarios LaTeX (`%`) con los puntos que debería cubrir (y las cifras clave, si las hay) y un `\pendiente{}`.
+3. **No se redacta prosa nueva en la memoria**: ni introducciones, conclusiones, análisis, definiciones ni demostraciones. Lo que el autor no haya escrito queda como esqueleto: título, `\pendiente{}` y los puntos y cifras en comentarios LaTeX (`%`).
 4. **Fuera del repositorio solo se lee.** Nunca escribir, mover ni borrar nada en `/mnt/homeGPU/slcerro/tfg-referencias/`, `/mnt/homeGPU/slcerro/tfg/executions/`, `/mnt/homeGPU/slcerro/OpenOOD/` ni, sobre todo, en `/mnt/homeGPU/slcerro/TrainTest` (enlace de solo lectura a datos del tutor). Las figuras se **copian** a `img/` dentro del repo.
-5. **Git:** commit local al final de cada bloque de trabajo, con mensaje descriptivo. **Nunca `git push`** (lo hace el autor tras revisar). No reescribir el historial ni hacer `git reset` sin pedirlo.
-6. **Compilación:** tras cada bloque de trabajo, el documento compila sin errores con `latexmk -pdf tfg.tex`.
+5. **Git:** no hacer commits ni push, ni ningún comando que modifique el historial de git (los commits los hace el autor). Al terminar cada tarea, dar la salida de `git status --short` y un mensaje de commit propuesto en una línea, sin trailers (ni Co-Authored-By ni similares).
+6. **Compilación:** al terminar cada tarea, el documento compila sin errores con `latexmk -pdf tfg.tex`.
 7. Ante una duda que cambie la estructura, parar y preguntar.
 
 Además:
@@ -30,6 +30,8 @@ Además:
 - **Términos en inglés** sin traducción consolidada: en cursiva la primera vez, con su acrónimo.
 - **Formato:** nada de `\\` para separar párrafos ni `\vspace` manuales. Un fichero por capítulo, con `% !TeX root = ../tfg.tex` en la cabecera.
 - Marcas: `\pendiente{}` (rojo) y `\revisar{}` (naranja); el interruptor `\borradorfalse` de `preambulo-propio.tex` las oculta en la versión final.
+- Flotantes con `[tbp]`, colocados en el código justo después del párrafo que los cita (o del primer párrafo de su sección si nadie los cita), para no dejar páginas de flotantes medio vacías.
+- Las matrices de confusión de 14 clases ocupan el ancho completo de texto. En el capítulo 11 solo va la figura de imágenes de colon aceptadas como ID; el resto de ejemplos de STOOD-X (también los de $K_c$) está en el apéndice C.
 - Figuras de otros autores: "Fuente: …" en el caption. Figuras extraídas del .docx: `\revisar{figura extraída del docx, regenerar}`.
 - Tablas generadas por `scripts/generar_tablas.py` a partir de `OpenOOD/results_*` (salida en `tablas/`); no editar a mano las tablas generadas: se cambia el script y se vuelve a ejecutar. Cada `\caption` dice qué se mide y si más alto es mejor.
 

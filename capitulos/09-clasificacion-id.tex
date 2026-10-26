@@ -15,13 +15,14 @@
 
 \subsection{Resultados globales}\label{sec:modelos-global}
 
-\input{tablas/t09_modelos}
 \revisar{la tabla de exactitudes de las notas (salida de \texttt{resultados.txt}) se sustituye por la \cref{tab:modelos}, generada a partir de results\_fase1, con IC; las exactitudes coinciden salvo Swin-S (0,96870 $\to$ 0,9688) y ResNet-50 (0,89634 $\to$ 0,8964), por una imagen de diferencia en la inferencia con precisión mixta}
 
 % Cifras clave (results_fase1): exactitud Swin-S 0,9688 [0,9658; 0,9717], ConvNeXt-S 0,9668
 % [0,9635; 0,9700], EfficientNetV2-S 0,9538, ViT-B/16 0,9525, ResNet-50 0,8964. F1 macro: ConvNeXt-S
 % 0,9086 y Swin-S 0,9082. IC por lámina 2-3 veces más anchos que por imagen.
 \pendiente{análisis de la \cref{tab:modelos}}
+
+\input{tablas/t09_modelos}
 
 \pendiente{conclusión parcial}
 
@@ -30,98 +31,74 @@
 % Para cada modelo: curvas de pérdida y métricas por época (Train_Validation_Results.jpg) y matriz
 % de confusión en el test (Confusion_Matrix_TEST_*.jpg), de tfg/executions/def1/param0..4.
 
-\begin{figure}[htbp]
-  \centering
-  \begin{subfigure}[b]{\textwidth}
-    \centering
-    \includegraphics[width=\textwidth]{img/cap09/curvas_vit_base_patch16_224.jpg}
-    \caption{Curvas de entrenamiento.}
-  \end{subfigure}
-  \begin{subfigure}[b]{0.6\textwidth}
-    \centering
-    \includegraphics[width=\textwidth]{img/cap09/confusion_test_vit_base_patch16_224.jpg}
-    \caption{Matriz de confusión en el test.}
-  \end{subfigure}
-  \caption{ViT-B/16 (\texttt{vit\_base\_patch16\_224}).}
-  \label{fig:modelo-vit}
-\end{figure}
-
 Pérdida en test: 0,6788; exactitud en test: 0,9525.
 \pendiente{análisis}
 
-\begin{figure}[htbp]
+\begin{figure}[tbp]
   \centering
-  \begin{subfigure}[b]{\textwidth}
-    \centering
-    \includegraphics[width=\textwidth]{img/cap09/curvas_resnet50.jpg}
-    \caption{Curvas de entrenamiento.}
-  \end{subfigure}
-  \begin{subfigure}[b]{0.6\textwidth}
-    \centering
-    \includegraphics[width=\textwidth]{img/cap09/confusion_test_resnet50.jpg}
-    \caption{Matriz de confusión en el test.}
-  \end{subfigure}
-  \caption{ResNet-50 (\texttt{resnet50}).}
-  \label{fig:modelo-resnet}
+  \includegraphics[width=\textwidth]{img/cap09/curvas_vit_base_patch16_224.jpg}
+  \caption{ViT-B/16 (\texttt{vit\_base\_patch16\_224}): curvas de entrenamiento.}
+  \label{fig:curvas-vit}
+\end{figure}
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=\textwidth]{img/cap09/confusion_test_vit_base_patch16_224.jpg}
+  \caption{ViT-B/16 (\texttt{vit\_base\_patch16\_224}): matriz de confusión en el test.}
+  \label{fig:confusion-vit}
 \end{figure}
 
 Pérdida en test: 0,8892; exactitud en test: 0,8964.
 \revisar{las notas daban 0,8963 (\texttt{resultados.txt}); se usa el valor de results\_fase1}
 \pendiente{análisis}
 
-\begin{figure}[htbp]
+\begin{figure}[tbp]
   \centering
-  \begin{subfigure}[b]{\textwidth}
-    \centering
-    \includegraphics[width=\textwidth]{img/cap09/curvas_convnext_small.jpg}
-    \caption{Curvas de entrenamiento.}
-  \end{subfigure}
-  \begin{subfigure}[b]{0.6\textwidth}
-    \centering
-    \includegraphics[width=\textwidth]{img/cap09/confusion_test_convnext_small.jpg}
-    \caption{Matriz de confusión en el test.}
-  \end{subfigure}
-  \caption{ConvNeXt-S (\texttt{convnext\_small}, entrenado y evaluado a 256\,px).}
-  \label{fig:modelo-convnext}
+  \includegraphics[width=\textwidth]{img/cap09/curvas_resnet50.jpg}
+  \caption{ResNet-50 (\texttt{resnet50}): curvas de entrenamiento.}
+  \label{fig:curvas-resnet}
+\end{figure}
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=\textwidth]{img/cap09/confusion_test_resnet50.jpg}
+  \caption{ResNet-50 (\texttt{resnet50}): matriz de confusión en el test.}
+  \label{fig:confusion-resnet}
 \end{figure}
 
 Pérdida en test: 0,6424; exactitud en test: 0,9668.
 \pendiente{análisis}
 
-\begin{figure}[htbp]
+\begin{figure}[tbp]
   \centering
-  \begin{subfigure}[b]{\textwidth}
-    \centering
-    \includegraphics[width=\textwidth]{img/cap09/curvas_tf_efficientnetv2_s.jpg}
-    \caption{Curvas de entrenamiento.}
-  \end{subfigure}
-  \begin{subfigure}[b]{0.6\textwidth}
-    \centering
-    \includegraphics[width=\textwidth]{img/cap09/confusion_test_tf_efficientnetv2_s.jpg}
-    \caption{Matriz de confusión en el test.}
-  \end{subfigure}
-  \caption{EfficientNetV2-S (\texttt{tf\_efficientnetv2\_s}).}
-  \label{fig:modelo-efficientnet}
+  \includegraphics[width=\textwidth]{img/cap09/curvas_convnext_small.jpg}
+  \caption{ConvNeXt-S (\texttt{convnext\_small}, entrenado y evaluado a 256\,px): curvas de entrenamiento.}
+  \label{fig:curvas-convnext}
+\end{figure}
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=\textwidth]{img/cap09/confusion_test_convnext_small.jpg}
+  \caption{ConvNeXt-S (\texttt{convnext\_small}, entrenado y evaluado a 256\,px): matriz de confusión en el test.}
+  \label{fig:confusion-convnext}
 \end{figure}
 
 % Las notas no daban la pérdida ni la exactitud de este modelo («Modelo 4»); valores de
 % resultados.txt (param3): pérdida 0,6757; exactitud 0,9538.
 \pendiente{análisis (pérdida en test: 0,6757; exactitud en test: 0,9538)}
 
-\begin{figure}[htbp]
+\begin{figure}[tbp]
   \centering
-  \begin{subfigure}[b]{\textwidth}
-    \centering
-    \includegraphics[width=\textwidth]{img/cap09/curvas_swin_small_patch4_window7_224.jpg}
-    \caption{Curvas de entrenamiento.}
-  \end{subfigure}
-  \begin{subfigure}[b]{0.6\textwidth}
-    \centering
-    \includegraphics[width=\textwidth]{img/cap09/confusion_test_swin_small_patch4_window7_224.jpg}
-    \caption{Matriz de confusión en el test.}
-  \end{subfigure}
-  \caption{Swin-S (\texttt{swin\_small\_patch4\_window7\_224}).}
-  \label{fig:modelo-swin}
+  \includegraphics[width=\textwidth]{img/cap09/curvas_tf_efficientnetv2_s.jpg}
+  \caption{EfficientNetV2-S (\texttt{tf\_efficientnetv2\_s}): curvas de entrenamiento.}
+  \label{fig:curvas-efficientnet}
+\end{figure}
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=\textwidth]{img/cap09/confusion_test_tf_efficientnetv2_s.jpg}
+  \caption{EfficientNetV2-S (\texttt{tf\_efficientnetv2\_s}): matriz de confusión en el test.}
+  \label{fig:confusion-efficientnet}
 \end{figure}
 
 % Las gráficas del Swin faltaban en las notas. resultados.txt (param4): pérdida en test 0,6356;
@@ -130,11 +107,23 @@ Pérdida en test: 0,6424; exactitud en test: 0,9668.
 % Glándulas no neoplásicas (47), Gleason_4_fusionadas -> Gleason_4_cribiformes (41).
 \pendiente{análisis (pérdida en test: 0,6356; exactitud en test: 0,9688)}
 
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=\textwidth]{img/cap09/curvas_swin_small_patch4_window7_224.jpg}
+  \caption{Swin-S (\texttt{swin\_small\_patch4\_window7\_224}): curvas de entrenamiento.}
+  \label{fig:curvas-swin}
+\end{figure}
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=\textwidth]{img/cap09/confusion_test_swin_small_patch4_window7_224.jpg}
+  \caption{Swin-S (\texttt{swin\_small\_patch4\_window7\_224}): matriz de confusión en el test.}
+  \label{fig:confusion-swin}
+\end{figure}
+
 \pendiente{conclusión parcial de las curvas y matrices de confusión}
 
 \subsection{Sensibilidad por clase}\label{sec:modelos-recall}
-
-\input{tablas/t09_recall_clase}
 
 % Cifras clave (results_fase1): las cinco arquitecturas fallan en las mismas clases minoritarias.
 % Gleason_4_glomeruloide (25 imágenes): 0,52 (Swin), 0,64 (ConvNeXt), 0,48, 0,64 y 0,52;
@@ -144,15 +133,17 @@ Pérdida en test: 0,6424; exactitud en test: 0,9668.
 % pobremente formadas.
 \pendiente{análisis de la \cref{tab:recall-clase}}
 
+\input{tablas/t09_recall_clase}
+
 \pendiente{conclusión parcial}
 
 \section{Elección del modelo}\label{sec:eleccion-swin}
 
-\input{tablas/t09_mcnemar}
-
 El modelo Swin Transformer obtiene la mayor exactitud (96,88\,\%), seguido muy de cerca por ConvNeXt (96,68\,\%). Dada la escasa diferencia entre ambos, cualquiera de los dos sería una base adecuada; se selecciona Swin por ser el que mejor resultado ha obtenido.
 \revisar{exactitud del Swin-S: 96,87\,\% en las notas, 96,88\,\% en results\_fase1 (valor único de la memoria)}
 \revisar{la diferencia no es estadísticamente significativa (McNemar $p = 0{,}19$, \cref{tab:mcnemar}; ConvNeXt-S tiene además mayor F1 macro y \emph{balanced accuracy}): la elección no puede justificarse por un mejor resultado, sino presentarse como elección entre dos modelos empatados}
+
+\input{tablas/t09_mcnemar}
 
 La superioridad de esta arquitectura radica en tres pilares fundamentales:
 \revisar{justificación sin respaldo bibliográfico; reformular o citar Liu et al. 2021}
@@ -178,8 +169,6 @@ Por tanto, el modelo con el que nos vamos a quedar para proseguir en nuestro est
 
 % Esqueleto: las notas no incluyen texto sobre las agrupaciones. Cifras de results_agrupaciones.
 
-\input{tablas/t09_agrupaciones}
-
 % Puntos que debería cubrir:
 % - Asignación de las 14 clases a NM, G3, G4, G5 y NT (opción a: la de la tabla) y binario con PIN
 %   maligno (como el código GleasonMap de los autores).
@@ -193,14 +182,7 @@ Por tanto, el modelo con el que nos vamos a quedar para proseguir en nuestro est
 % - Variantes (opción b ISUP y PIN no maligno): cambios pequeños (Swin 98,29 % frente a 98,25 %).
 \pendiente{análisis de la \cref{tab:agrupaciones}}
 
-\input{tablas/t09_sensibilidad_gleason}
-
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[width=0.7\textwidth]{img/cap09/fig_confusion_5clases_a.pdf}
-  \caption{Matrices de confusión de la clasificación agrupada en cinco categorías (NM, G3, G4, G5 y NT) en el test ID.}
-  \label{fig:confusion-5clases}
-\end{figure}
+\input{tablas/t09_agrupaciones}
 
 % Puntos que debería cubrir:
 % - G3, G4 y G5 coinciden en número de imágenes con la figura 2 del artículo: comparables.
@@ -209,6 +191,15 @@ Por tanto, el modelo con el que nos vamos a quedar para proseguir en nuestro est
 % - G3 es la categoría más difícil: en Swin-S, el 8,7 % de sus imágenes se predice como NM y el
 %   7,9 % como G4 (\cref{fig:confusion-5clases}).
 \pendiente{análisis de la \cref{tab:sensibilidad-gleason} y de la \cref{fig:confusion-5clases}}
+
+\input{tablas/t09_sensibilidad_gleason}
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=0.7\textwidth]{img/cap09/fig_confusion_5clases_a.pdf}
+  \caption{Matrices de confusión de la clasificación agrupada en cinco categorías (NM, G3, G4, G5 y NT) en el test ID.}
+  \label{fig:confusion-5clases}
+\end{figure}
 
 \pendiente{conclusión parcial}
 

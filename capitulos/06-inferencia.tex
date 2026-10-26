@@ -55,11 +55,11 @@
 %   lámina no son independientes.
 % - Test de McNemar: versión exacta (binomial sobre los pares discordantes) y chi-cuadrado con
 %   corrección de continuidad.
-\begin{definicion}[Intervalo \emph{bootstrap} por percentiles]\label{def:bootstrap}
+\begin{definicion}[Intervalo \emph{bootstrap} por percentiles~\cite{efron1979}]\label{def:bootstrap}
 \pendiente{definición}
 \end{definicion}
 
-\begin{proposicion}[Test de McNemar]\label{prop:mcnemar}
+\begin{proposicion}[Test de McNemar~\cite{mcnemar1947}]\label{prop:mcnemar}
 % Bajo H_0, el número de pares discordantes a favor de un modelo, condicionado a b + c, sigue una
 % Bin(b + c, 1/2).
 \pendiente{enunciado}
@@ -99,9 +99,14 @@ Predicción conforme. La predicción conforme (CP) se erige como un marco estad�
 \pendiente{demostración}
 \end{demostracion}
 
-\begin{definicion}[Puntuaciones LAC y APS]\label{def:lac-aps}
+\begin{definicion}[Puntuaciones LAC y APS~\cite{romano2020}]\label{def:lac-aps}
 % LAC: s(x, y) = 1 - \pi_y(x).
 % APS: s(x, y) = \sum_{j < o(y)} \pi_{(j)}(x) + u \, \pi_{(o(y))}(x), u \sim U(0, 1).
+\pendiente{definición}
+\end{definicion}
+
+\begin{definicion}[RAPS~\cite{angelopoulos2021raps}]\label{def:raps}
+% APS con penalización \lambda (o(y) - k_{reg})^+ sobre el rango de la clase.
 \pendiente{definición}
 \end{definicion}
 

@@ -117,7 +117,7 @@ def escribir(salida, nombre, lineas, origen):
 
 
 def tabla(caption, label, columnas, cuerpo, tamano='\\small', sep=None, entorno='tabular', ancho=None):
-    l = ['\\begin{table}[htbp]', '\\centering', tamano]
+    l = ['\\begin{table}[tbp]', '\\centering', tamano]
     if sep:
         l.append('\\setlength{\\tabcolsep}{%s}' % sep)
     l += ['\\caption{%s}' % caption, '\\label{%s}' % label]
