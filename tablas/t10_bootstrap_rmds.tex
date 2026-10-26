@@ -1,0 +1,28 @@
+% Generado por scripts/generar_tablas.py a partir de results_ood/faseC_2026-10-20/bootstrap_pareado_rmds.csv. No editar a mano.
+\begin{table}[htbp]
+\centering
+\footnotesize
+\caption{\emph{Bootstrap} pareado (1.000 remuestreos, semilla 0) de la diferencia \AUROC(RMDS) $-$ \AUROC(método) en el near-OOD principal (TUM+NORM). Diferencia positiva: RMDS es mejor. $p<0{,}001$: ninguna réplica cruzó el cero. $^{a}$, $^{\dagger}$: como en \cref{tab:ood-near}.}
+\label{tab:ood-bootstrap-rmds}
+\begin{tabular}{lccc}
+\toprule
+Método & Diferencia & IC 95\,\% & $p$ \\
+\midrule
+MSP & +0{,}078 & [0{,}075; 0{,}081] & $<0{,}001$ \\
+MaxLogit & +0{,}126 & [0{,}122; 0{,}130] & $<0{,}001$ \\
+Energy & +0{,}133 & [0{,}129; 0{,}136] & $<0{,}001$ \\
+ReAct & +0{,}093 & [0{,}090; 0{,}096] & $<0{,}001$ \\
+ASH$^{a}$ & +0{,}408 & [0{,}402; 0{,}414] & $<0{,}001$ \\
+DICE & +0{,}362 & [0{,}356; 0{,}369] & $<0{,}001$ \\
+KNN & $-$0{,}003 & [-0{,}004; -0{,}001] & 0{,}00 \\
+MDS & $-$0{,}014 & [-0{,}015; -0{,}012] & $<0{,}001$ \\
+ViM & $-$0{,}016 & [-0{,}017; -0{,}014] & $<0{,}001$ \\
+SHE (prod.\ escalar) & +0{,}159 & [0{,}155; 0{,}163] & $<0{,}001$ \\
+SHE (coseno) & +0{,}016 & [0{,}014; 0{,}018] & $<0{,}001$ \\
+SHE (euclídea) & +0{,}012 & [0{,}010; 0{,}014] & $<0{,}001$ \\
+STOOD-X (100\,\%) & +0{,}000 & [-0{,}002; 0{,}003] & 0{,}75 \\
+STOOD-X (87,5\,\%) & +0{,}001 & [-0{,}001; 0{,}003] & 0{,}56 \\
+STOOD-X $K_c$$^{\dagger}$ & +0{,}011 & [0{,}008; 0{,}013] & $<0{,}001$ \\
+\bottomrule
+\end{tabular}
+\end{table}

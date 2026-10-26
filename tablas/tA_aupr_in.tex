@@ -1,0 +1,37 @@
+% Generado por scripts/generar_tablas.py a partir de results_ood/faseC_2026-10-20/tabla_principal.csv. No editar a mano.
+\begin{table}[htbp]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{2.5pt}
+\caption{\AUPRin (clase positiva: ID) de los 16 métodos en los nueve conjuntos (más alto es mejor). $^{a}$ASH reduce la exactitud ID al 68{,}3\,\%. $^{\dagger}$Variante exploratoria ($K_c=\min(500,\lfloor n_c/2\rfloor)$), propuesta tras ver datos OOD; no es el método principal.}
+\label{tab:aupr-in}
+\begin{tabular}{lccccccccc}
+\toprule
+Método & TUM+NORM & TUM & NORM & STR & LYM & MUS & PANDA & Control 128\,px & DTD \\
+\midrule
+\multicolumn{10}{@{}l}{\textit{Basados en logits}} \\
+MSP & 0{,}676 & 0{,}762 & 0{,}845 & 0{,}760 & 0{,}773 & 0{,}629 & 0{,}821 & 0{,}587 & 0{,}903 \\
+MaxLogit & 0{,}602 & 0{,}689 & 0{,}815 & 0{,}706 & 0{,}639 & 0{,}515 & 0{,}719 & 0{,}590 & 0{,}872 \\
+Energy & 0{,}594 & 0{,}681 & 0{,}813 & 0{,}699 & 0{,}627 & 0{,}503 & 0{,}709 & 0{,}588 & 0{,}869 \\
+\midrule
+\multicolumn{10}{@{}l}{\textit{Modificación de activaciones}} \\
+ReAct & 0{,}690 & 0{,}783 & 0{,}851 & 0{,}767 & 0{,}783 & 0{,}563 & 0{,}764 & 0{,}558 & 0{,}867 \\
+ASH$^{a}$ & 0{,}339 & 0{,}422 & 0{,}606 & 0{,}521 & 0{,}496 & 0{,}381 & 0{,}446 & 0{,}501 & 0{,}678 \\
+DICE & 0{,}525 & 0{,}611 & 0{,}739 & 0{,}690 & 0{,}873 & 0{,}591 & 0{,}747 & 0{,}580 & 0{,}650 \\
+\midrule
+\multicolumn{10}{@{}l}{\textit{Características y distancias}} \\
+KNN & 0{,}944 & 0{,}957 & 0{,}978 & 0{,}953 & 0{,}961 & 0{,}922 & 0{,}934 & 0{,}806 & 0{,}973 \\
+MDS & 0{,}955 & 0{,}966 & 0{,}983 & 0{,}959 & 0{,}973 & 0{,}924 & 0{,}942 & 0{,}815 & 0{,}981 \\
+RMDS & 0{,}899 & 0{,}909 & 0{,}980 & 0{,}958 & 0{,}704 & 0{,}924 & 0{,}924 & 0{,}725 & 0{,}977 \\
+ViM & 0{,}958 & 0{,}968 & 0{,}984 & 0{,}960 & 0{,}975 & 0{,}926 & 0{,}943 & 0{,}823 & 0{,}983 \\
+SHE (prod.\ escalar) & 0{,}592 & 0{,}628 & 0{,}908 & 0{,}789 & 0{,}697 & 0{,}652 & 0{,}643 & 0{,}641 & 0{,}901 \\
+SHE (coseno) & 0{,}915 & 0{,}935 & 0{,}967 & 0{,}920 & 0{,}929 & 0{,}839 & 0{,}880 & 0{,}647 & 0{,}953 \\
+SHE (euclídea) & 0{,}916 & 0{,}937 & 0{,}967 & 0{,}923 & 0{,}939 & 0{,}846 & 0{,}892 & 0{,}631 & 0{,}953 \\
+\midrule
+\multicolumn{10}{@{}l}{\textit{STOOD-X}} \\
+STOOD-X (100\,\%) & 0{,}910 & 0{,}914 & 0{,}993 & 0{,}982 & 0{,}897 & 0{,}968 & 0{,}919 & 0{,}888 & 0{,}996 \\
+STOOD-X (87,5\,\%) & 0{,}909 & 0{,}913 & 0{,}993 & 0{,}982 & 0{,}896 & 0{,}967 & 0{,}919 & 0{,}887 & 0{,}996 \\
+STOOD-X $K_c$$^{\dagger}$ & 0{,}897 & 0{,}904 & 0{,}989 & 0{,}981 & 0{,}848 & 0{,}966 & 0{,}941 & 0{,}891 & 0{,}995 \\
+\bottomrule
+\end{tabular}
+\end{table}

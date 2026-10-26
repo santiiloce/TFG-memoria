@@ -1,0 +1,23 @@
+% Generado por scripts/generar_tablas.py a partir de results_agrupaciones/metricas_5clases.csv y metricas_binario.csv. No editar a mano.
+\begin{table}[htbp]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\caption{Clasificación agrupada en el test ID a partir de las predicciones de 14 clases (más alto es mejor). Cinco categorías: NM (\clase{No\_Cancer}, estroma, glándulas no neoplásicas, inflamatorio), G3, G4, G5 y NT (PIN de alto grado, carcinoma intraductal, adenocarcinoma ductal). Binario: maligno = G3 + G4 + G5 + NT. Sens.: sensibilidad; Esp.: especificidad; BA: \emph{balanced accuracy}. Referencia: XCiT-Medium del artículo del conjunto de datos~\cite{ayensa2025}, con otro reparto de NM y NT (su BA se calcula como la media de Sens. y Esp.).}
+\label{tab:agrupaciones}
+\begin{tabular}{lcccccc}
+\toprule
+& \multicolumn{2}{c}{5 categorías} & \multicolumn{4}{c}{Binario} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-7}
+Modelo & Exactitud (\%) & BA & Exactitud (\%) & Sens. & Esp. & BA \\
+\midrule
+Swin-S & 98{,}25 & 0{,}945 & 99{,}33 & 0{,}991 & 0{,}996 & 0{,}993 \\
+ConvNeXt-S & 98{,}07 & 0{,}940 & 99{,}25 & 0{,}991 & 0{,}994 & 0{,}992 \\
+EfficientNetV2-S & 97{,}24 & 0{,}926 & 98{,}86 & 0{,}983 & 0{,}995 & 0{,}989 \\
+ViT-B/16 & 97{,}16 & 0{,}925 & 98{,}93 & 0{,}986 & 0{,}993 & 0{,}989 \\
+ResNet-50 & 93{,}08 & 0{,}840 & 96{,}02 & 0{,}942 & 0{,}979 & 0{,}960 \\
+\midrule
+XCiT-M (artículo) & 98{,}34 & -- & 99{,}25 & 0{,}984 & 0{,}997 & 0{,}990 \\
+\bottomrule
+\end{tabular}
+\end{table}

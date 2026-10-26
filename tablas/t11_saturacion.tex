@@ -1,0 +1,23 @@
+% Generado por scripts/generar_tablas.py a partir de results_ood/faseB_paper_2026-10-20/empates_saturacion.csv. No editar a mano.
+\begin{table}[htbp]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\caption{Saturación de la puntuación $-z$ de \stoodx (100\,\%, $K=500$) por separación completa: proporción de imágenes con $U=n_1n_2$ y cotas de su efecto en el \AUROC (más alto es mejor), forzando el peor y el mejor orden entre las imágenes ID y OOD saturadas. \FPRn{95} y \CCRn{5} no cambian en ningún conjunto.}
+\label{tab:stoodx-saturacion}
+\begin{tabular}{lccccc}
+\toprule
+Conjunto & Saturadas test ID & Saturadas OOD & \AUROC & \AUROC peor caso & \AUROC mejor caso \\
+\midrule
+TUM+NORM & 0{,}6\,\% & 66{,}3\,\% & 0{,}953 & 0{,}951 & 0{,}955 \\
+TUM & 0{,}6\,\% & 59{,}0\,\% & 0{,}931 & 0{,}929 & 0{,}933 \\
+NORM & 0{,}6\,\% & 78{,}2\,\% & 0{,}990 & 0{,}987 & 0{,}992 \\
+STR & 0{,}6\,\% & 52{,}0\,\% & 0{,}978 & 0{,}976 & 0{,}979 \\
+LYM & 0{,}6\,\% & 32{,}1\,\% & 0{,}903 & 0{,}903 & 0{,}905 \\
+MUS & 0{,}6\,\% & 44{,}1\,\% & 0{,}968 & 0{,}966 & 0{,}969 \\
+PANDA & 0{,}6\,\% & 19{,}4\,\% & 0{,}895 & 0{,}895 & 0{,}896 \\
+Control 128\,px & 0{,}6\,\% & 19{,}0\,\% & 0{,}894 & 0{,}893 & 0{,}895 \\
+DTD & 0{,}6\,\% & 76{,}3\,\% & 0{,}991 & 0{,}987 & 0{,}992 \\
+\bottomrule
+\end{tabular}
+\end{table}

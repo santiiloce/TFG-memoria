@@ -1,15 +1,35 @@
 % !TeX root = ../tfg.tex
 % !TeX encoding = utf8
+%
+%*******************************************************
+% Capítulo 15. Conclusiones y trabajo futuro
+%*******************************************************
 
 \chapter{Conclusiones y trabajo futuro}\label{cap:conclusiones}
 
 \section{Conclusiones}\label{sec:conclusiones}
-\pendiente{conclusiones}
+
+% Revisar objetivo por objetivo (\cref{sec:objetivos}) si se ha alcanzado, y responder a las
+% preguntas de investigación (\cref{sec:preguntas}).
+\pendiente{conclusiones, objetivo por objetivo}
 
 \section{Limitaciones}\label{sec:limitaciones}
-\pendiente{limitaciones}
+
+La detección OOD protege frente a imágenes raras o desconocidas, pero no frente a cambios en el criterio diagnóstico. Para eso hace falta revisar y reetiquetar los datos periódicamente.
+
+% Otras limitaciones a desarrollar:
+% - Fuga por lámina: la evaluación mide generalización dentro de lámina (\cref{cap:fuga}).
+% - Partición de entrenamiento y validación no reproducible (sin semilla).
+% - La validación se usó para elegir la época: intercambiabilidad no asegurada (\cref{cap:conforme}).
+% - Hipótesis del label smoothing no comprobada (habría que entrenar sin él).
+% - Interpretación de STOOD-X pendiente de confirmar con los autores.
+\pendiente{resto de limitaciones}
 
 \section{Trabajo futuro}\label{sec:trabajo-futuro}
+
+% - Explicabilidad y eliminación de sesgos con CRP (\cref{cap:xai-sesgos}).
+% - Reentrenar con partición por paciente o validar con un conjunto externo de próstata.
+% - Entrenar sin label smoothing para contrastar la hipótesis sobre MSP, MaxLogit y Energy.
 \pendiente{trabajo futuro}
 
 \endinput

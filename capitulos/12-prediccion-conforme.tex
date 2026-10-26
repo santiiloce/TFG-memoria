@@ -1,18 +1,158 @@
 % !TeX root = ../tfg.tex
 % !TeX encoding = utf8
+%
+%*******************************************************
+% Capítulo 12. Predicción conforme
+%*******************************************************
 
 \chapter{Predicción conforme}\label{cap:conforme}
 
+% Esqueleto: las notas no incluyen texto de este capítulo. Cifras de results_conforme/ y
+% results_conforme/mondrian/. Fundamentos en la \cref{sec:prediccion-conforme}.
+% Limitación común: la validación ID se usó durante el entrenamiento para elegir la época
+% (EarlyStoppingCallback sobre valid_loss) y procede de la carpeta train original, mientras que el
+% test procede de la carpeta val original; la intercambiabilidad no está asegurada. Exactitud del
+% Swin-S: 97,02 % en validación y 96,88 % en test.
+\pendiente{introducción del capítulo y limitación de intercambiabilidad entre validación y test}
+
 \section{Detección OOD conforme}\label{sec:conforme-ood}
-\pendiente{detección OOD conforme}
+
+\input{tablas/t12_ood_conforme}
+
+% Puntos que debería cubrir:
+% - Umbral calibrado con las puntuaciones de la validación ID (n = 22.691):
+%   p(x) = (1 + #\{s_i \le s(x)\}) / (n + 1); OOD si p(x) \le \alpha.
+% - Falsas alarmas en el test ID compatibles con \alpha en los 15 casos (5 métodos x 3 valores de
+%   \alpha): el IC exacto contiene \alpha en todos.
+% - Con \alpha = 0,05: STOOD-X es el que más detecta en TUM+NORM (0,879), PANDA (0,568) y DTD (0,972),
+%   a diferencia de lo que indicaba FPR@95 (otro punto de funcionamiento); también el que más marca
+%   el control de resolución (0,596). ViM y MDS detectan más LYM (0,826 y 0,813).
+% - Con \alpha = 0,01, ViM y MDS detectan ~55 % de TUM+NORM y STOOD-X el 75 %.
+\pendiente{análisis de la \cref{tab:conforme-ood}}
+
+\pendiente{conclusión parcial}
 
 \section{Conjuntos de predicción APS y RAPS}\label{sec:conforme-aps}
-\pendiente{APS}
+
+\input{tablas/t12_aps_raps}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.8\textwidth]{img/cap12/fig_cobertura.pdf}
+  \caption{Cobertura de los conjuntos de predicción APS y RAPS en el test ID y en el control de resolución frente al objetivo $1-\alpha$.}
+  \label{fig:conforme-cobertura}
+\end{figure}
+
+% Puntos que debería cubrir:
+% - Calibración con el 80 % de la validación ID (18.153); el 20 % restante (4.538) para ajustar RAPS
+%   (k_reg = 1, \lambda = 0,5: en la práctica, conjuntos de tamaño 0 o 1).
+% - Verificación por simulación de la implementación (1.000 particiones, n = 4.000).
+% - Test ID: APS \alpha = 0,05: cobertura 0,945 [0,941; 0,949], tamaño 1,04, vacíos 3,9 %; el déficit
+%   de 0,005 es de ~1,9 desviaciones típicas.
+% - Conjuntos vacíos: como la exactitud supera 1 - \alpha, el método puede «abstenerse».
+% - Control de resolución: la garantía se rompe (APS 0,922 y RAPS 0,894 con \alpha = 0,05).
+\pendiente{análisis de la \cref{tab:conforme-aps} y de la \cref{fig:conforme-cobertura}}
+
+\input{tablas/t12_aps_tamano_ood}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.8\textwidth]{img/cap12/fig_tamanos_por_clase.pdf}
+  \caption{Cobertura y tamaño medio de los conjuntos APS y RAPS por clase en el test ID.}
+  \label{fig:conforme-tamanos-clase}
+\end{figure}
+
+% Puntos que debería cubrir:
+% - La garantía es marginal, no por clase: con \alpha = 0,05, glomeruloide 0,68 (APS) y 0,52 (RAPS);
+%   pobremente formadas 0,79 y 0,73; Gleason_3 0,87 y 0,79. APS compensa con conjuntos mayores en
+%   esas clases (~1,4 frente a ~1,0).
+% - Con APS, el tamaño medio crece fuera de distribución (\alpha = 0,05: 3,14 en TUM+NORM, 2,72 en
+%   LYM, 2,51 en DTD, 1,69 en PANDA, frente a 1,04 en el test ID): el tamaño es una señal de OOD.
+%   Con RAPS esa señal desaparece.
+\pendiente{análisis de la \cref{tab:conforme-tamano-ood} y de la \cref{fig:conforme-tamanos-clase}}
+
+\pendiente{conclusión parcial}
 
 \section{Predicción conforme Mondrian}\label{sec:conforme-mondrian}
-\pendiente{Mondrian}
+
+\input{tablas/t12_mondrian_global}
+
+% Puntos que debería cubrir:
+% - Puntuaciones LAC (1 - softmax) y APS; misma calibración que la versión marginal.
+% - La cobertura global es la misma (LAC \alpha = 0,05: 0,948 en ambas), pero el tamaño medio se
+%   duplica con \alpha = 0,05 (LAC 0,96 -> 1,98; APS 1,04 -> 2,15).
+% - Control de resolución: ninguna versión mantiene la garantía; con LAC, Mondrian empeora
+%   (0,859 -> 0,777).
+\pendiente{análisis de la \cref{tab:mondrian-global}}
+
+\input{tablas/t12_mondrian_clase}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.85\textwidth]{img/cap12/mondrian_fig_cobertura_por_clase.pdf}
+  \caption{Cobertura por clase en el test ID de la predicción conforme marginal y Mondrian.}
+  \label{fig:mondrian-cobertura-clase}
+\end{figure}
+
+% Puntos que debería cubrir:
+% - La versión marginal sobrecubre las clases grandes (0,97-0,99) e infracubre mucho las pequeñas
+%   (0,40 en glomeruloide, 0,61 en pobremente formadas); Mondrian iguala la cobertura entre clases.
+% - Gleason_4_pobremente_formadas (0,874 [0,803; 0,926]) y Gleason_3 (0,901 [0,858; 0,935]) siguen
+%   por debajo de 0,95 con IC que no incluyen 0,95.
+\pendiente{análisis de la \cref{tab:mondrian-clase} y de la \cref{fig:mondrian-cobertura-clase}}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.85\textwidth]{img/cap12/mondrian_fig_variabilidad_vs_beta.pdf}
+  \caption{Cobertura por clase en 100 particiones aleatorias de la validación ID (50\,\% calibración, 50\,\% evaluación) frente a la distribución teórica $\mathrm{Beta}(k_y, n_y + 1 - k_y)$.}
+  \label{fig:mondrian-beta}
+\end{figure}
+
+% Puntos que debería cubrir:
+% - Mondrian coincide con la teoría en todas las clases (LAC, \alpha = 0,05): medias 0,949-0,965
+%   frente a 0,950-0,966 teóricas.
+% - La versión marginal infracubre sistemáticamente las clases pequeñas (glomeruloide 0,51 [0,38;
+%   0,65]).
+% - En el test, la cobertura Mondrian de pobremente formadas (0,874) y Gleason_3 (0,901) queda por
+%   debajo del P5 de las particiones (0,897 y 0,921): evidencia de que validación y test no son
+%   intercambiables en esas clases.
+\pendiente{análisis de la \cref{fig:mondrian-beta}}
+
+\begin{figure}[htbp]
+  \centering
+  \begin{subfigure}[b]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/cap12/mondrian_fig_glomeruloide_calibracion.pdf}
+    \caption{Imágenes de calibración que fijan el umbral de \clase{Gleason\_4\_glomeruloide}.}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/cap12/mondrian_fig_label_smoothing.pdf}
+    \caption{Distribución del softmax de las clases no predichas y «suelo» $\varepsilon/K$.}
+  \end{subfigure}
+  \caption{Causa del aumento del tamaño de los conjuntos con Mondrian y $\alpha = 0{,}05$.}
+  \label{fig:mondrian-glomeruloide}
+\end{figure}
+
+% Puntos que debería cubrir:
+% - Con 33 imágenes de calibración, el umbral de glomeruloide es el máximo (\cref{prop:mondrian-ny}):
+%   \hat q_y = 0,995 (LAC), es decir, la clase entra si su softmax es \ge 0,005, lo que ocurre en el
+%   99,2 % del test ID. Sin esa clase, el tamaño medio sería 0,99. Lo fija una sola imagen
+%   (1449718_015457_039873_000224.png, predicha como cribiforme con 0,921).
+% - Label smoothing (\varepsilon = 0,1, \cref{prop:ls-optimo}): el óptimo da \varepsilon/K = 0,00714 a las
+%   clases no verdaderas; en el test, mediana 0,00682 y el 98,1 % entre \varepsilon/(2K) y 2\varepsilon/K.
+% - Con \alpha = 0,10 el efecto desaparece (glomeruloide en el 2,3 % de los conjuntos).
+\pendiente{análisis de la \cref{fig:mondrian-glomeruloide}}
+
+\pendiente{conclusión parcial}
 
 \section{Discusión}\label{sec:conforme-discusion}
+
+% Integrar: la detección OOD conforme controla las falsas alarmas; los conjuntos APS ofrecen
+% cobertura marginal y su tamaño señala OOD; Mondrian corrige la infracobertura de las clases
+% minoritarias con dos costes (conjuntos mayores con clases muy pequeñas y fragilidad ante
+% covariate shift con LAC); la no intercambiabilidad entre validación y test limita las garantías.
 \pendiente{discusión global}
 
 \endinput

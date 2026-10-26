@@ -1,0 +1,20 @@
+% Generado por scripts/generar_tablas.py a partir de results_conforme/aps_raps_resumen.csv. No editar a mano.
+\begin{table}[htbp]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\caption{Conjuntos de predicción APS y RAPS sobre las probabilidades del Swin-S, calibrados con el 80\,\% de la validación ID. Cobertura: proporción de imágenes cuya clase verdadera está en el conjunto (objetivo $1-\alpha$), con IC exacto del 95\,\%; tamaño medio del conjunto (más pequeño es mejor a igual cobertura) y proporción de conjuntos vacíos.}
+\label{tab:conforme-aps}
+\begin{tabular}{llccccc}
+\toprule
+& & \multicolumn{3}{c}{Test ID} & \multicolumn{2}{c}{Control 128\,px} \\
+\cmidrule(lr){3-5}\cmidrule(lr){6-7}
+Método & $\alpha$ & Cobertura [IC 95\,\%] & Tamaño & Vacíos & Cobertura & Tamaño \\
+\midrule
+APS & 0{,}05 & 0{,}945 [0{,}941; 0{,}949] & 1{,}04 & 3{,}9\,\% & 0{,}922 & 1{,}25 \\
+RAPS & 0{,}05 & 0{,}948 [0{,}944; 0{,}952] & 0{,}98 & 2{,}1\,\% & 0{,}894 & 0{,}99 \\
+APS & 0{,}10 & 0{,}897 [0{,}892; 0{,}902] & 0{,}95 & 8{,}4\,\% & 0{,}871 & 1{,}07 \\
+RAPS & 0{,}10 & 0{,}898 [0{,}892; 0{,}903] & 0{,}93 & 7{,}2\,\% & 0{,}852 & 0{,}94 \\
+\bottomrule
+\end{tabular}
+\end{table}

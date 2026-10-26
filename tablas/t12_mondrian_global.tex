@@ -1,0 +1,25 @@
+% Generado por scripts/generar_tablas.py a partir de results_conforme/mondrian/global.csv. No editar a mano.
+\begin{table}[htbp]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\caption{Predicción conforme marginal frente a Mondrian (condicionada por clase) con las puntuaciones LAC y APS. Cobertura (objetivo $1-\alpha$) con IC exacto del 95\,\%, tamaño medio del conjunto, número de clases con cobertura puntual por debajo de $1-\alpha$ en el test ID y cobertura en el control de resolución (\emph{covariate shift} con las mismas etiquetas).}
+\label{tab:mondrian-global}
+\begin{tabular}{lllcccc}
+\toprule
+Puntuación & $\alpha$ & Versión & Cobertura test ID [IC 95\,\%] & Tamaño medio & Clases $<1-\alpha$ & Cobertura control 128\,px \\
+\midrule
+APS & 0{,}05 & Marginal & 0{,}945 [0{,}941; 0{,}949] & 1{,}04 & 10 / 14 & 0{,}922 \\
+APS & 0{,}05 & Mondrian & 0{,}946 [0{,}942; 0{,}950] & 2{,}15 & 11 / 14 & 0{,}923 \\
+\midrule
+APS & 0{,}10 & Marginal & 0{,}897 [0{,}892; 0{,}902] & 0{,}95 & 9 / 14 & 0{,}871 \\
+APS & 0{,}10 & Mondrian & 0{,}899 [0{,}894; 0{,}904] & 0{,}98 & 10 / 14 & 0{,}874 \\
+\midrule
+LAC & 0{,}05 & Marginal & 0{,}948 [0{,}944; 0{,}952] & 0{,}96 & 10 / 14 & 0{,}859 \\
+LAC & 0{,}05 & Mondrian & 0{,}948 [0{,}944; 0{,}952] & 1{,}98 & 8 / 14 & 0{,}777 \\
+\midrule
+LAC & 0{,}10 & Marginal & 0{,}901 [0{,}896; 0{,}906] & 0{,}91 & 10 / 14 & 0{,}726 \\
+LAC & 0{,}10 & Mondrian & 0{,}901 [0{,}896; 0{,}906] & 0{,}94 & 7 / 14 & 0{,}649 \\
+\bottomrule
+\end{tabular}
+\end{table}

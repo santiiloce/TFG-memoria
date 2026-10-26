@@ -11,7 +11,8 @@
 
 % Puntos que debería cubrir:
 % - Imágenes de lámina completa (WSI), extracción de parches y tinción H&E.
-% - Ajuste fino de redes preentrenadas en histopatología (Kandel y Castelli, 2020).
+% - Ajuste fino de redes preentrenadas en histopatología (Kandel y Castelli, 2020: aparece en la
+%   lista de referencias de las notas como «Paper para métodos»).
 % - Graduación de Gleason y variabilidad entre observadores; conjunto de datos de próstata del
 %   grupo (Ayensa-Jiménez et al.) y PANDA (Bulten et al., 2022).
 % - Arquitecturas: CNN (ResNet, EfficientNetV2, ConvNeXt) y transformers (ViT, Swin).
@@ -21,12 +22,43 @@
 
 \subsection{Taxonomía de la detección OOD generalizada}\label{sec:ea-taxonomia}
 
-% Puntos que debería cubrir: AD, ND, OSR, OOD y detección de valores atípicos (Yang et al., 2024).
-\pendiente{taxonomía}
+% Puntos que debería cubrir: AD, ND, OSR, OOD y detección de valores atípicos según la taxonomía
+% de Yang et al. (2024), y en qué categoría se sitúa este trabajo.
+\pendiente{presentación de la taxonomía de Yang et al.~\cite{yang2024}}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{img/cap02/yang2024_fig2_taxonomia.pdf}
+  \caption{Subtareas de la detección OOD generalizada: (a) detección de anomalías sensoriales, (b) detección de novedades de una clase, (c) detección de novedades multiclase, (d) reconocimiento en conjunto abierto y detección OOD y (e) detección de valores atípicos. Fuente: Yang et al.~\cite{yang2024} (figura~2).}
+  \label{fig:taxonomia-yang}
+\end{figure}
+
+% Nota de las notas: «Citar esta imagen y justificar: [...] situar tu trabajo en (d) y justificar
+% que incluyes PANDA porque, en un contexto clínico, también interesa avisar de cambios de
+% apariencia que degradan el clasificador. Tu propio control lo demuestra: la exactitud cae del
+% 96,87 % al 90,77 %.»
+% Cifras: exactitud del Swin-S en el test ID 0,9688 (results_fase1; las notas daban 96,87 %) y en
+% el control de resolución 0,9077 (faseA, columna ACC_control_res_128).
+\pendiente{situar el trabajo en la subtarea (d) de la \cref{fig:taxonomia-yang} y justificar la inclusión de PANDA: en un contexto clínico también interesa avisar de cambios de apariencia que degradan el clasificador (la exactitud cae del 96,88\,\% en el test ID al 90,77\,\% en el control de resolución)}
+
+Cierta literatura previa clasifica las anomalías en tres tipos: anomalías puntuales, anomalías condicionales o contextuales y anomalías grupales o colectivas (Pang et al.~\cite{pang2020}; Chalapathy y Chawla~\cite{chalapathy2019}; Ruff et al.~\cite{ruff2021}). En este estudio, nos centramos principalmente en la detección de anomalías puntuales debido a su popularidad en aplicaciones prácticas y a su idoneidad para esclarecer las similitudes y diferencias entre las subtareas.
+\revisar{traducción casi literal; parafrasear y citar}
+\revisar{«En este estudio» se refiere al survey de Yang et al., no a este TFG}
+
+Formalmente, OSR aborda el caso en el que las muestras OOD experimentan un cambio semántico durante las pruebas, es decir, $P(Y) \neq P'(Y)$. El objetivo de OSR es similar al de la detección de conjuntos abiertos multiclase (ND); la única diferencia radica en que OSR requiere, además, una clasificación precisa de las muestras ID de $P(Y)$.
+\pendiente{citar}
+\revisar{traducción casi literal; parafrasear y citar}
+
+\emph{Evaluación OSR.} Al igual que en AD y ND, las métricas para OSR incluyen puntuaciones F (\emph{F-scores}), AUROC y AUPR. Asimismo, el rendimiento de la clasificación se evalúa mediante la precisión estándar para ID. Si bien las métricas mencionadas evalúan de forma independiente las capacidades de detección de novedades y de clasificación ID, algunos trabajos proponen criterios para una evaluación conjunta, como CCR@FPR$x$ (Dhamija et al.~\cite{dhamija2018}), que calcula la tasa de recuperación (\emph{recall}) por clase cuando se alcanza una determinada tasa de falsos positivos (FPR) igual a $x$ (por ejemplo, $10^{-1}$).
+\revisar{traducción casi literal; parafrasear y citar}
 
 \subsection{Cambio semántico y desplazamiento de covariables}\label{sec:ea-shift}
 
-\pendiente{cambio semántico frente a desplazamiento de covariables}
+% Puntos que debería cubrir: definición informal de ambos tipos de cambio (formalización en
+% \cref{sec:cambios-distribucion}) y su relación con los conjuntos de este trabajo.
+\pendiente{introducción al cambio semántico y al desplazamiento de covariables}
+
+Ambos conjuntos producen un cambio de distribución respecto al conjunto ID, pero de naturaleza distinta: PANDA corresponde a un desplazamiento de covariables, mientras que DTD introduce un cambio semántico.
 
 \subsection{Near-OOD y far-OOD}\label{sec:ea-near-far}
 
@@ -36,24 +68,44 @@
 
 \subsection{Criterio conservador en medicina}\label{sec:ea-conservador}
 
-\pendiente{criterio conservador}
+Aunque en clasificación general la detección OOD suele restringirse al cambio semántico, Yang et al.~\cite{yang2024} señalan que en tareas de alto riesgo, como la clasificación de imágenes médicas (Zimmerer et al.~\cite{zimmerer2022}), se espera que los modelos sean conservadores y rechacen cualquier muestra que se desvíe de la distribución de entrenamiento. Siguiendo este criterio, en este trabajo se considera OOD tanto el cambio semántico (DTD) como el desplazamiento de covariables debido al cambio de centro (PANDA).
 
 \subsection{Métodos excluidos}\label{sec:ea-excluidos}
 
-\pendiente{métodos excluidos}
+No se han incluido métodos basados en gradientes, como ODIN (Liang et al.~\cite{liang2018}) o GradNorm (Huang et al.~\cite{huang2021}), por dos motivos. En primer lugar, requieren una pasada hacia atrás por cada imagen, lo que incrementa notablemente el coste de inferencia y dificulta su despliegue en un entorno clínico. En segundo lugar, Igoe et al.~\cite{igoe2022} indican que la eficacia de estos métodos no se debe tanto a la información del gradiente como a la magnitud de las características y a la distribución de salida, aspectos que ya quedan cubiertos por los métodos basados en características y en logits evaluados en este trabajo.
+
+Dentro de los métodos basados en densidad se distinguen dos enfoques. El modelado mediante gaussianas condicionales por clase en el espacio de características (Lee et al.~\cite{lee2018}) se ha incluido en la evaluación a través de MDS y RMDS. En cambio, no se han considerado los modelos generativos sobre el espacio de entrada, como los basados en flujos, por tres motivos: su entrenamiento resulta costoso y difícil de optimizar sobre imágenes de alta resolución; su verosimilitud presenta un fuerte sesgo hacia la complejidad de la entrada (Serrà et al.~\cite{serra2020}), lo que en histopatología podría favorecer parches de baja complejidad, como regiones de fondo o estroma; y su rendimiento suele quedar por detrás de los enfoques basados en clasificación (Yang et al.~\cite{yang2024}).
+
+% Las notas citan también Zhang et al. (2021) y Fang et al. (2022) entre las referencias sobre
+% limitaciones y métodos generativos; decidir dónde se citan.
+\pendiente{ubicar las citas a Zhang et al. (2021) y Fang et al. (2022)}
 
 \section{Explicabilidad}\label{sec:ea-explicabilidad}
 
+Yang et al.~\cite{yang2024} identifican la explicabilidad como uno de los retos abiertos en la detección OOD. Este trabajo aborda dicho aspecto desde dos perspectivas complementarias: mediante STOOD-X, que proporciona explicaciones de las decisiones de detección, y mediante técnicas de relevancia por conceptos (CRP), que permiten identificar y eliminar características sesgadas del clasificador y analizar su efecto sobre la fiabilidad del sistema.
+
 \subsection{El efecto Clever Hans}\label{sec:ea-clever-hans}
 
-\pendiente{efecto Clever Hans}
+% Nota de las notas: «Hablar del efecto Clever Hans en XAI, y de cómo los modelos aprenden
+% relaciones espurias para la clasificación de imágenes».
+% Puntos que debería cubrir:
+% - Origen del término y su uso en XAI.
+% - Ejemplos de correlaciones espurias en clasificación de imágenes (y en histopatología: tinción,
+%   centro, artefactos).
+% - Relación con los resultados del capítulo 10 (los detectores responden al centro).
+\pendiente{efecto Clever Hans en XAI y aprendizaje de relaciones espurias en la clasificación de imágenes}
 
 \subsection{Explicaciones locales y conceptuales}\label{sec:ea-locales-conceptuales}
 
-\pendiente{explicaciones locales frente a conceptuales}
+La diferencia que tiene CRP frente a los métodos de explicabilidad local es que estos otros reflejan las zonas en las que se ha fijado el modelo, pero no son capaces de determinar la importancia de estas características para la decisión final.
+\pendiente{desarrollar y citar (Achtibat et al.~\cite{achtibat2023})}
 
 \subsection{LRP, CRP y explicaciones glocales}\label{sec:ea-crp}
 
-\pendiente{LRP, CRP y explicaciones glocales}
+% Nota de las notas: «Utilizar el concepto de glocal CRP al igual que se usa en el paper que
+% describe CRP».
+% Puntos que debería cubrir: LRP como base; CRP (Achtibat et al., 2023); explicaciones glocales
+% (combinación de explicación local y global); Storås et al. (2025). Formalización en el capítulo 7.
+\pendiente{LRP, CRP y explicaciones glocales, usando el concepto de CRP glocal como en el artículo de CRP}
 
 \endinput

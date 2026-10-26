@@ -1,0 +1,39 @@
+% Generado por scripts/generar_tablas.py a partir de results_ood/faseC_2026-10-20/tabla_principal.csv. No editar a mano.
+\begin{table}[htbp]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\caption{Cambio de centro y resolución: PANDA (próstata de otros centros) frente al control de resolución (las mismas imágenes del test ID reducidas a 128\,px). \AUROC (más alto es mejor) y \FPRn{95} (más bajo es mejor). Diferencia: \AUROC de PANDA menos \AUROC del control. IC del 95\,\% por \emph{bootstrap} (1.000 remuestreos estratificados, semilla 0). Clase positiva: OOD. $^{a}$ASH reduce la exactitud ID al 68{,}3\,\%. $^{\dagger}$Variante exploratoria ($K_c=\min(500,\lfloor n_c/2\rfloor)$), propuesta tras ver datos OOD; no es el método principal.}
+\label{tab:ood-panda-control}
+\begin{tabular}{lccccc}
+\toprule
+& \multicolumn{3}{c}{\AUROC $\uparrow$ [IC 95\,\%]} & \multicolumn{2}{c}{\FPRn{95} $\downarrow$} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-6}
+Método & PANDA & Control 128\,px & Diferencia & PANDA & Control \\
+\midrule
+\multicolumn{6}{@{}l}{\textit{Basados en logits}} \\
+MSP & 0{,}843 [0{,}838; 0{,}849] & 0{,}657 [0{,}650; 0{,}664] & +0{,}186 & 0{,}821 & 0{,}953 \\
+MaxLogit & 0{,}723 [0{,}716; 0{,}730] & 0{,}626 [0{,}619; 0{,}633] & +0{,}097 & 0{,}904 & 0{,}948 \\
+Energy & 0{,}706 [0{,}698; 0{,}713] & 0{,}622 [0{,}615; 0{,}629] & +0{,}084 & 0{,}905 & 0{,}948 \\
+\midrule
+\multicolumn{6}{@{}l}{\textit{Modificación de activaciones}} \\
+ReAct & 0{,}741 [0{,}734; 0{,}747] & 0{,}602 [0{,}594; 0{,}609] & +0{,}140 & 0{,}764 & 0{,}945 \\
+ASH$^{a}$ & 0{,}341 [0{,}334; 0{,}348] & 0{,}503 [0{,}496; 0{,}510] & -0{,}162 & 0{,}996 & 0{,}944 \\
+DICE & 0{,}633 [0{,}626; 0{,}639] & 0{,}554 [0{,}547; 0{,}561] & +0{,}079 & 0{,}586 & 0{,}864 \\
+\midrule
+\multicolumn{6}{@{}l}{\textit{Características y distancias}} \\
+KNN & 0{,}892 [0{,}887; 0{,}896] & 0{,}760 [0{,}754; 0{,}765] & +0{,}132 & 0{,}256 & 0{,}569 \\
+MDS & 0{,}911 [0{,}907; 0{,}914] & 0{,}780 [0{,}774; 0{,}785] & +0{,}131 & 0{,}257 & 0{,}575 \\
+RMDS & 0{,}912 [0{,}908; 0{,}916] & 0{,}753 [0{,}747; 0{,}759] & +0{,}159 & 0{,}241 & 0{,}821 \\
+ViM & 0{,}912 [0{,}909; 0{,}916] & 0{,}789 [0{,}784; 0{,}794] & +0{,}123 & 0{,}252 & 0{,}558 \\
+SHE (prod.\ escalar) & 0{,}530 [0{,}522; 0{,}537] & 0{,}603 [0{,}596; 0{,}610] & -0{,}073 & 0{,}787 & 0{,}783 \\
+SHE (coseno) & 0{,}834 [0{,}829; 0{,}839] & 0{,}651 [0{,}644; 0{,}657] & +0{,}184 & 0{,}514 & 0{,}854 \\
+SHE (euclídea) & 0{,}851 [0{,}847; 0{,}856] & 0{,}646 [0{,}639; 0{,}653] & +0{,}205 & 0{,}488 & 0{,}881 \\
+\midrule
+\multicolumn{6}{@{}l}{\textit{STOOD-X}} \\
+STOOD-X (100\,\%) & 0{,}895 [0{,}891; 0{,}899] & 0{,}894 [0{,}890; 0{,}898] & +0{,}001 & 0{,}427 & 0{,}497 \\
+STOOD-X (87,5\,\%) & 0{,}895 [0{,}891; 0{,}899] & 0{,}893 [0{,}889; 0{,}897] & +0{,}002 & 0{,}428 & 0{,}505 \\
+STOOD-X $K_c$$^{\dagger}$ & 0{,}917 [0{,}914; 0{,}921] & 0{,}895 [0{,}891; 0{,}898] & +0{,}023 & 0{,}300 & 0{,}490 \\
+\bottomrule
+\end{tabular}
+\end{table}

@@ -1,0 +1,20 @@
+% Generado por scripts/generar_tablas.py a partir de results_agrupaciones/sensibilidad_G3_G4_G5.csv. No editar a mano.
+\begin{table}[htbp]
+\centering
+\small
+\caption{Sensibilidad de las categorías G3, G4 y G5 en el test ID (más alto es mejor). Son las categorías directamente comparables con el artículo del conjunto de datos~\cite{ayensa2025}, porque coinciden en número de imágenes.}
+\label{tab:sensibilidad-gleason}
+\begin{tabular}{lccc}
+\toprule
+Modelo & G3 ($n=\num{253}$) & G4 ($n=\num{2337}$) & G5 ($n=\num{1269}$) \\
+\midrule
+Swin-S & 0{,}806 & 0{,}968 & 0{,}968 \\
+ConvNeXt-S & 0{,}787 & 0{,}964 & 0{,}965 \\
+EfficientNetV2-S & 0{,}771 & 0{,}940 & 0{,}938 \\
+ViT-B/16 & 0{,}775 & 0{,}953 & 0{,}922 \\
+ResNet-50 & 0{,}565 & 0{,}864 & 0{,}835 \\
+\midrule
+XCiT-M (artículo) & 0{,}814 & 0{,}967 & 0{,}978 \\
+\bottomrule
+\end{tabular}
+\end{table}

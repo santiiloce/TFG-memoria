@@ -1,30 +1,141 @@
 % !TeX root = ../tfg.tex
 % !TeX encoding = utf8
+%
+%*******************************************************
+% Capítulo 11. STOOD-X
+%*******************************************************
 
 \chapter{STOOD-X}\label{cap:stoodx}
 
+% Descripción del método en la \cref{sec:metodo-stoodx}. Fuentes: results_ood/faseB_paper_2026-10-20,
+% results_ood/stoodx_validacion y faseC.
+\pendiente{introducción del capítulo}
+
 \section{Implementación}\label{sec:stoodx-implementacion}
-\pendiente{implementación}
+
+El método se ha implementado siguiendo la descripción del artículo~\cite{sevillano2025}. Se realiza un único test por imagen entre las $K$ distancias de $x$ y las $K^2$ distancias de sus vecinos mediante \texttt{scipy.stats.mannwhitneyu} (Virtanen et al.~\cite{virtanen2020}).
+
+% Puntos que debería cubrir (tono neutro y descriptivo: el tutor Iván Sevillano es primer autor
+% del método):
+% - La implementación pública difiere del texto del artículo: la referencia de cada test es la
+%   i-ésima imagen de entrenamiento de la clase predicha y no los vecinos de los vecinos, y el test
+%   es de Wilcoxon pareado (RESUMEN_STOODX.md, «Problemas encontrados», punto 1).
+% - Por ello se reimplementó según el texto del artículo; interpretación pendiente de confirmar
+%   con los autores.
+% - Coste: ~1 ms/imagen en GPU + ~11-13 ms/imagen en CPU; ~25 min por configuración para las
+%   122.208 imágenes.
+\pendiente{diferencias entre la implementación pública y la descripción del artículo, y motivo de la reimplementación}
+\revisar{tono}
 
 \section{Configuración}\label{sec:stoodx-configuracion}
-\pendiente{configuración}
+
+Se emplean la distancia coseno, $K = 500$ (el valor seleccionado en el artículo), el conjunto de entrenamiento ID de la clase predicha como referencia y dos configuraciones de características: el 100\,\% y el 87,5\,\% más presente. Dado que el criterio de relevancia del artículo se basa en CRP (\cref{sec:crp}), que no es directamente aplicable a un Swin Transformer, la selección del 87,5\,\% se realiza mediante la presencia de cada característica (suma de sus valores absolutos en la clase), criterio utilizado en la implementación pública. Ningún hiperparámetro se ha ajustado con datos OOD.
+\revisar{tono}
+
+% Además, una variante exploratoria K_c = \min(500, \lfloor n_c/2 \rfloor), propuesta tras ver la
+% validación con datos OOD (\cref{sec:stoodx-k}); 87,5 % = 672 de 768 características.
 
 \section{Puntuación}\label{sec:stoodx-puntuacion}
-\pendiente{puntuación}
+
+Como puntuación de detección se utiliza el estadístico tipificado del test de Mann-Whitney, $z$, obtenido mediante la aproximación normal del estadístico $U$ con corrección por empates y por continuidad (\cref{teo:u-normal,obs:u-empates}). Dado que $p = 1 - \Phi(z)$ es una función monótona decreciente de $z$, la puntuación $-z$ induce la misma ordenación que el $p$-valor propuesto en STOOD-X, pero evita el subdesbordamiento numérico que se produce cuando $p < 10^{-308}$. Cuando todas las distancias de $x$ superan a las de sus vecinos (separación completa), el estadístico alcanza su valor máximo y varias imágenes quedan empatadas. Esto afecta al 66\,\% de TUM + NORM pero solo al 0,6\,\% del test ID; su efecto está acotado en $\pm 0{,}003$ en AUROC, y no altera FPR@95 ni CCR@FPR5 (\cref{tab:stoodx-saturacion}).
+
+\input{tablas/t11_saturacion}
+
+% Cifras: z máximo 38,69 con K = 500; saturadas el 0,6 % del test ID y el 66 % de TUM+NORM, 32 % de
+% LYM, 19 % de PANDA y 76 % de DTD. Entre imágenes saturadas el orden lo decide solo el término de
+% empates de la varianza (rango de z < 1e-4).
+\pendiente{conclusión parcial}
 
 \section{Resultados}\label{sec:stoodx-resultados}
-\pendiente{resultados}
+
+\input{tablas/t11_stoodx}
+
+En el near-OOD principal (TUM + NORM), STOOD-X obtiene un AUROC de 0,953, estadísticamente indistinguible del de RMDS (0,954; $p = 0{,}75$ en el \emph{bootstrap} pareado), aunque con un FPR@95 claramente mayor (0,349 frente a 0,128). Es el mejor método en NORM (AUROC 0,990), STR (0,978), MUS (0,968) y DTD (0,991). En PANDA alcanza 0,895, prácticamente igual que en el control de resolución (0,894), lo que indica que su detección del cambio de centro se explica casi por completo por la diferencia de resolución. Las configuraciones con el 100\,\% y el 87,5\,\% de las características son indistinguibles.
+
+% Además: el artículo indica que STOOD-X rinde mejor con transformers; con este Swin no supera a KNN
+% ni a RMDS en el near-OOD principal. Con un 5 % de falsas alarmas conforme es el que más detecta en
+% TUM+NORM, PANDA y DTD (\cref{tab:conforme-ood}).
+\pendiente{conclusión parcial}
 
 \section{Calibración}\label{sec:stoodx-calibracion}
-\pendiente{calibración}
+
+\input{tablas/t11_calibracion}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{img/cap11/fig_calibracion_id_val.pdf}
+  \caption{Histogramas de los $p$-valores de STOOD-X en la validación ID por clase predicha, con $K = 500$ y con $K_c$; la línea de puntos es la densidad uniforme, que se obtendría si el test estuviera calibrado. Los $p$-valores son bimodales en 0 y 1.}
+  \label{fig:stoodx-calibracion}
+\end{figure}
+
+Aunque el método propone el $p$-valor como medida de pertenencia, en el conjunto de validación ID el 82\,\% de las imágenes obtiene $p < 0{,}05$, con una distribución bimodal. Por tanto, el $p$-valor permite ordenar las imágenes, pero no puede interpretarse como nivel de significación. La causa probable es que las $K^2$ distancias de referencia no son independientes, ya que los vecinos comparten vecinos (\cref{obs:u-dependencia}). La calibración conforme sobre el conjunto de validación (\cref{sec:conforme-ood}) recupera una tasa de falsas alarmas controlada.
+
+% Cifras: KS D = 0,80 frente a U(0,1); p = 0 en el 8,1 % y p = 1 en el 7,3 %. Las únicas clases
+% con p menos extremo son las pequeñas (comedonecrosis, n_c = 399; glomeruloide, n_c = 173).
+\pendiente{conclusión parcial}
 
 \section{Sensibilidad a $K$}\label{sec:stoodx-k}
-\pendiente{sensibilidad a K}
+
+\input{tablas/t11_barrido_k}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{img/cap11/fig_barrido_K.pdf}
+  \caption{Izquierda: AUROC con $p$ y con $-z$ frente a $K$ en TUM+NORM, LYM, PANDA y DTD. Derecha: tiempo por imagen (GPU, CPU y total) frente a $K$, en escala logarítmica. Muestra la caída con $K = 500$ y la diferencia entre $p$ y $-z$ por subdesbordamiento.}
+  \label{fig:stoodx-barrido-k}
+\end{figure}
+
+En un análisis de sensibilidad sobre un subconjunto (\cref{tab:stoodx-barrido-k}), el rendimiento mejora hasta $K \approx 72$--$288$ y se degrada con $K = 500$. La degradación se concentra en las imágenes predichas en clases con pocas imágenes de entrenamiento (\clase{Gleason\_5\_comedonecrosis}, 399; \clase{Inflamatorio}, 568; \clase{No\_Cancer}, 868), donde $K$ se aproxima al tamaño de la clase y se pierde la localidad del vecindario. En particular, el 10\,\% de las imágenes de TUM + NORM se predice como \clase{Gleason\_5\_comedonecrosis}. Al excluir esas clases, la caída desaparece. Este análisis no se ha utilizado para elegir $K$, que se mantiene en el valor del artículo; una variante que adapta $K$ al tamaño de la clase ($K_c = \min(500, \lfloor n_c/2 \rfloor)$) no mejoró los resultados.
+
+% Cifras: con K = 500, p = 0 exacto en el 89 % de TUM+NORM, el 98 % de DTD y el 9 % del test ID
+% (subconjunto), y p pierde hasta 0,05 de AUROC frente a -z. K_c: TUM+NORM 0,943 frente a 0,953 y
+% LYM 0,799 frente a 0,903, aunque mejora PANDA (0,917 frente a 0,895).
+\pendiente{conclusión parcial}
 
 \section{Explicaciones por ejemplos}\label{sec:stoodx-ejemplos}
-\pendiente{explicaciones}
+
+Siguiendo la segunda etapa del método, la \cref{fig:stoodx-ejemplos-aceptadas} muestra imágenes representativas junto a sus cinco vecinos más cercanos de entrenamiento. Las imágenes de colon aceptadas como ID se predicen en su totalidad como \clase{Gleason\_5\_comedonecrosis}, lo que ilustra visualmente el efecto descrito.
+
+En cada figura, la primera columna es la imagen evaluada y las cinco siguientes, sus vecinos de entrenamiento, con la clase predicha, la puntuación ($p$ y $z$) y las distancias en los títulos.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{img/cap11/ejemplos_K500_nct_tum_norm_alta_aceptadas.jpg}
+  \caption{STOOD-X ($K = 500$): cinco imágenes de TUM+NORM aceptadas como ID (puntuación $-z$ más alta) y sus cinco vecinos de entrenamiento de la clase predicha. Las cinco se predicen como \clase{Gleason\_5\_comedonecrosis} ($n_c = 399 < K$).}
+  \label{fig:stoodx-ejemplos-aceptadas}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{img/cap11/ejemplos_K500_nct_tum_norm_baja_detectadas.jpg}
+  \caption{STOOD-X ($K = 500$): cinco imágenes de TUM+NORM bien detectadas como OOD y sus vecinos de entrenamiento, visualmente distintos.}
+  \label{fig:stoodx-ejemplos-detectadas}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{img/cap11/ejemplos_K500_id_alta.jpg}
+  \caption{STOOD-X ($K = 500$): cinco imágenes ID con puntuación alta y sus vecinos de entrenamiento: casos ID típicos.}
+  \label{fig:stoodx-ejemplos-id}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{img/cap11/ejemplos_K500_id_baja_falsas_alarmas.jpg}
+  \caption{STOOD-X ($K = 500$): cinco imágenes ID con puntuación baja (falsas alarmas) y sus vecinos de entrenamiento ($z$ saturada, $\approx 38$).}
+  \label{fig:stoodx-ejemplos-falsas}
+\end{figure}
+
+% Cifras: las falsas alarmas ID son Adenocarcinoma ductal, Estroma y Glándulas no neoplásicas con
+% z \approx 38 (separación completa).
+\pendiente{análisis de las \cref{fig:stoodx-ejemplos-detectadas,fig:stoodx-ejemplos-id,fig:stoodx-ejemplos-falsas}}
 
 \section{Discusión}\label{sec:stoodx-discusion}
+
+% Integrar las conclusiones parciales: competitivo en AUROC en el near-OOD y el mejor en far-OOD,
+% pero con peor FPR@95 en el near-OOD, muy sensible a la resolución, saturación acotada,
+% p-valores no calibrados (solo sirven para ordenar), degradación con K cercano a n_c y resultado
+% negativo de K_c.
 \pendiente{discusión global}
 
 \endinput

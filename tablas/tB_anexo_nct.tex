@@ -1,0 +1,34 @@
+% Generado por scripts/generar_tablas.py a partir de results_ood/faseA_2026-10-20_11-19-35 y results_ood/faseB_paper_2026-10-20 (resultados_anexo.csv). No editar a mano.
+\begin{table}[htbp]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\caption{Clases restantes de \nctcrc: tejido adiposo (ADI), fondo (BACK), restos celulares (DEB) y moco (MUC). \AUROC (más alto es mejor) y \FPRn{95} (más bajo es mejor); clase positiva: OOD. $^{a}$, $^{\dagger}$: como en \cref{tab:ood-near}.}
+\label{tab:anexo-nct}
+\begin{tabular}{lcccccccc}
+\toprule
+& \multicolumn{4}{c}{\AUROC $\uparrow$} & \multicolumn{4}{c}{\FPRn{95} $\downarrow$} \\
+\cmidrule(lr){2-5}\cmidrule(lr){6-9}
+Método & ADI & BACK & DEB & MUC & ADI & BACK & DEB & MUC \\
+\midrule
+\multicolumn{9}{@{}l}{\textit{Basados en logits}} \\
+MSP & 0{,}736 & 0{,}884 & 0{,}798 & 0{,}735 & 0{,}769 & 0{,}904 & 0{,}987 & 0{,}977 \\
+MaxLogit & 0{,}548 & 0{,}834 & 0{,}780 & 0{,}687 & 0{,}866 & 0{,}947 & 0{,}993 & 0{,}982 \\
+Energy & 0{,}536 & 0{,}827 & 0{,}767 & 0{,}681 & 0{,}869 & 0{,}944 & 0{,}994 & 0{,}982 \\
+\midrule
+\multicolumn{9}{@{}l}{\textit{Modificación de activaciones}} \\
+ReAct & 0{,}569 & 0{,}775 & 0{,}875 & 0{,}746 & 0{,}741 & 0{,}980 & 0{,}579 & 0{,}980 \\
+ASH$^{a}$ & 0{,}469 & 0{,}617 & 0{,}608 & 0{,}448 & 0{,}954 & 0{,}928 & 0{,}989 & 0{,}999 \\
+DICE & 0{,}561 & 0{,}334 & 0{,}742 & 0{,}483 & 0{,}551 & 0{,}993 & 0{,}673 & 0{,}907 \\
+\midrule
+\multicolumn{9}{@{}l}{\textit{Características y distancias}} \\
+KNN & 0{,}725 & 0{,}952 & 0{,}956 & 0{,}944 & 0{,}599 & 0{,}151 & 0{,}136 & 0{,}164 \\
+MDS & 0{,}758 & 0{,}968 & 0{,}975 & 0{,}961 & 0{,}531 & 0{,}128 & 0{,}096 & 0{,}144 \\
+RMDS & 0{,}781 & 0{,}949 & 0{,}939 & 0{,}946 & 0{,}558 & 0{,}127 & 0{,}132 & 0{,}130 \\
+ViM & 0{,}752 & 0{,}969 & 0{,}976 & 0{,}962 & 0{,}550 & 0{,}120 & 0{,}088 & 0{,}141 \\
+SHE (prod.\ escalar) & 0{,}370 & 0{,}910 & 0{,}668 & 0{,}780 & 0{,}822 & 0{,}292 & 0{,}997 & 0{,}668 \\
+SHE (coseno) & 0{,}646 & 0{,}931 & 0{,}940 & 0{,}918 & 0{,}693 & 0{,}236 & 0{,}165 & 0{,}269 \\
+SHE (euclídea) & 0{,}660 & 0{,}925 & 0{,}951 & 0{,}923 & 0{,}681 & 0{,}247 & 0{,}167 & 0{,}267 \\
+\bottomrule
+\end{tabular}
+\end{table}

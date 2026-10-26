@@ -1,0 +1,31 @@
+% Generado por scripts/generar_tablas.py a partir de results_integridad/inventario_por_clase.csv. No editar a mano.
+\begin{table}[htbp]
+\centering
+\small
+\caption{Número de imágenes por clase en la partición original del conjunto ID (carpetas \texttt{train} y \texttt{val}) y en la partición usada en este trabajo (el \texttt{train} original dividido 80/20 por clase en entrenamiento y validación; el \texttt{val} original como test).}
+\label{tab:particion}
+\begin{tabular}{lrrrrr}
+\toprule
+& \multicolumn{2}{c}{Original} & \multicolumn{3}{c}{Partición del TFG} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-6}
+Clase & Train & Val & Train & Validación & Test \\
+\midrule
+\clase{Adenocarcinoma\_ductal} & \num{18917} & \num{2102} & \num{15134} & \num{3783} & \num{2102} \\
+\clase{Carcinoma\_intraductal} & \num{1083} & \num{121} & \num{867} & \num{216} & \num{121} \\
+\clase{Estroma} & \num{22219} & \num{2469} & \num{17776} & \num{4443} & \num{2469} \\
+\clase{Glandulas\_no\_neoplasicas} & \num{32304} & \num{3590} & \num{25844} & \num{6460} & \num{3590} \\
+\clase{Gleason\_3} & \num{2275} & \num{253} & \num{1820} & \num{455} & \num{253} \\
+\clase{Gleason\_4\_cribiformes} & \num{12723} & \num{1414} & \num{10179} & \num{2544} & \num{1414} \\
+\clase{Gleason\_4\_fusionadas} & \num{6938} & \num{771} & \num{5551} & \num{1387} & \num{771} \\
+\clase{Gleason\_4\_glomeruloide} & \num{218} & \num{25} & \num{175} & \num{43} & \num{25} \\
+\clase{Gleason\_4\_pobremente\_formadas} & \num{1136} & \num{127} & \num{909} & \num{227} & \num{127} \\
+\clase{Gleason\_5\_comedonecrosis} & \num{499} & \num{56} & \num{400} & \num{99} & \num{56} \\
+\clase{Gleason\_5\_no\_glandulas} & \num{10908} & \num{1213} & \num{8727} & \num{2181} & \num{1213} \\
+\clase{Inflamatorio} & \num{714} & \num{80} & \num{572} & \num{142} & \num{80} \\
+\clase{No\_Cancer} & \num{1081} & \num{121} & \num{865} & \num{216} & \num{121} \\
+\clase{PIN\_de\_alto\_grado} & \num{2476} & \num{276} & \num{1981} & \num{495} & \num{276} \\
+\midrule
+\textbf{Total} & \num{113491} & \num{12618} & \num{90800} & \num{22691} & \num{12618} \\
+\bottomrule
+\end{tabular}
+\end{table}

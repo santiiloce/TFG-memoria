@@ -1,0 +1,30 @@
+% Generado por scripts/generar_tablas.py a partir de results_conforme/mondrian/por_clase.csv. No editar a mano.
+\begin{table}[htbp]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\caption{Cobertura por clase en el test ID con la puntuación LAC y $\alpha=0{,}05$: versión marginal frente a Mondrian (objetivo: $0{,}95$ en cada clase). $n_y$: imágenes de calibración de la clase; $k_y=\lceil (n_y+1)(1-\alpha)\rceil$. $^{\max}$: $k_y=n_y$, el umbral es la mayor puntuación de calibración de la clase.}
+\label{tab:mondrian-clase}
+\begin{tabular}{lrrcccc}
+\toprule
+& & & \multicolumn{2}{c}{Cobertura} & \multicolumn{2}{c}{Tamaño medio} \\
+\cmidrule(lr){4-5}\cmidrule(lr){6-7}
+Clase & $n_y$ & $k_y$ & Marginal & Mondrian & Marginal & Mondrian \\
+\midrule
+\clase{Gleason\_4\_glomeruloide} & \num{33} & \num{33}$^{\max}$ & 0{,}400 & 1{,}000 & 0{,}72 & 1{,}60 \\
+\clase{Gleason\_5\_comedonecrosis} & \num{82} & \num{79} & 0{,}804 & 0{,}946 & 0{,}89 & 2{,}11 \\
+\clase{Inflamatorio} & \num{113} & \num{109} & 0{,}850 & 1{,}000 & 0{,}86 & 2{,}08 \\
+\clase{Carcinoma\_intraductal} & \num{169} & \num{162} & 0{,}793 & 0{,}983 & 0{,}82 & 2{,}03 \\
+\clase{No\_Cancer} & \num{174} & \num{167} & 0{,}901 & 0{,}934 & 0{,}94 & 1{,}98 \\
+\clase{Gleason\_4\_pobremente\_formadas} & \num{174} & \num{167} & 0{,}606 & 0{,}874 & 0{,}76 & 2{,}15 \\
+\clase{Gleason\_3} & \num{359} & \num{342} & 0{,}719 & 0{,}901 & 0{,}83 & 2{,}04 \\
+\clase{PIN\_de\_alto\_grado} & \num{391} & \num{373} & 0{,}928 & 0{,}957 & 0{,}96 & 2{,}01 \\
+\clase{Gleason\_4\_fusionadas} & \num{1111} & \num{1057} & 0{,}873 & 0{,}943 & 0{,}92 & 2{,}04 \\
+\clase{Gleason\_5\_no\_glandulas} & \num{1757} & \num{1671} & 0{,}955 & 0{,}955 & 0{,}96 & 2{,}00 \\
+\clase{Gleason\_4\_cribiformes} & \num{2037} & \num{1937} & 0{,}924 & 0{,}944 & 0{,}94 & 2{,}01 \\
+\clase{Adenocarcinoma\_ductal} & \num{3020} & \num{2870} & 0{,}992 & 0{,}959 & 0{,}99 & 1{,}97 \\
+\clase{Estroma} & \num{3536} & \num{3361} & 0{,}974 & 0{,}945 & 0{,}98 & 1{,}96 \\
+\clase{Glandulas\_no\_neoplasicas} & \num{5197} & \num{4939} & 0{,}972 & 0{,}946 & 0{,}98 & 1{,}96 \\
+\bottomrule
+\end{tabular}
+\end{table}

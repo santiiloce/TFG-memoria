@@ -1,21 +1,204 @@
 % !TeX root = ../tfg.tex
 % !TeX encoding = utf8
+%
+%*******************************************************
+% Capítulo 8. Materiales y métodos
+%*******************************************************
 
 \chapter{Materiales y métodos}\label{cap:materiales}
 
 \section{Conjunto de datos ID}\label{sec:conjunto-id}
-\pendiente{conjunto ID}
+
+Como punto de partida contábamos con una base de datos de imágenes médicas clasificadas según el tipo de enfermedad que presentaban. La base contaba con las siguientes clases: \clase{Adenocarcinoma\_ductal}, \clase{Glandulas\_no\_neoplasicas}, \clase{Gleason\_4\_fusionadas}, \clase{Gleason\_5\_comedonecrosis}, \clase{No\_Cancer}, \clase{Carcinoma\_intraductal}, \clase{Gleason\_3}, \clase{Gleason\_4\_glomeruloide}, \clase{Gleason\_5\_no\_glandulas}, \clase{PIN\_de\_alto\_grado}, \clase{Estroma}, \clase{Gleason\_4\_cribiformes}, \clase{Gleason\_4\_pobremente\_formadas} e \clase{Inflamatorio}.
+
+La información de este apartado procede del artículo del conjunto de datos~\cite{ayensa2025}. El muestreo tisular fue realizado por residentes de anatomía patológica o por patólogos titulados. Las piezas se procesaron en un procesador automático de tejidos, se deshidrataron y se incluyeron en parafina. Se obtuvieron cortes de 3--5\,\si{\micro\metre} de grosor con un micrótomo, que se montaron en portaobjetos de vidrio, se desparafinaron y se tiñeron con hematoxilina y eosina (H\&E).
+
+Las preparaciones teñidas con H\&E se digitalizaron con un escáner de preparaciones completas Aperio/Leica AT2 a 20$\times$ aumentos, con una resolución de escaneo de \num{50000} píxeles por pulgada (0,5\,\si{\micro\metre}/píxel). Las anotaciones se realizaron sobre 85 de esas imágenes de lámina completa (WSI). Todas las imágenes fueron segmentadas manualmente por patólogos experimentados con un amplio conocimiento de la histología del cáncer de próstata. Las regiones anotadas se clasificaron en 14 categorías histológicas distintas que reflejan patrones morfológicos reconocidos en la práctica clínica.
+
+Cada WSI anotada se dividió en parches cuadrados de tamaño $H \times H = 224 \times 224$ píxeles, extraídos con un paso (\emph{stride}) de $p = 256$ píxeles. Un parche se asignaba a una clase concreta si más del 75\,\% de sus píxeles pertenecían a una región anotada como dicha clase; en caso contrario, se descartaba.
+
+\revisar{traducción casi literal; parafrasear y citar}
+\revisar{añadida la frase de las 85 WSI anotadas (dato del artículo, como se pidió); la primera frase atribuye el apartado al artículo, en lugar del título «información extraída del paper de Iván Sevillano» de las notas}
+% La discrepancia con los nombres de fichero (95 láminas y rejilla de 224 px) se trata en
+% \cref{sec:fuga-laminas}.
 
 \section{Partición e integridad}\label{sec:particion}
-\pendiente{partición}
+
+Inicialmente el repositorio cuenta con dos subcarpetas, \texttt{train} y \texttt{val}, con un total de \num{126109} imágenes (\num{113491} en \texttt{train} y \num{12618} en \texttt{val}), cuya distribución por clase se recoge en la \cref{tab:particion}.
+\revisar{las notas daban un total de 126.192; el real es 126.109 (113.491 + 12.618; results\_integridad)}
+\revisar{la figura de tarta de las notas se sustituye por la \cref{tab:particion}, generada a partir de results\_integridad}
+
+\input{tablas/t08_particion}
+
+El primer reto al que nos enfrentamos es el de poder crear un modelo de aprendizaje supervisado que, dada una imagen de nuestro conjunto de datos, sea capaz de clasificarla en una de las respectivas clases con la mayor precisión posible.
+
+Para comenzar se necesita un conjunto de entrenamiento, uno de validación y uno de test. Así pues, dada la estructura inicial del conjunto de datos, se optó por utilizar el directorio \texttt{val}, que presentaba una menor cantidad de imágenes en comparación con \texttt{train}, para realizar el test, y a su vez \texttt{train} se dividió de forma estratificada por clase, en proporción 80/20, en dos carpetas: una mayor para el entrenamiento y una menor para la validación. Se cuenta así con un total de \num{90800} imágenes para entrenamiento, \num{22691} para validación y \num{12618} para test. El reparto se hizo sin fijar una semilla aleatoria, por lo que no es reproducible.
+\revisar{añadidos el carácter estratificado 80/20 de la división y la ausencia de semilla (results\_integridad, apartado 5)}
+
+% Las notas incluían además una tabla resumen (Train ID 90.800, Validación ID 22.691, Test ID
+% 12.618), recogida en la fila Total de la \cref{tab:particion}.
+
+\subsection{Verificación de la integridad}\label{sec:integridad}
+
+% Puntos que debería cubrir (results_integridad/resumen.md):
+% - Inventario y md5 de los 252.218 ficheros (original y particiones del TFG).
+% - El test es exactamente la carpeta val original y train \cup val es exactamente la carpeta train
+%   original: mismos nombres, mismas carpetas de clase, contenido idéntico byte a byte.
+% - Ningún duplicado exacto (md5) ni posición (lámina, x, y) repetida.
+% - Las cifras por clase coinciden con la regla \lfloor 0,2 n \rfloor del script de partición
+%   (p. ej., Adenocarcinoma_ductal: 18.917 \to val 3.783, train 15.134).
+% - El script usa random.shuffle sin semilla y copia (no mueve) los ficheros.
+% - La fuga por lámina de la partición original se trata en el \cref{cap:fuga}.
+\pendiente{verificación de la integridad de la partición}
 
 \section{Conjuntos OOD}\label{sec:conjuntos-ood}
-\pendiente{conjuntos OOD}
+
+\Cref{tab:diseno-ood} resume los conjuntos OOD empleados, el papel de cada uno y qué cambia respecto al conjunto ID.
+
+\begin{table}[htbp]
+  \centering
+  \footnotesize
+  \caption{Diseño de los conjuntos OOD: papel de cada conjunto, qué cambia respecto al conjunto ID y objetivo de su inclusión. Entre paréntesis, el número de imágenes.}
+  \label{tab:diseno-ood}
+  \begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{0.2\textwidth}>{\raggedright\arraybackslash}p{0.12\textwidth}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X@{}}
+    \toprule
+    \textbf{Conjunto} & \textbf{Papel} & \textbf{¿Qué cambia respecto al ID?} & \textbf{Objetivo} \\
+    \midrule
+    (A) NCT-CRC: TUM + NORM (\num{23080}) & Near-OOD & Otro órgano (colon, tejido glandular) y otro centro; misma escala & Buscamos ver si es capaz de rechazar un tejido muy parecido al original \\
+    (B) NCT-CRC: STR, LYM, MUS (por separado) & Control interno & Otro centro; tejidos parecidos a clases de entrenamiento (estroma e inflamatorio) & Tejidos nuevamente parecidos a ID: determinamos si descarta por el centro o por el tejido \\
+    (C) PANDA (\num{10000}) & \emph{Covariate shift} & Mismo órgano (próstata), otro centro y escáner; menor resolución (128\,px) & Al repetir el órgano, lo único que cambia es el \emph{covariate shift}, por lo que una detección OOD reflejaría su discriminación por este motivo \\
+    Control de resolución (\num{12618}) & Control & Las mismas imágenes del test ID, reducidas a 128\,px y ampliadas a 224\,px & Buscamos ver si se están clasificando imágenes como OOD solo por la resolución \\
+    DTD / \emph{Textures} & Far-OOD & No es tejido: texturas genéricas & Clasificación sencilla: ha de clasificarla directamente como OOD \\
+    NCT-CRC: ADI, BACK, DEB, MUC & Anexo (\cref{ap:anexo-nct}) & Grasa, fondo, restos, moco & \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+\revisar{tabla de las notas: corregidas erratas y redacción mínima («si descarta por el centro o por el tejido», «discriminación», «órgano»)}
+
+\subsection{NCT-CRC-HE-100K-NONORM}\label{sec:nct}
+
+\begin{itemize}
+  \item Este es un conjunto de \num{100000} parches no superpuestos de imágenes histológicas teñidas con hematoxilina y eosina (H\&E) de cáncer colorrectal humano (CRC) y tejido normal~\cite{kather2019}.
+  \item Todas las imágenes son de $224 \times 224$ píxeles (px) a 0,5 micras por píxel (MPP). Se utiliza la versión NONORM, generada a partir de los mismos datos originales pero sin normalización de color, para no introducir un cambio artificial en la distribución~\cite{macenko2009}.
+  \item Las clases de tejido son: tejido adiposo (ADI), fondo (BACK), desechos (DEB), linfocitos (LYM), moco (MUC), músculo liso (MUS), mucosa normal del colon (NORM), estroma asociado al cáncer (STR) y epitelio de adenocarcinoma colorrectal (TUM).
+  \item Estas imágenes se extrajeron manualmente de $N = 86$ portaobjetos de tejido de cáncer humano teñidos con H\&E, de muestras embebidas en parafina y fijadas en formalina (FFPE) del NCT Biobank (Centro Nacional de Enfermedades Tumorales, Heidelberg, Alemania) y del archivo de patología UMM (University Medical Center Mannheim, Mannheim, Alemania). Las muestras de tejido contenían portaobjetos tumorales primarios de CRC y tejido tumoral de metástasis hepáticas de CRC; las clases de tejido normal se aumentaron con regiones no tumorales de muestras de gastrectomía para aumentar la variabilidad.
+\end{itemize}
+\revisar{traducción casi literal; parafrasear y citar}
+\revisar{la referencia que acompañaba a NONORM en las notas (DOI 10.1109/ISBI.2009.5193250) es el método de normalización de Macenko, que se aplica a la versión normalizada NCT-CRC-HE-100K y no a NONORM: reubicar la cita}
+\revisar{el enlace al conjunto de datos (Zenodo) de las notas se sustituye por la cita a Kather et al.}
+
+\begin{enumerate}
+  \item[(A)] TUM y NORM hacen referencia a epitelio de adenocarcinoma colorrectal y a mucosa normal del colon.
+  \item[(B)] STR, LYM y MUS hacen referencia a estroma asociado al cáncer, linfocitos y músculo liso.
+\end{enumerate}
+
+\begin{figure}[htbp]
+  \centering
+  \begin{subfigure}[b]{0.3\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/cap08/docx_image11.png}
+    \caption{}
+  \end{subfigure}
+  \hspace{0.04\textwidth}
+  \begin{subfigure}[b]{0.3\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/cap08/docx_image10.png}
+    \caption{}
+  \end{subfigure}
+  \caption{Comparativa del adenocarcinoma colorrectal frente al adenocarcinoma ductal del conjunto ID. \revisar{figura extraída del docx, regenerar; indicar qué panel es cada tejido}}
+  \label{fig:nct-tum-vs-id}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \begin{subfigure}[b]{0.3\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/cap08/docx_image12.png}
+    \caption{STR}
+  \end{subfigure}
+  \hspace{0.04\textwidth}
+  \begin{subfigure}[b]{0.3\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/cap08/docx_image13.png}
+    \caption{LYM}
+  \end{subfigure}
+  \caption{Ejemplos de imágenes de STR y LYM. \revisar{figura extraída del docx, regenerar; comprobar el orden de los paneles}}
+  \label{fig:nct-str-lym}
+\end{figure}
+
+\subsection{PANDA}\label{sec:panda}
+
+\textbf{\emph{Covariate shift}: PANDA (próstata de otro centro).} Biopsias del mismo órgano (próstata) y mismo tipo de tinción, pero de escáneres y hospitales distintos (Karolinska Institute / Radboud University)~\cite{bulten2022}.
+\revisar{los enlaces a Kaggle de las notas se sustituyen por la cita a Bulten et al.}
+% Las notas enlazan además al conjunto de parches de 128 px de Kaggle (iafoss,
+% panda-16x128x128-tiles-data), que es el origen de las 10.000 imágenes usadas.
+\pendiente{fuente de los parches de 128\,px de PANDA (conjunto de Kaggle «panda-16x128x128-tiles-data»): decidir cómo citarla}
+
+\begin{figure}[htbp]
+  \centering
+  \begin{subfigure}[b]{0.25\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/cap08/docx_image6.png}
+    \caption{}
+  \end{subfigure}
+  \hspace{0.04\textwidth}
+  \begin{subfigure}[b]{0.25\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/cap08/docx_image17.png}
+    \caption{}
+  \end{subfigure}
+  \caption{PANDA frente a nuestras imágenes ID. \revisar{figura extraída del docx, regenerar; indicar qué panel es cada conjunto}}
+  \label{fig:panda-vs-id}
+\end{figure}
+
+\subsection{Control de resolución y DTD}\label{sec:control-dtd}
+
+% Puntos que debería cubrir:
+% - Control de resolución: las 12.618 imágenes del test ID reducidas a 128 px y ampliadas a 224 px;
+%   mismas etiquetas que el test ID. Exactitud del Swin-S en el control: 0,9077.
+% - DTD (Cimpoi et al., 2014): 47 categorías de texturas \pendiente{comprobar}; número de imágenes
+%   usadas.
+\pendiente{control de resolución y DTD~\cite{cimpoi2014}}
 
 \section{Entorno de ejecución}\label{sec:entorno}
+
+Vamos a usar el repositorio OpenOOD~\cite{openood} para continuar con nuestro análisis de resultados.
+\revisar{el enlace a GitHub se sustituye por la cita; el enlace al cuaderno de Colab con la explicación de uso y su captura de pantalla no van a la memoria}
+
+% Puntos que debería cubrir (cifras de los ficheros de configuración):
+% - Hardware: entrenamiento en una NVIDIA TITAN Xp (resultados.txt de param4; 583,6 min de
+%   entrenamiento del Swin-S); evaluación OOD en una NVIDIA GeForce RTX 2080 Ti + 8 CPU
+%   (config.json de la fase A).
+% - Software de la evaluación OOD: Python 3.9.25, PyTorch 2.8.0 (CUDA 12.8), timm 1.0.25,
+%   NumPy 1.26.4, scikit-learn 1.6.1, pandas 1.5.3, OpenOOD (commit 3c35632).
+% - Software del entrenamiento: fastai (entorno fastai_env) \pendiente{versiones}.
 \pendiente{hardware y software}
 
 \section{Protocolo de entrenamiento}\label{sec:protocolo}
-\pendiente{protocolo de entrenamiento}
+
+\subsection{DataLoader}\label{sec:dataloader}
+
+Para una primera aproximación del modelo hemos decidido crear un conjunto de imágenes menor a partir del original, el cual sirve para pruebas y para comprobar el funcionamiento correcto de nuestro modelo antes de pasar a entrenar con el conjunto de datos original. Este, al igual que el conjunto de datos original, cuenta con tres carpetas: inicialmente se seleccionaron 10 imágenes de cada carpeta de la estructura original del conjunto de datos para crear uno nuevo, pero con un número mucho más reducido de imágenes. Posteriormente se aplicó el mismo procedimiento de separar \texttt{train} en dos nuevas carpetas de \texttt{train} y \texttt{val}, y el \texttt{val} original pasó a ser test. Debido a esto, el resultado final ha sido una estructura de tres carpetas: \texttt{train} con 139 imágenes, \texttt{val} con 55 y test con 167.
+\revisar{la figura de tarta del conjunto reducido de las notas no se incluye; las cifras quedan en el texto}
+
+\subsection{Learner}\label{sec:learner}
+
+En cuanto al optimizador, vamos a usar AdamW (Loshchilov y Hutter~\cite{loshchilov2019}), pues se trata de una versión mejorada del optimizador Adam (Kingma y Ba~\cite{kingma2014}) con la mejora añadida de que cuenta con \emph{weight decay} (\cref{sec:adamw}). En la implementación de fastai es cierto que el nombre asociado es el de Adam, pero es debido a una decisión de fastai de adoptar la versión mejorada del optimizador bajo el nombre de la original.
+\revisar{las notas citaban solo a Kingma y Ba (Adam); para AdamW la cita correcta es Loshchilov y Hutter (2019)}
+
+Debido a la complejidad del problema, no tardó en aparecer el error de memoria \emph{CUDA out of memory}. Para manejar este problema sin alterar la arquitectura del modelo \pendiente{sustituir por fuente académica} se optó por reducir el tamaño del lote a la mitad, pasando así de 128 imágenes por lote a 64. Las otras medidas tomadas fueron adaptar el \emph{learner} para trabajar con precisión de 16 bits, ahorrando así memoria, liberar la caché de la memoria al iniciar la ejecución y, por último, reducir el número de \emph{workers} de 8 a 4, planteando la posibilidad de que la creación de hebras separadas para el tratamiento del problema pudiera estar influyendo en una mayor lentitud de ejecución del modelo.
+\revisar{«infiriendo» corregido a «influyendo»}
+\pendiente{¿citar a Micikevicius et al.~\cite{micikevicius2018} para el entrenamiento con precisión mixta?}
+
+% Configuración del entrenamiento (clasificador_svim.py), para completar este apartado:
+% - Preprocesado: Resize al tamaño de entrada con method='squish' (224 px; ConvNeXt-S a 256 px),
+%   aug_transforms() de fastai y normalización con las estadísticas de ImageNet.
+% - Pérdida: LabelSmoothingCrossEntropy (\varepsilon = 0,1, \cref{def:label-smoothing}).
+% - fit_one_cycle durante 25 épocas con lr_max = 1e-4; EarlyStoppingCallback sobre valid_loss
+%   (min_delta = 0,005, patience = 10); to_fp16().
+% - La validación se usó para elegir la época (relevante para la predicción conforme, \cref{cap:conforme}).
+\pendiente{completar la configuración del entrenamiento (preprocesado, pérdida con \emph{label smoothing}, política de entrenamiento y parada temprana)}
+
+Llegados a este punto, solo queda probar con diversos modelos ya preentrenados, hacerles un ajuste fino (\emph{fine tuning}) y analizar cuál genera mejores resultados, que será por tanto con el que sigamos trabajando a lo largo del proyecto (\cref{cap:clasificacion-id}).
 
 \endinput

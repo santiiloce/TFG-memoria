@@ -1,24 +1,116 @@
 % !TeX root = ../tfg.tex
 % !TeX encoding = utf8
+%
+%*******************************************************
+% Capítulo 10. Detección OOD
+%*******************************************************
 
 \chapter{Detección OOD}\label{cap:deteccion-ood}
 
+% Patrón: tabla o figura -> análisis -> conclusión parcial; discusión global al final.
+% Fuente: results_ood/faseC_2026-10-20 (16 métodos, 9 conjuntos). Modelo: Swin-S (mismo checkpoint
+% que la \cref{tab:modelos}). Métricas definidas en el \cref{cap:ood-metricas}; clase positiva: OOD.
+\pendiente{introducción del capítulo: modelo, 16 métodos (13 de OpenOOD y tres configuraciones de STOOD-X), nueve conjuntos (\cref{tab:diseno-ood}) y métricas (\cref{sec:auroc,sec:fpr95,sec:ccr}); IC por \emph{bootstrap} (\cref{sec:bootstrap-mcnemar})}
+
+\revisar{la tabla principal de las notas (\texttt{tabla\_principal\_ood.tex}) se divide en una tabla por bloque; las tablas de AUPR van al \cref{ap:aupr}}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{img/cap10/fig1_auroc_fpr95.pdf}
+  \caption{AUROC (arriba; más alto es mejor) y FPR@95 (abajo; más bajo es mejor) de los 16 métodos en los nueve conjuntos, con IC del 95\,\% por \emph{bootstrap}. Visión global de la comparación.}
+  \label{fig:ood-global}
+\end{figure}
+
 \section{Near-OOD principal}\label{sec:ood-near}
-\pendiente{near-OOD}
+
+\input{tablas/t10_near}
+
+Los resultados muestran una separación clara entre familias de métodos. Los métodos que operan sobre el espacio de características (ViM, MDS, KNN, RMDS y STOOD-X) superan de forma sistemática a los basados únicamente en los logits, en todos los conjuntos evaluados. En el near-OOD principal (NCT-CRC TUM + NORM), los primeros alcanzan un AUROC de entre 0,953 y 0,969, frente a 0,821--0,876 de MSP, MaxLogit y Energy. La diferencia es aún mayor en el punto de trabajo: el FPR@95 baja de 0,879 (MSP) a valores entre 0,128 y 0,173, y el CCR@FPR5 sube de 0,118 a más de 0,82. Esto indica que el vector de características de 768 dimensiones contiene información sobre la pertenencia a la distribución que se pierde al proyectarlo sobre los 14 logits.
+\revisar{«de forma sistemática [...] en todos los conjuntos»: RMDS queda por debajo de MSP en LYM (AUROC 0,824 frente a 0,854, \cref{tab:ood-control-interno})}
+\revisar{el rango de FPR@95 (0,128--0,173) y el CCR@FPR5 (más de 0,82) valen para ViM, MDS, KNN y RMDS, pero no para STOOD-X (0,349 y 0,646)}
+
+\textbf{Near-OOD principal.} ViM (0,969 [0,968; 0,971]) y MDS (0,968) obtienen el mejor AUROC, mientras que RMDS logra el mejor FPR@95 (0,128) y el mejor CCR@FPR5 (0,868), con un AUROC significativamente inferior (0,954; \cref{tab:ood-bootstrap-rmds}). Ambos resultados no son contradictorios: el AUROC resume la separación en todos los umbrales, mientras que FPR@95 y CCR@FPR5 evalúan la zona de umbral exigente, que es la relevante en un contexto clínico (\cref{fig:ood-roc}). Con el umbral que deja pasar solo el 5\,\% de las imágenes de colon, RMDS acepta y clasifica correctamente el 86,8\,\% del test ID, frente a un máximo posible de 96,9\,\%. No obstante, RMDS presenta un fallo marcado en la clase LYM (FPR@95 $= 0{,}992$; CCR@FPR5 $= 0{,}008$): una parte de los linfocitos de colon recibe puntuaciones superiores a las de las propias imágenes ID, por lo que ningún umbral permite rechazarlos sin descartar casi todo el ID.
+\revisar{añadidas las referencias a la \cref{tab:ood-bootstrap-rmds} y a la \cref{fig:ood-roc}}
+
+\input{tablas/t10_bootstrap_rmds}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{img/cap10/fig2_curvas_roc.pdf}
+  \caption{Curvas ROC (TPR sobre OOD frente a FPR sobre ID) de todos los métodos, un panel por conjunto. Permiten ver dónde se separan los métodos: la zona de FPR baja frente al AUROC global explica por qué RMDS es el mejor en FPR@95 y no en AUROC.}
+  \label{fig:ood-roc}
+\end{figure}
+
+% Cifras de la \cref{tab:ood-bootstrap-rmds}: RMDS - ViM = -0,016 [-0,017; -0,014]; RMDS - MDS =
+% -0,014; RMDS - KNN = -0,003 [-0,004; -0,001] (p = 0,002); RMDS - STOOD-X 100 % = +0,000
+% [-0,002; +0,003] (p = 0,75). Los IC de FPR@95 de RMDS [0,121; 0,134] y ViM [0,136; 0,150] no se
+% solapan, pero no se hizo bootstrap pareado para FPR@95.
+\pendiente{conclusión parcial}
 
 \section{Control interno: centro frente a tejido}\label{sec:ood-control-interno}
-\pendiente{control interno}
+
+\input{tablas/t10_control_interno}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{img/cap10/fig5_control_interno_nct.pdf}
+  \caption{AUROC por clase de NCT-CRC (TUM y NORM en rojo; STR, LYM y MUS en gris) para cada método, con PANDA como línea de referencia. Control interno del centro frente al tejido: si las clases afines se detectan casi igual que TUM y NORM, el detector responde al centro.}
+  \label{fig:ood-control-interno}
+\end{figure}
+
+\textbf{Control interno: centro frente a tejido.} Las clases afines de NCT-CRC permiten separar el efecto del cambio de centro del efecto del tipo de tejido. En ViM, MDS y KNN, los linfocitos (LYM), el tejido más similar entre órganos, se detectan con un AUROC (0,948--0,969) prácticamente igual al del tejido glandular de colon (TUM: 0,952--0,966; NORM: 0,963--0,975). Por tanto, estos detectores responden principalmente al \textbf{cambio de centro} (laboratorio, tinción, escáner) y no a la naturaleza del tejido. Este resultado es coherente con lo señalado por Yang et al.~\cite{yang2024}: los detectores OOD tienden a ser más sensibles al desplazamiento de covariables que al cambio semántico.
+
+% Cifras adicionales: en STOOD-X, STR (0,978) y MUS (0,968) se detectan más que TUM (0,931). En los
+% métodos de logits la diferencia es mayor (MSP: 0,87-0,88 en TUM/NORM frente a 0,74 en MUS), con
+% LYM (0,854) cerca de TUM/NORM. La conclusión se mantiene sin la lámina de cada parche
+% (\cref{tab:fuga-control-interno}).
+\pendiente{conclusión parcial}
 
 \section{Cambio de centro y resolución}\label{sec:ood-panda}
-\pendiente{PANDA}
+
+\input{tablas/t10_panda_control}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.7\textwidth]{img/cap10/fig4_panda_vs_control.pdf}
+  \caption{AUROC en PANDA frente a AUROC en el control de resolución (test ID a 128\,px), un punto por método con sus IC. Por encima de la diagonal, PANDA se detecta más de lo que explica la resolución; STOOD-X queda sobre la diagonal.}
+  \label{fig:ood-panda-control}
+\end{figure}
+
+\textbf{Cambio de centro y resolución.} PANDA, compuesto por tejido prostático de otros centros, se detecta con AUROC $\approx 0{,}91$ en los mejores métodos (ViM 0,912; RMDS 0,912; MDS 0,911). El control de resolución, formado por las mismas imágenes del test ID degradadas a 128\,px, alcanza entre 0,753 y 0,789 en esos métodos. Al ser claramente inferior, la detección de PANDA no se explica únicamente por la pérdida de nitidez: el cambio de centro contribuye de forma propia. STOOD-X es la excepción, con valores prácticamente iguales en ambos conjuntos (0,895 y 0,894). Desde el punto de vista clínico, estos resultados implican que un sistema validado en un hospital rechazaría una fracción importante de imágenes de otro centro aun siendo del mismo órgano, lo que exigiría recalibrar el detector antes de su despliegue.
+
+\pendiente{conclusión parcial}
 
 \section{Far-OOD}\label{sec:ood-far}
-\pendiente{far-OOD}
+
+\input{tablas/t10_far}
+
+\textbf{Far-OOD.} En DTD, STOOD-X obtiene el mejor resultado (AUROC 0,991; FPR@95 0,028). Llama la atención que, para ViM, MDS y KNN, el far-OOD no resulta más fácil que el near-OOD (0,936--0,959 frente a 0,956--0,969). Esto refuerza la idea de que estos métodos son especialmente sensibles a las características de adquisición de las imágenes histológicas más que a su contenido semántico.
+
+\pendiente{conclusión parcial}
 
 \section{Métodos basados en logits y en modificación de activaciones}\label{sec:ood-familias}
-\pendiente{familias}
+
+\input{tablas/t10_familias}
+
+\textbf{Métodos basados en logits y en modificación de activaciones.} MSP supera a MaxLogit y a Energy en los nueve conjuntos, al contrario de lo habitual en la literatura. Una explicación plausible es el uso de \emph{label smoothing} durante el entrenamiento, que comprime la escala de los logits; comprobarlo requeriría entrenar el modelo sin esta técnica. Los métodos que modifican activaciones, diseñados para redes con activaciones ReLU y BatchNorm, no se trasladan bien a un Swin Transformer con LayerNorm. ReAct mejora a Energy, pero no a MSP. DICE queda por debajo de Energy en ocho de los nueve conjuntos, con un AUROC inferior al azar en DTD (0,436). ASH colapsa por completo: al redistribuir la suma de las activaciones, que es negativa en el 27,5\,\% de las imágenes, invierte los logits y reduce la exactitud ID al 68,3\,\%. Por último, SHE con producto escalar resulta irregular (0,795), mientras que sus variantes con distancia coseno (0,938) y euclídea (0,942) mejoran notablemente, lo que apunta de nuevo a la incompatibilidad entre las características con signo del Swin y los supuestos del método.
+\revisar{«al contrario de lo habitual en la literatura»: falta cita}
+\revisar{ReAct mejora a Energy en ocho de los nueve conjuntos; en el control de resolución queda por debajo (0,602 frente a 0,622)}
+\revisar{el 27,5\,\% se midió en la validación ID}
+
+% Las cifras de SHE (0,795; 0,938; 0,942) son del near-OOD principal (TUM+NORM).
+\pendiente{conclusión parcial}
 
 \section{Discusión}\label{sec:ood-discusion}
-\pendiente{discusión global}
+
+\textbf{Conclusión.} Ningún método domina en todas las métricas y conjuntos. ViM ofrece el mejor equilibrio global en AUROC; RMDS, el mejor comportamiento con umbrales exigentes, aunque con un fallo severo en LYM; y STOOD-X destaca en far-OOD y en varias clases de NCT-CRC, pero es el más sensible a la resolución. El hallazgo más relevante es que los mejores detectores responden sobre todo a las condiciones de adquisición, lo que condiciona su uso en un entorno multicéntrico.
+
+% Integrar las conclusiones parciales de las secciones anteriores y enlazar con:
+% - STOOD-X en detalle (\cref{cap:stoodx}).
+% - Umbral con garantía de falsas alarmas (\cref{sec:conforme-ood}).
+% - Efecto de la fuga por lámina en estas cifras (\cref{cap:fuga}): con KNN y MDS, el AUROC baja
+%   0,02-0,07 sin la lámina de cada parche.
+% - AUPR-In y AUPR-Out en el \cref{ap:aupr}; clases ADI, BACK, DEB y MUC en el \cref{ap:anexo-nct}.
+\pendiente{integración de las conclusiones parciales}
 
 \endinput

@@ -10,13 +10,17 @@
 \section{El test de Mann-Whitney}\label{sec:mann-whitney}
 
 % Referencias: Mann y Whitney (1947), Wilcoxon (1945); implementación de SciPy (Virtanen et al., 2020).
+% La lista de referencias de las notas enlaza también a un blog (cienciadedatos.net) como
+% explicación del test: no va a la bibliografía.
+\pendiente{introducción al test (Mann y Whitney~\cite{mann1947}; Wilcoxon~\cite{wilcoxon1945})}
+\pendiente{sustituir por fuente académica (la explicación del test de las notas enlaza a un blog)}
 
-\begin{definicion}[Estadístico U de Mann-Whitney]\label{def:estadistico-u}
-% Muestras X_1..X_{n_1}, Y_1..Y_{n_2}; U = \sum_i \sum_j \Ind(X_i > Y_j) (+ 1/2 por empate).
+\begin{definicion}[Estadístico $U$ de Mann-Whitney]\label{def:estadistico-u}
+% Muestras X_1, ..., X_{n_1} e Y_1, ..., Y_{n_2}; U = \sum_i \sum_j [\Ind(X_i > Y_j) + 1/2 \Ind(X_i = Y_j)].
 \pendiente{definición}
 \end{definicion}
 
-\begin{proposicion}[Media y varianza de U bajo la hipótesis nula]\label{prop:u-momentos}
+\begin{proposicion}[Media y varianza de $U$ bajo la hipótesis nula]\label{prop:u-momentos}
 % E[U] = n_1 n_2 / 2; Var(U) = n_1 n_2 (n_1 + n_2 + 1) / 12 sin empates.
 \pendiente{enunciado}
 \end{proposicion}
@@ -25,20 +29,20 @@
 \end{demostracion}
 
 \begin{teorema}[Aproximación normal]\label{teo:u-normal}
-% z = (U - E[U]) / \sqrt{Var(U)} converge en distribución a N(0, 1).
+% z = (U - E[U]) / \sqrt{Var(U)} converge en distribución a N(0, 1) cuando n_1, n_2 \to \infty.
 \pendiente{enunciado}
 \end{teorema}
 
 % - Corrección por empates de la varianza.
-% - Corrección de continuidad.
+% - Corrección de continuidad (la usada por scipy.stats.mannwhitneyu).
 % - Saturación: si todas las distancias de un grupo superan a las del otro, U = n_1 n_2 y z
-%   alcanza su máximo (38,69 con K = 500 en STOOD-X; empates entre imágenes saturadas).
-% - Dependencia: el test supone muestras independientes; en STOOD-X las K^2 distancias de
-%   referencia no lo son (vecinos compartidos), lo que afecta a la calibración (capítulo 11).
-\begin{observacion}[Empates, continuidad y saturación]\label{obs:u-empates}
+%   alcanza su máximo (38,69 con K = 500 en STOOD-X).
+\begin{observacion}[Empates, corrección de continuidad y saturación]\label{obs:u-empates}
 \pendiente{desarrollo}
 \end{observacion}
 
+% - El test supone muestras independientes; en STOOD-X las K^2 distancias de referencia no lo son
+%   (vecinos compartidos), lo que afecta a la calibración (\cref{sec:stoodx-calibracion}).
 \begin{observacion}[Hipótesis de independencia]\label{obs:u-dependencia}
 \pendiente{desarrollo}
 \end{observacion}
@@ -47,19 +51,74 @@
 
 % - Bootstrap no paramétrico: IC por percentiles; bootstrap estratificado (ID y OOD por separado)
 %   y bootstrap pareado (mismos índices para dos métodos).
-% - Bootstrap por lámina (remuestreo de grupos) frente a por imagen.
-% - Test de McNemar para comparar dos clasificadores sobre las mismas imágenes: versión exacta
-%   (binomial) y chi-cuadrado con corrección de continuidad.
-\begin{definicion}[Intervalo bootstrap por percentiles]\label{def:bootstrap}
+% - Bootstrap por lámina (remuestreo de grupos) frente a por imagen: los parches de una misma
+%   lámina no son independientes.
+% - Test de McNemar: versión exacta (binomial sobre los pares discordantes) y chi-cuadrado con
+%   corrección de continuidad.
+\begin{definicion}[Intervalo \emph{bootstrap} por percentiles]\label{def:bootstrap}
 \pendiente{definición}
 \end{definicion}
 
 \begin{proposicion}[Test de McNemar]\label{prop:mcnemar}
+% Bajo H_0, el número de pares discordantes a favor de un modelo, condicionado a b + c, sigue una
+% Bin(b + c, 1/2).
 \pendiente{enunciado}
 \end{proposicion}
+\begin{demostracion}
+\pendiente{demostración}
+\end{demostracion}
 
 \section{Predicción conforme}\label{sec:prediccion-conforme}
 
-\pendiente{introducción a la predicción conforme}
+Predicción conforme. La predicción conforme (CP) se erige como un marco estadístico robusto en el aprendizaje automático, diseñado principalmente para proporcionar medidas de confianza para las predicciones (Shafer y Vovk~\cite{shafer2008}; Angelopoulos y Bates~\cite{angelopoulos2021}).
+\revisar{posible traducción casi literal (en las notas aparece bajo «Añadir esta parte de Inferencia Estadística»); comprobar la fuente, parafrasear y citar}
+
+% Puntos que debería cubrir (Vovk et al., 2005; Angelopoulos y Bates, 2021):
+% - Intercambiabilidad.
+% - Predicción conforme dividida (split): puntuación de no conformidad, cuantil
+%   k = \lceil (n+1)(1-\alpha) \rceil de las n puntuaciones de calibración.
+% - Teorema de cobertura marginal con demostración.
+% - p-valor conforme para detección OOD: p(x) = (1 + #\{s_i \le s(x)\}) / (n + 1).
+% - Puntuaciones LAC (1 - \pi_y(x)) y APS (aleatorizada); RAPS.
+% - Mondrian (condicionada por clase) y la condición sobre n_y.
+\pendiente{desarrollo de la predicción conforme dividida}
+
+\begin{definicion}[Intercambiabilidad]\label{def:intercambiabilidad}
+\pendiente{definición}
+\end{definicion}
+
+\begin{teorema}[Cobertura marginal]\label{teo:cobertura}
+% Si (X_1, Y_1), ..., (X_{n+1}, Y_{n+1}) son intercambiables y \hat q es el k-ésimo menor valor de las
+% puntuaciones de calibración, k = \lceil (n+1)(1-\alpha) \rceil, entonces
+% 1 - \alpha \le \Prob(Y_{n+1} \in C(X_{n+1})) \le 1 - \alpha + 1/(n+1) (la cota superior, sin empates).
+\pendiente{enunciado}
+\end{teorema}
+\begin{demostracion}
+% Rango de la puntuación de test entre las n+1 puntuaciones: uniforme en \{1, ..., n+1\} por la
+% intercambiabilidad.
+\pendiente{demostración}
+\end{demostracion}
+
+\begin{definicion}[Puntuaciones LAC y APS]\label{def:lac-aps}
+% LAC: s(x, y) = 1 - \pi_y(x).
+% APS: s(x, y) = \sum_{j < o(y)} \pi_{(j)}(x) + u \, \pi_{(o(y))}(x), u \sim U(0, 1).
+\pendiente{definición}
+\end{definicion}
+
+\begin{definicion}[Predicción conforme Mondrian]\label{def:mondrian}
+% Cuantil por clase \hat q_y con k_y = \lceil (n_y+1)(1-\alpha) \rceil; garantía
+% \Prob(Y \in C(X) \mid Y = y) \ge 1 - \alpha.
+\pendiente{definición}
+\end{definicion}
+
+\begin{proposicion}[Umbral infinito y umbral máximo en Mondrian]\label{prop:mondrian-ny}
+% - Umbral infinito (k_y > n_y) si y solo si n_y < (1-\alpha)/\alpha: n_y \le 18 con \alpha = 0,05.
+% - Umbral igual al máximo de las puntuaciones de calibración (k_y = n_y) si y solo si
+%   (1-\alpha)/\alpha \le n_y < (2-\alpha)/\alpha: 19 \le n_y \le 38 con \alpha = 0,05.
+\pendiente{enunciado}
+\end{proposicion}
+\begin{demostracion}
+\pendiente{demostración}
+\end{demostracion}
 
 \endinput

@@ -1,0 +1,25 @@
+% Generado por scripts/generar_tablas.py a partir de results_ood_laminas/comparacion_original_vs_loso.csv. No editar a mano.
+\begin{table}[htbp]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{2.5pt}
+\caption{Sensibilidad de la detección OOD a la fuga por lámina: KNN y MDS con todo el entrenamiento como referencia (original) $\to$ excluyendo, para cada parche del test ID, los parches de entrenamiento de su lámina (\emph{leave-one-slide-out}). \AUROC y \CCRn{5}: más alto es mejor; \FPRn{95}: más bajo es mejor. Los conjuntos OOD se puntúan con todo el entrenamiento.}
+\label{tab:fuga-loso}
+\begin{tabular}{lcccccc}
+\toprule
+& \multicolumn{3}{c}{KNN} & \multicolumn{3}{c}{MDS} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}
+Conjunto & \AUROC & \FPRn{95} & \CCRn{5} & \AUROC & \FPRn{95} & \CCRn{5} \\
+\midrule
+TUM+NORM & 0{,}956 $\to$ 0{,}926 & 0{,}173 $\to$ 0{,}273 & 0{,}825 $\to$ 0{,}726 & 0{,}968 $\to$ 0{,}942 & 0{,}152 $\to$ 0{,}251 & 0{,}844 $\to$ 0{,}746 \\
+TUM & 0{,}952 $\to$ 0{,}919 & 0{,}183 $\to$ 0{,}291 & 0{,}815 $\to$ 0{,}708 & 0{,}964 $\to$ 0{,}936 & 0{,}164 $\to$ 0{,}265 & 0{,}832 $\to$ 0{,}733 \\
+NORM & 0{,}963 $\to$ 0{,}938 & 0{,}152 $\to$ 0{,}244 & 0{,}845 $\to$ 0{,}754 & 0{,}973 $\to$ 0{,}952 & 0{,}129 $\to$ 0{,}223 & 0{,}865 $\to$ 0{,}774 \\
+STR & 0{,}932 $\to$ 0{,}887 & 0{,}219 $\to$ 0{,}350 & 0{,}779 $\to$ 0{,}650 & 0{,}944 $\to$ 0{,}902 & 0{,}215 $\to$ 0{,}342 & 0{,}783 $\to$ 0{,}657 \\
+LYM & 0{,}948 $\to$ 0{,}913 & 0{,}216 $\to$ 0{,}346 & 0{,}783 $\to$ 0{,}653 & 0{,}967 $\to$ 0{,}941 & 0{,}181 $\to$ 0{,}291 & 0{,}816 $\to$ 0{,}707 \\
+MUS & 0{,}904 $\to$ 0{,}844 & 0{,}275 $\to$ 0{,}427 & 0{,}724 $\to$ 0{,}573 & 0{,}912 $\to$ 0{,}854 & 0{,}301 $\to$ 0{,}464 & 0{,}699 $\to$ 0{,}535 \\
+PANDA & 0{,}892 $\to$ 0{,}823 & 0{,}256 $\to$ 0{,}403 & 0{,}743 $\to$ 0{,}597 & 0{,}911 $\to$ 0{,}847 & 0{,}257 $\to$ 0{,}404 & 0{,}741 $\to$ 0{,}595 \\
+Control 128\,px & 0{,}760 $\to$ 0{,}634 & 0{,}569 $\to$ 0{,}804 & 0{,}431 $\to$ 0{,}196 & 0{,}780 $\to$ 0{,}660 & 0{,}575 $\to$ 0{,}809 & 0{,}425 $\to$ 0{,}191 \\
+DTD & 0{,}936 $\to$ 0{,}894 & 0{,}214 $\to$ 0{,}342 & 0{,}785 $\to$ 0{,}655 & 0{,}956 $\to$ 0{,}922 & 0{,}181 $\to$ 0{,}291 & 0{,}816 $\to$ 0{,}707 \\
+\bottomrule
+\end{tabular}
+\end{table}

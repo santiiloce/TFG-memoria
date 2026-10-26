@@ -1,18 +1,226 @@
 % !TeX root = ../tfg.tex
 % !TeX encoding = utf8
+%
+%*******************************************************
+% Capítulo 9. Clasificación ID
+%*******************************************************
 
 \chapter{Clasificación ID}\label{cap:clasificacion-id}
 
+% Patrón de los capítulos de resultados: tabla o figura -> análisis breve -> conclusión parcial;
+% el capítulo termina con una discusión global.
+\pendiente{introducción del capítulo: cinco arquitecturas preentrenadas con ajuste fino (ViT-B/16, ResNet-50, ConvNeXt-S, EfficientNetV2-S y Swin-S) y evaluación en el test ID}
+
 \section{Comparación de los cinco modelos}\label{sec:comparacion-modelos}
-\pendiente{comparación}
+
+\subsection{Resultados globales}\label{sec:modelos-global}
+
+\input{tablas/t09_modelos}
+\revisar{la tabla de exactitudes de las notas (salida de \texttt{resultados.txt}) se sustituye por la \cref{tab:modelos}, generada a partir de results\_fase1, con IC; las exactitudes coinciden salvo Swin-S (0,96870 $\to$ 0,9688) y ResNet-50 (0,89634 $\to$ 0,8964), por una imagen de diferencia en la inferencia con precisión mixta}
+
+% Cifras clave (results_fase1): exactitud Swin-S 0,9688 [0,9658; 0,9717], ConvNeXt-S 0,9668
+% [0,9635; 0,9700], EfficientNetV2-S 0,9538, ViT-B/16 0,9525, ResNet-50 0,8964. F1 macro: ConvNeXt-S
+% 0,9086 y Swin-S 0,9082. IC por lámina 2-3 veces más anchos que por imagen.
+\pendiente{análisis de la \cref{tab:modelos}}
+
+\pendiente{conclusión parcial}
+
+\subsection{Curvas de entrenamiento y matrices de confusión}\label{sec:modelos-curvas}
+
+% Para cada modelo: curvas de pérdida y métricas por época (Train_Validation_Results.jpg) y matriz
+% de confusión en el test (Confusion_Matrix_TEST_*.jpg), de tfg/executions/def1/param0..4.
+
+\begin{figure}[htbp]
+  \centering
+  \begin{subfigure}[b]{\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/cap09/curvas_vit_base_patch16_224.jpg}
+    \caption{Curvas de entrenamiento.}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.6\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/cap09/confusion_test_vit_base_patch16_224.jpg}
+    \caption{Matriz de confusión en el test.}
+  \end{subfigure}
+  \caption{ViT-B/16 (\texttt{vit\_base\_patch16\_224}).}
+  \label{fig:modelo-vit}
+\end{figure}
+
+Pérdida en test: 0,6788; exactitud en test: 0,9525.
+\pendiente{análisis}
+
+\begin{figure}[htbp]
+  \centering
+  \begin{subfigure}[b]{\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/cap09/curvas_resnet50.jpg}
+    \caption{Curvas de entrenamiento.}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.6\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/cap09/confusion_test_resnet50.jpg}
+    \caption{Matriz de confusión en el test.}
+  \end{subfigure}
+  \caption{ResNet-50 (\texttt{resnet50}).}
+  \label{fig:modelo-resnet}
+\end{figure}
+
+Pérdida en test: 0,8892; exactitud en test: 0,8964.
+\revisar{las notas daban 0,8963 (\texttt{resultados.txt}); se usa el valor de results\_fase1}
+\pendiente{análisis}
+
+\begin{figure}[htbp]
+  \centering
+  \begin{subfigure}[b]{\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/cap09/curvas_convnext_small.jpg}
+    \caption{Curvas de entrenamiento.}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.6\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/cap09/confusion_test_convnext_small.jpg}
+    \caption{Matriz de confusión en el test.}
+  \end{subfigure}
+  \caption{ConvNeXt-S (\texttt{convnext\_small}, entrenado y evaluado a 256\,px).}
+  \label{fig:modelo-convnext}
+\end{figure}
+
+Pérdida en test: 0,6424; exactitud en test: 0,9668.
+\pendiente{análisis}
+
+\begin{figure}[htbp]
+  \centering
+  \begin{subfigure}[b]{\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/cap09/curvas_tf_efficientnetv2_s.jpg}
+    \caption{Curvas de entrenamiento.}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.6\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/cap09/confusion_test_tf_efficientnetv2_s.jpg}
+    \caption{Matriz de confusión en el test.}
+  \end{subfigure}
+  \caption{EfficientNetV2-S (\texttt{tf\_efficientnetv2\_s}).}
+  \label{fig:modelo-efficientnet}
+\end{figure}
+
+% Las notas no daban la pérdida ni la exactitud de este modelo («Modelo 4»); valores de
+% resultados.txt (param3): pérdida 0,6757; exactitud 0,9538.
+\pendiente{análisis (pérdida en test: 0,6757; exactitud en test: 0,9538)}
+
+\begin{figure}[htbp]
+  \centering
+  \begin{subfigure}[b]{\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/cap09/curvas_swin_small_patch4_window7_224.jpg}
+    \caption{Curvas de entrenamiento.}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.6\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/cap09/confusion_test_swin_small_patch4_window7_224.jpg}
+    \caption{Matriz de confusión en el test.}
+  \end{subfigure}
+  \caption{Swin-S (\texttt{swin\_small\_patch4\_window7\_224}).}
+  \label{fig:modelo-swin}
+\end{figure}
+
+% Las gráficas del Swin faltaban en las notas. resultados.txt (param4): pérdida en test 0,6356;
+% entrenamiento de 583,6 min en una TITAN Xp. Confusiones más frecuentes: Glándulas no
+% neoplásicas -> Estroma (62), Gleason_4_cribiformes -> Gleason_4_fusionadas (57), Estroma ->
+% Glándulas no neoplásicas (47), Gleason_4_fusionadas -> Gleason_4_cribiformes (41).
+\pendiente{análisis (pérdida en test: 0,6356; exactitud en test: 0,9688)}
+
+\pendiente{conclusión parcial de las curvas y matrices de confusión}
+
+\subsection{Sensibilidad por clase}\label{sec:modelos-recall}
+
+\input{tablas/t09_recall_clase}
+
+% Cifras clave (results_fase1): las cinco arquitecturas fallan en las mismas clases minoritarias.
+% Gleason_4_glomeruloide (25 imágenes): 0,52 (Swin), 0,64 (ConvNeXt), 0,48, 0,64 y 0,52;
+% Gleason_4_pobremente_formadas (127): 0,74, 0,78, 0,59, 0,51 y 0,48; Gleason_3 (253): 0,81, 0,79,
+% 0,77, 0,78 y 0,57 (orden: Swin, ConvNeXt, EfficientNetV2, ViT, ResNet). Swin supera a ConvNeXt en
+% Gleason_3, cribiformes, No_Cancer y PIN; ConvNeXt a Swin en Carcinoma_intraductal, glomeruloide y
+% pobremente formadas.
+\pendiente{análisis de la \cref{tab:recall-clase}}
+
+\pendiente{conclusión parcial}
 
 \section{Elección del modelo}\label{sec:eleccion-swin}
-\pendiente{elección del Swin-S}
+
+\input{tablas/t09_mcnemar}
+
+El modelo Swin Transformer obtiene la mayor exactitud (96,88\,\%), seguido muy de cerca por ConvNeXt (96,68\,\%). Dada la escasa diferencia entre ambos, cualquiera de los dos sería una base adecuada; se selecciona Swin por ser el que mejor resultado ha obtenido.
+\revisar{exactitud del Swin-S: 96,87\,\% en las notas, 96,88\,\% en results\_fase1 (valor único de la memoria)}
+\revisar{la diferencia no es estadísticamente significativa (McNemar $p = 0{,}19$, \cref{tab:mcnemar}; ConvNeXt-S tiene además mayor F1 macro y \emph{balanced accuracy}): la elección no puede justificarse por un mejor resultado, sino presentarse como elección entre dos modelos empatados}
+
+La superioridad de esta arquitectura radica en tres pilares fundamentales:
+\revisar{justificación sin respaldo bibliográfico; reformular o citar Liu et al. 2021}
+
+\begin{enumerate}
+  \item \textbf{Jerarquización y ventanas desplazadas (\emph{shifted windows}).} A diferencia de los Vision Transformers (ViT) estándar, que operan con parches globales, el Swin Transformer utiliza un mecanismo de ventanas jerárquicas. Esto permite capturar relaciones espaciales tanto a nivel local (textura, morfología de tejidos) como global (anatomía estructural de la lesión).
+  \item \textbf{Eficiencia en el contexto local.} La capacidad de contextualizar parches mediante ventanas de $7 \times 7$ (\texttt{window7}) permite que el modelo se enfoque en características relevantes sin verse afectado por el ruido de fondo, algo que los modelos de atención global (como \texttt{vit\_base\_patch16}) pueden ignorar al tratar todas las regiones por igual. \revisar{«mediante window7» se ha desarrollado como «mediante ventanas de $7 \times 7$ (\texttt{window7})»}
+  \item \textbf{Inductividad de la imagen.} Al igual que ConvNeXt, el Swin Transformer integra principios de las redes convolucionales (sesgo inductivo), lo que facilita el aprendizaje de características jerárquicas desde resoluciones finas a gruesas. Esto permite una convergencia más eficiente y un mejor aprovechamiento de la información contenida en las imágenes médicas.
+\end{enumerate}
+
+La diferencia mínima obtenida entre el Swin Transformer y ConvNeXt (+0,0020) indica que ambas arquitecturas están alcanzando un techo de rendimiento cercano al límite de información útil extraíble del conjunto de datos.
+\revisar{diferencia corregida de 0,0019 a +0,0020 (results\_fase1); además, la afirmación del «techo de rendimiento» no está respaldada por los resultados}
+
+\begin{itemize}
+  \item \textbf{Complementariedad de enfoques.} El hecho de que modelos basados en atención jerárquica y arquitecturas convolucionales modernas compitan por el primer puesto sugiere que las características más relevantes para el diagnóstico están siendo bien capturadas por ambos paradigmas.
+\end{itemize}
+
+Por tanto, el modelo con el que nos vamos a quedar para proseguir en nuestro estudio es el \texttt{swin\_small\_patch4\_window7\_224}.
+
+\pendiente{conclusión parcial}
 
 \section{Agrupaciones clínicas}\label{sec:agrupaciones}
-\pendiente{agrupaciones}
+
+% Esqueleto: las notas no incluyen texto sobre las agrupaciones. Cifras de results_agrupaciones.
+
+\input{tablas/t09_agrupaciones}
+
+% Puntos que debería cubrir:
+% - Asignación de las 14 clases a NM, G3, G4, G5 y NT (opción a: la de la tabla) y binario con PIN
+%   maligno (como el código GleasonMap de los autores).
+% - Totales en el test ID: NM 6.260, G3 253, G4 2.337, G5 1.269, NT 2.499; binario 6.260 no
+%   malignas y 6.358 malignas.
+% - Swin-S: 98,25 % en 5 categorías y 99,33 % en binario (sensibilidad 0,991, especificidad
+%   0,996); 56 falsos negativos y 28 falsos positivos. XCiT-M del artículo: 98,34 % y 99,25 %.
+% - «NT» no está definido en ninguna fuente.
+% - El reparto implícito de las figuras 2 y 3 del artículo (NM = 8.282, NT = 477) solo se reproduce
+%   contando el adenocarcinoma ductal como NM (opción c, no adoptada).
+% - Variantes (opción b ISUP y PIN no maligno): cambios pequeños (Swin 98,29 % frente a 98,25 %).
+\pendiente{análisis de la \cref{tab:agrupaciones}}
+
+\input{tablas/t09_sensibilidad_gleason}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.7\textwidth]{img/cap09/fig_confusion_5clases_a.pdf}
+  \caption{Matrices de confusión de la clasificación agrupada en cinco categorías (NM, G3, G4, G5 y NT) en el test ID.}
+  \label{fig:confusion-5clases}
+\end{figure}
+
+% Puntos que debería cubrir:
+% - G3, G4 y G5 coinciden en número de imágenes con la figura 2 del artículo: comparables.
+% - Swin-S 0,806 / 0,968 / 0,968 frente a XCiT-M 0,814 / 0,967 / 0,978 (valores del artículo
+%   leídos de su figura 2).
+% - G3 es la categoría más difícil: en Swin-S, el 8,7 % de sus imágenes se predice como NM y el
+%   7,9 % como G4 (\cref{fig:confusion-5clases}).
+\pendiente{análisis de la \cref{tab:sensibilidad-gleason} y de la \cref{fig:confusion-5clases}}
+
+\pendiente{conclusión parcial}
 
 \section{Discusión}\label{sec:discusion-clasificacion}
+
+% Integrar las conclusiones parciales:
+% - Swin-S y ConvNeXt-S empatados; ambos por encima de EfficientNetV2-S, ViT-B/16 y ResNet-50 con
+%   IC por imagen; con IC por lámina solo se separan claramente de ResNet-50.
+% - Las clases minoritarias (glomeruloide, pobremente formadas, Gleason_3) concentran los errores.
+% - En la agrupación clínica, Swin-S queda cerca del modelo del artículo.
+% - Limitación: el test comparte láminas con el entrenamiento (\cref{cap:fuga}); las métricas miden
+%   generalización dentro de lámina, no a pacientes nuevos.
 \pendiente{discusión global}
 
 \endinput

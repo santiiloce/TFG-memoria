@@ -1,0 +1,16 @@
+% Generado por scripts/generar_tablas.py a partir de results_integridad/informe.json. No editar a mano.
+\begin{table}[htbp]
+\centering
+\footnotesize
+\caption{Fuga entre particiones por lámina, deducida de los nombres de fichero (\texttt{<lámina>\_<x>\_<y>\_<tamaño>.png}): láminas compartidas, proporción de parches cuya lámina aparece en la partición de referencia y proporción con un parche contiguo (8 vecinos a 224\,px) en ella.}
+\label{tab:fuga-contiguidad}
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}X ccc}
+\toprule
+Comparación & Láminas compartidas & Con su lámina en la referencia & Con un parche contiguo en la referencia \\
+\midrule
+\texttt{val} original respecto a \texttt{train} original & 95 / 95 & 100{,}0\,\% & 99{,}5\,\% \\
+Validación respecto a entrenamiento (TFG) & 95 / 95 & 100{,}0\,\% & 98{,}9\,\% \\
+Test respecto a entrenamiento (TFG) & 95 / 95 & 100{,}0\,\% & 99{,}0\,\% \\
+\bottomrule
+\end{tabularx}
+\end{table}

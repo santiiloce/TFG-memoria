@@ -1,0 +1,30 @@
+% Generado por scripts/generar_tablas.py a partir de results_ood/stoodx_validacion/calibracion_id_val.csv. No editar a mano.
+\begin{table}[htbp]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\caption{Calibración de los $p$-valores de \stoodx ($K=500$) en la validación ID (solo datos ID), por clase predicha. Si el test estuviera calibrado, los $p$-valores seguirían una $U(0,1)$: KS $D$ (distancia de Kolmogorov-Smirnov a la uniforme) cercano a 0 y alrededor de un 5\,\% de $p<0{,}05$. $n_c$: imágenes de entrenamiento predichas en la clase (conjunto de referencia); $n_{\mathrm{val}}$: imágenes de validación predichas en ella.}
+\label{tab:stoodx-calibracion}
+\begin{tabular}{lrrccccc}
+\toprule
+Clase predicha & $n_c$ & $n_{\mathrm{val}}$ & KS $D$ & $p<0{,}05$ & $p=0$ & $p=1$ & Mediana de $p$ \\
+\midrule
+\clase{Glandulas\_no\_neoplasicas} & \num{25846} & \num{6474} & 0{,}840 & 85{,}4\,\% & 8{,}8\,\% & 5{,}7\,\% & $\approx 0$ \\
+\clase{Estroma} & \num{17783} & \num{4472} & 0{,}804 & 82{,}2\,\% & 6{,}1\,\% & 6{,}2\,\% & $\approx 0$ \\
+\clase{Adenocarcinoma\_ductal} & \num{15135} & \num{3785} & 0{,}812 & 82{,}6\,\% & 7{,}5\,\% & 7{,}2\,\% & $\approx 0$ \\
+\clase{Gleason\_4\_cribiformes} & \num{10155} & \num{2555} & 0{,}842 & 85{,}5\,\% & 9{,}4\,\% & 6{,}5\,\% & $\approx 0$ \\
+\clase{Gleason\_5\_no\_glandulas} & \num{8717} & \num{2176} & 0{,}712 & 73{,}3\,\% & 9{,}5\,\% & 11{,}1\,\% & $\approx 0$ \\
+\clase{Gleason\_4\_fusionadas} & \num{5584} & \num{1391} & 0{,}813 & 82{,}7\,\% & 8{,}0\,\% & 6{,}9\,\% & $\approx 0$ \\
+\clase{PIN\_de\_alto\_grado} & \num{1979} & \num{484} & 0{,}798 & 82{,}2\,\% & 9{,}3\,\% & 8{,}1\,\% & $\approx 0$ \\
+\clase{Gleason\_3} & \num{1822} & \num{475} & 0{,}774 & 78{,}9\,\% & 20{,}6\,\% & 6{,}1\,\% & $\approx 0$ \\
+\clase{Gleason\_4\_pobremente\_formadas} & \num{905} & \num{207} & 0{,}695 & 72{,}0\,\% & 1{,}4\,\% & 10{,}6\,\% & $\approx 0$ \\
+\clase{No\_Cancer} & \num{868} & \num{214} & 0{,}691 & 71{,}5\,\% & 0{,}9\,\% & 15{,}0\,\% & $\approx 0$ \\
+\clase{Carcinoma\_intraductal} & \num{866} & \num{207} & 0{,}574 & 57{,}5\,\% & 1{,}0\,\% & 26{,}6\,\% & $\approx 0$ \\
+\clase{Inflamatorio} & \num{568} & \num{132} & 0{,}510 & 53{,}0\,\% & 12{,}1\,\% & 23{,}5\,\% & 0{,}003 \\
+\clase{Gleason\_5\_comedonecrosis} & \num{399} & \num{90} & 0{,}478 & 45{,}6\,\% & 0{,}0\,\% & 34{,}4\,\% & 0{,}622 \\
+\clase{Gleason\_4\_glomeruloide} & \num{173} & \num{29} & 0{,}559 & 20{,}7\,\% & 0{,}0\,\% & 0{,}0\,\% & 0{,}995 \\
+\midrule
+\textbf{Todas} & \num{90800} & \num{22691} & 0{,}802 & 81{,}9\,\% & 8{,}1\,\% & 7{,}3\,\% & $\approx 0$ \\
+\bottomrule
+\end{tabular}
+\end{table}

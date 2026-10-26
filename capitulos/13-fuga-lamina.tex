@@ -1,18 +1,85 @@
 % !TeX root = ../tfg.tex
 % !TeX encoding = utf8
+%
+%*******************************************************
+% Capítulo 13. Fuga por lámina
+%*******************************************************
 
 \chapter{Fuga por lámina}\label{cap:fuga}
 
+% Esqueleto: las notas no incluyen texto de este capítulo. Cifras de results_integridad/ y
+% results_ood_laminas/. Se presenta como limitación metodológica.
+\pendiente{introducción del capítulo}
+
 \section{Identificación de las láminas}\label{sec:fuga-laminas}
-\pendiente{láminas}
+
+% Puntos que debería cubrir:
+% - El artículo del conjunto de datos describe la partición como aleatoria por parche dentro de
+%   cada clase (90 % entrenamiento, 10 % test), no por paciente.
+% - Formato de los nombres de fichero <lámina>_<x>_<y>_<tamaño>.png: deducción, no documentada.
+%   Evidencias: los 126.109 ficheros tienen 4 campos; el último es siempre 224; x e y son siempre
+%   \equiv 1 (mód 224); el número de prefijos por clase coincide con el número de pacientes de la
+%   tabla I del artículo en 7 de las 14 clases y es menor (nunca mayor) en las otras 7.
+% - Discrepancias con el artículo: 95 prefijos distintos frente a 85 imágenes anotadas, y
+%   coordenadas en una rejilla de 224 px frente al paso de 256 px descrito (\cref{sec:conjunto-id}).
+% - Parches por lámina: mediana 288 en entrenamiento, 73 en validación y 38 en test; varias clases
+%   dependen de muy pocas láminas (PIN: 80 % de los parches en una lámina; No_Cancer: 6 láminas).
+\pendiente{identificación de las láminas a partir de los nombres de fichero}
+\revisar{deducción a partir de los nombres de fichero: 95 láminas y rejilla de 224\,px, frente a las 85 WSI y el paso de 256\,px del artículo}
+
+\input{tablas/t13_contiguidad}
+
+% Cifras: las 95 láminas aparecen en todas las particiones; el 99,5 % del val original tiene un
+% parche contiguo en el train original (la fuga ya está en la partición de los autores); nuestro
+% test, el 99,0 % respecto a nuestro entrenamiento.
+\pendiente{análisis de la \cref{tab:fuga-contiguidad}}
 
 \section{Fuga en el espacio de características}\label{sec:fuga-caracteristicas}
-\pendiente{fuga}
+
+\input{tablas/t13_vecino}
+
+% Cifras: el vecino más cercano en entrenamiento de un parche de test es de su misma lámina en el
+% 93,3 % de los casos (azar: 15,3 %), y solo el 19,2 % es el parche contiguo: la «firma» de la
+% lámina está en todo el espacio de características. Por clase, de 0,80 (glomeruloide) a 0,96.
+\pendiente{análisis de la \cref{tab:fuga-vecino}}
+
+\pendiente{conclusión parcial}
 
 \section{Efecto sobre la detección OOD}\label{sec:fuga-efecto}
-\pendiente{efecto}
+
+\input{tablas/t13_loso}
+
+% Cifras: KNN (K = 50) y MDS excluyendo, para cada parche del test, los parches de entrenamiento de
+% su lámina. El AUROC baja 0,02-0,07 y el FPR@95 sube 0,09-0,16; la caída es mayor en PANDA
+% (-0,068 y -0,064) y MUS (-0,060 y -0,059). Control de resolución también sin su lámina: AUROC
+% 0,682 (KNN) y 0,701 (MDS). El orden de los métodos se mantiene.
+\pendiente{análisis de la \cref{tab:fuga-loso}}
+
+\input{tablas/t13_control_interno}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{img/cap13/fig5_control_interno_con_y_sin_lamina.pdf}
+  \caption{AUROC por clase de NCT-CRC con KNN y MDS, con todo el entrenamiento como referencia y sin la lámina de cada parche del test.}
+  \label{fig:fuga-control-interno}
+\end{figure}
+
+% Cifras: con MDS, LYM (0,941 [0,939; 0,944]) queda entre TUM (0,936) y NORM (0,952), como en la
+% versión original: la conclusión del control interno (\cref{sec:ood-control-interno}) no depende
+% de la fuga.
+\pendiente{análisis de la \cref{tab:fuga-control-interno} y de la \cref{fig:fuga-control-interno}}
+
+\pendiente{conclusión parcial}
 
 \section{Limitación metodológica}\label{sec:fuga-limitacion}
-\pendiente{limitación}
+
+% Puntos que debería cubrir:
+% - El análisis solo quita la lámina del conjunto de referencia; la red se entrenó con todas las
+%   láminas, así que las caídas son una cota inferior del efecto de la fuga.
+% - Toda la evaluación en el test ID (exactitud, detección OOD y predicción conforme) mide
+%   generalización dentro de las mismas láminas, no a pacientes nuevos.
+% - Medirlo requeriría reentrenar con una partición por lámina o paciente, o validar con un conjunto
+%   externo de próstata.
+\pendiente{limitación metodológica}
 
 \endinput

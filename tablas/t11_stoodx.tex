@@ -1,0 +1,25 @@
+% Generado por scripts/generar_tablas.py a partir de results_ood/faseC_2026-10-20/tabla_principal.csv. No editar a mano.
+\begin{table}[htbp]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{2.5pt}
+\caption{\stoodx con el 100\,\% y el 87,5\,\% de las características ($K=500$, puntuación $-z$) y la variante exploratoria $K_c$, frente a KNN y RMDS: \AUROC (más alto es mejor) y \FPRn{95} (más bajo es mejor) en los nueve conjuntos. Clase positiva: OOD. $^{\dagger}$Variante exploratoria, propuesta tras ver datos OOD.}
+\label{tab:stoodx-resultados}
+\begin{tabular}{lcccccccccc}
+\toprule
+& \multicolumn{2}{c}{STOOD-X (100\,\%)} & \multicolumn{2}{c}{STOOD-X (87,5\,\%)} & \multicolumn{2}{c}{STOOD-X $K_c$$^{\dagger}$} & \multicolumn{2}{c}{KNN} & \multicolumn{2}{c}{RMDS} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}\cmidrule(lr){10-11}
+Conjunto & \AUROC & \FPRn{95} & \AUROC & \FPRn{95} & \AUROC & \FPRn{95} & \AUROC & \FPRn{95} & \AUROC & \FPRn{95} \\
+\midrule
+TUM+NORM & 0{,}953 & 0{,}349 & 0{,}953 & 0{,}352 & 0{,}943 & 0{,}461 & 0{,}956 & 0{,}173 & 0{,}954 & 0{,}128 \\
+TUM & 0{,}931 & 0{,}440 & 0{,}930 & 0{,}444 & 0{,}917 & 0{,}461 & 0{,}952 & 0{,}183 & 0{,}947 & 0{,}142 \\
+NORM & 0{,}990 & 0{,}022 & 0{,}990 & 0{,}022 & 0{,}985 & 0{,}023 & 0{,}963 & 0{,}152 & 0{,}964 & 0{,}109 \\
+STR & 0{,}978 & 0{,}083 & 0{,}978 & 0{,}082 & 0{,}977 & 0{,}101 & 0{,}932 & 0{,}219 & 0{,}935 & 0{,}180 \\
+LYM & 0{,}903 & 0{,}531 & 0{,}903 & 0{,}533 & 0{,}799 & 0{,}411 & 0{,}948 & 0{,}216 & 0{,}824 & 0{,}992 \\
+MUS & 0{,}968 & 0{,}159 & 0{,}967 & 0{,}164 & 0{,}966 & 0{,}158 & 0{,}904 & 0{,}275 & 0{,}911 & 0{,}272 \\
+PANDA & 0{,}895 & 0{,}427 & 0{,}895 & 0{,}428 & 0{,}917 & 0{,}300 & 0{,}892 & 0{,}256 & 0{,}912 & 0{,}241 \\
+Control 128\,px & 0{,}894 & 0{,}497 & 0{,}893 & 0{,}505 & 0{,}895 & 0{,}490 & 0{,}760 & 0{,}569 & 0{,}753 & 0{,}821 \\
+DTD & 0{,}991 & 0{,}028 & 0{,}990 & 0{,}030 & 0{,}989 & 0{,}033 & 0{,}936 & 0{,}214 & 0{,}942 & 0{,}156 \\
+\bottomrule
+\end{tabular}
+\end{table}

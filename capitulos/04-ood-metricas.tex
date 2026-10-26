@@ -11,7 +11,9 @@
 
 % - Factorización P(X, Y) = P(Y | X) P(X).
 % - Desplazamiento de covariables: cambia P(X), se mantiene P(Y | X).
-% - Cambio semántico: cambia el espacio de etiquetas, P(Y) \neq P'(Y).
+% - Cambio semántico: cambia el espacio de etiquetas, P(Y) \neq P'(Y) (ver \cref{sec:ea-taxonomia}).
+\pendiente{introducción: factorización $P(X,Y) = P(Y \mid X)\,P(X)$}
+
 \begin{definicion}[Desplazamiento de covariables]\label{def:covariate-shift}
 \pendiente{definición}
 \end{definicion}
@@ -28,7 +30,20 @@
 \pendiente{definición}
 \end{definicion}
 
-\section{Curva ROC y AUROC}\label{sec:auroc}
+\section{Métricas de evaluación}\label{sec:metricas}
+
+Hay tres métricas que miden lo bien que mi clasificador separa ID de OOD. El inconveniente está en que no miden si la clasificación de las 14 clases es correcta. Para ello conviene mejor usar CCR@FPR$x$. Al final estas métricas se comportan como modelos de clasificación binaria en ID y OOD.
+
+Evaluación. Además de las puntuaciones F, AUROC y AUPR, otra métrica comúnmente utilizada es FPR@TPR$x$, que mide la FPR cuando la TPR es $x$ (por ejemplo, $0{,}95$). Algunos trabajos también utilizan una métrica alternativa, TNR@TPR$x$, que es equivalente a $1 - \text{FPR@TPR}x$. La detección de OOD también afecta al rendimiento de la clasificación de ID.
+\revisar{traducción casi literal; parafrasear y citar}
+
+\subsection{Curva ROC y AUROC}\label{sec:auroc}
+
+\textbf{AUROC}: representa la probabilidad de que el modelo asigne una puntuación o probabilidad más alta a un ejemplo positivo elegido al azar que a uno negativo. \textbf{Rango de valores:} va de 0 a 1; 0,5 representa que el modelo no tiene capacidad discriminatoria (equivale a adivinar al azar), 1 que el modelo tiene una clasificación perfecta, y los valores inferiores a 0,5 indican que el modelo invierte las clases (si se invierte la predicción, el valor pasa a ser $1 - \text{valor}$). En este caso también la clase positiva es la OOD.
+
+% Nota de las notas: «puedes citar este párrafo [de Yang et al.], o directamente a Fawcett (2006)
+% para la curva ROC, al explicar tus métricas».
+\pendiente{citar a Fawcett~\cite{fawcett2006} para la curva ROC}
 
 \begin{definicion}[Curva ROC]\label{def:roc}
 % TPR(\tau) y FPR(\tau) como funciones del umbral; curva paramétrica (Fawcett, 2006).
@@ -36,14 +51,15 @@
 \end{definicion}
 
 \begin{teorema}[Interpretación probabilística del AUROC]\label{teo:auroc-prob}
-% \AUROC = \Prob(s(X_{ID}) > s(X_{OOD})) (+ 1/2 \Prob(empate)) con X_{ID} y X_{OOD} independientes.
+% \AUROC = \Prob(s(X_{OOD}) < s(X_{ID})) (+ 1/2 \Prob(empate)), con X_{ID} y X_{OOD} independientes
+% y la puntuación s orientada a «más alto = más ID».
 \pendiente{enunciado}
 \end{teorema}
 \begin{demostracion}
 \pendiente{demostración}
 \end{demostracion}
 
-\begin{corolario}[AUROC empírico y estadístico U]\label{cor:auroc-u}
+\begin{corolario}[AUROC empírico y estadístico $U$]\label{cor:auroc-u}
 % \widehat{\AUROC} = U / (n_1 n_2), con U el estadístico de Mann-Whitney (\cref{sec:mann-whitney}).
 \pendiente{enunciado}
 \end{corolario}
@@ -51,21 +67,33 @@
 \pendiente{demostración}
 \end{demostracion}
 
-\section{FPR@95}\label{sec:fpr95}
+\subsection{FPR@95}\label{sec:fpr95}
+
+\textbf{FPR@95}: consiste en ajustar el umbral que delimita un caso como ID de forma que dicho umbral detecte el 95\,\% de las OOD.
+% Completar: la métrica es la proporción de imágenes ID clasificadas como OOD con ese umbral
+% (más bajo es mejor).
+\pendiente{completar qué se mide con ese umbral (la proporción de ID rechazadas como OOD; más bajo es mejor)}
 
 \begin{definicion}[FPR@TPR$x$]\label{def:fpr95}
 \pendiente{definición}
 \end{definicion}
 
-\section{AUPR-In y AUPR-Out}\label{sec:aupr}
+\subsection{AUPR-In y AUPR-Out}\label{sec:aupr}
+
+\textbf{AUPR}: esta métrica va acompañada de AUROC, ya que AUROC no es sensible a desbalance entre clases mientras que AUPR sí. Principalmente se basa en dos conceptos: precisión y exhaustividad (\emph{recall}). De esta métrica obtenemos dos versiones: AUPR-In (mide lo bien que se recuperan imágenes de próstata sin que se cuelen OOD) y AUPR-Out (mide lo bien que se encuentran las OOD sin falsas alarmas sobre las de próstata). En el primer caso el caso positivo es ID y por eso mismo nos interesa un valor alto, y en el segundo el caso positivo es el OOD, por lo que también interesa un valor alto.
+\revisar{las notas decían que en AUPR-Out interesa un valor «más bajo»; es incorrecto: en ambas versiones interesa un valor alto}
 
 \begin{definicion}[Precisión, exhaustividad y AUPR]\label{def:aupr}
 \pendiente{definición}
 \end{definicion}
 
-\section{CCR@FPR$x$}\label{sec:ccr}
+\subsection{CCR@FPR$x$}\label{sec:ccr}
+
+\textbf{CCR@FPR$x$}: se fija el umbral de modo que solo se acepte un $x$\,\% de las imágenes OOD, y se mide la proporción de imágenes del test ID que son aceptadas y además correctamente clasificadas. Se calcula solo sobre el test ID; su máximo es la exactitud del clasificador.
 
 \begin{definicion}[CCR@FPR$x$]\label{def:ccr}
+% Dhamija et al. (2018). Implementación: \tau con el 5 % de OOD aceptado (s \geq \tau);
+% CCR = #(ID con s \geq \tau y bien clasificada) / #ID.
 \pendiente{definición}
 \end{definicion}
 

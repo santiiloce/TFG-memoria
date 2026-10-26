@@ -7,23 +7,135 @@
 
 \chapter{Métodos de detección post hoc}\label{cap:metodos}
 
-% Notación: logits f(x) \in \R^C, características h(x) \in \R^D (D = 768), pesos de la última capa
-% W \in \R^{C \times D} y sesgo b, de modo que f(x) = W h(x) + b.
+% Notación: logits f(x) \in \R^C, características h(x) \in \R^D (D = 768 en el Swin-S), pesos de la
+% última capa W \in \R^{C \times D} y sesgo b, de modo que f(x) = W h(x) + b. Todas las puntuaciones
+% se orientan de modo que un valor más alto indica «más ID». Implementación de referencia: OpenOOD.
+\pendiente{introducción del capítulo y notación común}
 
 \section{Métodos basados en logits}\label{sec:metodos-logits}
 
-\pendiente{métodos basados en logits}
+Grupo de los logits (números producidos por la red justo al final, antes de convertirlos en probabilidades):
+
+\begin{itemize}
+  \item \textbf{MSP} (\emph{Maximum Softmax Probability}): la probabilidad de la clase ganadora tras el softmax.
+  \item \textbf{MLS} (\emph{MaxLogit}): lo mismo que MSP, pero con el logit máximo sin pasar por softmax. La ventaja que ofrece este método es que el softmax normaliza y pierde información sobre la magnitud absoluta; el logit bruto la conserva.
+  \item \textbf{EBO} (\emph{Energy-Based OOD}): el logaritmo de la suma de las exponenciales de todos los logits. Funciona como una versión «suave» y diferenciable de la función $\max(x)$.
+\end{itemize}
+\revisar{en EBO, «de las exponenciales de los argumentos de todos los logits» se ha simplificado a «de las exponenciales de todos los logits»}
+
+\begin{definicion}[Puntuaciones MSP, MaxLogit y Energy]\label{def:logits}
+% s_MSP(x) = \max_k \softmax(f(x))_k; s_MLS(x) = \max_k f_k(x);
+% s_EBO(x) = T \log \sum_k e^{f_k(x)/T} (opuesto de la energía libre, T = 1).
+\pendiente{definición formal}
+\end{definicion}
+
+\begin{proposicion}[LogSumExp como cota suave del máximo]\label{prop:logsumexp}
+% \max_k f_k \le \log \sum_k e^{f_k} \le \max_k f_k + \log C.
+\pendiente{enunciado}
+\end{proposicion}
+\begin{demostracion}
+\pendiente{demostración}
+\end{demostracion}
+
+\begin{observacion}[Efecto del \emph{label smoothing} sobre los logits]\label{obs:ls-logits}
+% Relacionar con \cref{prop:ls-optimo}: el label smoothing acota la diferencia entre logits; hipótesis
+% (no comprobada) para explicar que MSP supere a MaxLogit y Energy (\cref{sec:ood-familias}).
+\pendiente{desarrollo}
+\end{observacion}
 
 \section{Métodos basados en la modificación de activaciones}\label{sec:metodos-activaciones}
 
-\pendiente{métodos basados en la modificación de activaciones}
+Estos métodos modifican las activaciones o los pesos de la última capa del modelo antes de calcular la puntuación, con el objetivo de atenuar las señales anómalas que producen las imágenes OOD. Los tres calculan finalmente una puntuación de tipo Energy sobre los logits resultantes y fueron diseñados y evaluados originalmente sobre redes convolucionales con activaciones ReLU.
+
+\begin{itemize}
+  \item \textbf{ReAct} (\emph{Rectified Activations}) (Sun et al.~\cite{sun2021react}): parte de la observación de que las imágenes OOD tienden a producir activaciones anormalmente altas en algunas unidades de la penúltima capa, lo que sus autores atribuyen al uso de estadísticas de BatchNorm estimadas con datos ID y aplicadas sin cambios a datos OOD. Para atenuarlo, recorta cada activación del vector de características por encima de un umbral $c$, $\tilde{h} = \min(h, c)$, y calcula la puntuación Energy sobre los logits obtenidos a partir de las características recortadas. El umbral $c$ se fija como el percentil 90 de las activaciones en el conjunto de validación ID.
+  \item \textbf{ASH} (\emph{Activation Shaping}) (Djurisic et al.~\cite{djurisic2023}): actúa sobre el vector de características de cada imagen de forma individual. Conserva solo el 10\,\% de las activaciones de mayor valor (percentil 90), pone a cero el resto y ajusta las conservadas para compensar la información eliminada. En la variante empleada (ASH-B), todas las activaciones conservadas toman el mismo valor, igual a la suma total de las activaciones de la imagen dividida entre el número de activaciones conservadas. Después se calcula la puntuación Energy. Se aplica sobre las 768 características agregadas tras el \emph{pooling}, como en la implementación de OpenOOD.
+  \item \textbf{DICE} (\emph{Directed Sparsification}) (Sun y Li~\cite{sun2022dice}): actúa sobre los pesos de la última capa lineal en lugar de sobre las activaciones. Para cada conexión entre una característica y una clase, calcula su contribución media en el conjunto de entrenamiento ID (el peso multiplicado por la activación media de esa característica), conserva solo las conexiones de mayor contribución y pone a cero el resto (esparsidad del 90\,\%). Al eliminar las conexiones poco relevantes para los datos ID, reduce la varianza de la salida en las imágenes OOD y mejora su separación. La puntuación es la Energy de los logits calculados con la capa podada.
+\end{itemize}
+
+\begin{definicion}[ReAct, ASH-B y DICE]\label{def:activaciones}
+% ReAct: \tilde h_j = \min(h_j, c); s(x) = \log \sum_k \exp(W \tilde h + b)_k.
+% ASH-B: conserva el conjunto T_p de las activaciones por encima del percentil p y asigna a cada una
+%        s_1 / |T_p|, con s_1 = \sum_j h_j.
+% DICE: máscara M \in \{0,1\}^{C \times D} con las conexiones de mayor contribución \bar h_j W_{kj}.
+\pendiente{definición formal}
+\end{definicion}
+
+\begin{observacion}[Supuestos sobre el signo de las activaciones]\label{obs:relu}
+% Los tres métodos suponen activaciones no negativas (ReLU); en el Swin-S las características salen
+% de una LayerNorm y pueden ser negativas (relevante en \cref{sec:ood-familias}).
+\pendiente{desarrollo}
+\end{observacion}
 
 \section{Métodos basados en características y distancias}\label{sec:metodos-caracteristicas}
 
-\pendiente{métodos basados en características}
+Grupo de métodos que comparan con la información de las características (\emph{features}) de entrenamiento:
+
+\begin{itemize}
+  \item \textbf{KNN}: guarda las características de entrenamiento (normalizadas) y, para cada imagen de test, mide la distancia a su $k$-ésimo vecino más cercano. Si está lejos de todo lo visto, es OOD.
+  \item \textbf{MDS} (Mahalanobis): calcula la media de las características de cada clase y una covarianza compartida. La puntuación es la distancia de Mahalanobis a la media de la clase más cercana.
+  \item \textbf{RMDS} (\emph{Relative Mahalanobis}): igual que MDS, pero resta la distancia a una gaussiana global de todo el conjunto de datos. Así corrige el hecho de que algunas direcciones del espacio de características son «fondo» común a todas las imágenes y no información de clase. Suele funcionar mejor en near-OOD.
+  \item \textbf{ViM} (\emph{Virtual-logit Matching}): busca las direcciones principales del espacio de características de entrenamiento (análisis de componentes principales). Lo que queda fuera de ese subespacio principal (el residuo) se considera señal de OOD. Combina la norma de ese residuo con la energía de los logits.
+  \item \textbf{SHE} (\emph{Simplified Hopfield Energy}): en la preparación (\texttt{setup()}) pasa el conjunto de entrenamiento por la red y, para cada clase, calcula la media de las características solo de las imágenes que el modelo clasifica correctamente (etiqueta real igual a la predicción). Eso le da 14 «patrones» de referencia. En test, mira qué clase predice el modelo para la imagen y compara su característica con el patrón de esa clase (por producto escalar, distancia euclídea o coseno, según la configuración).
+\end{itemize}
+
+\pendiente{citar los artículos originales de KNN, RMDS, ViM y SHE (no aparecen en las notas)}
+
+\begin{definicion}[Puntuación KNN]\label{def:knn}
+% s(x) = -\| z(x) - z_{(k)} \|, con z = h / \|h\| y z_{(k)} el k-ésimo vecino normalizado.
+\pendiente{definición}
+\end{definicion}
+
+\begin{definicion}[Puntuación de Mahalanobis]\label{def:mds}
+% \mu_c medias por clase, \Sigma covarianza compartida; s(x) = -\min_c (h - \mu_c)^T \Sigma^{-1} (h - \mu_c).
+\pendiente{definición}
+\end{definicion}
+
+\begin{proposicion}[Relación con el análisis discriminante lineal]\label{prop:mds-lda}
+% Bajo el modelo generativo h | Y = c \sim N(\mu_c, \Sigma) con covarianza compartida, la regla
+% de Bayes es la de LDA y la distancia de Mahalanobis a la clase más cercana coincide con el
+% logaritmo de la máxima densidad condicionada salvo constantes.
+\pendiente{enunciado}
+\end{proposicion}
+\begin{demostracion}
+\pendiente{demostración}
+\end{demostracion}
+
+\begin{definicion}[Mahalanobis relativo]\label{def:rmds}
+% s(x) = -\min_c [ d_{\Sigma}(h, \mu_c) - d_{\Sigma_0}(h, \mu_0) ], con (\mu_0, \Sigma_0) gaussiana global.
+\pendiente{definición}
+\end{definicion}
+
+\begin{definicion}[ViM]\label{def:vim}
+% PCA de las características centradas en el origen u = -W^+ b; subespacio principal P de dimensión
+% d; residuo x^{P\perp}; logit virtual \alpha \|x^{P\perp}\|; puntuación a partir del softmax con el
+% logit virtual.
+\pendiente{definición}
+\end{definicion}
+
+\begin{proposicion}[Residuo de PCA como proyección ortogonal]\label{prop:pca-residuo}
+\pendiente{enunciado}
+\end{proposicion}
+
+\begin{definicion}[SHE]\label{def:she}
+\pendiente{definición}
+\end{definicion}
 
 \section{STOOD-X}\label{sec:metodo-stoodx}
 
-\pendiente{STOOD-X}
+Se trata de una metodología post hoc de detección OOD en dos etapas~\cite{sevillano2025}: una primera de detección, basada en un test estadístico no paramétrico sobre distancias en el espacio de características, y una segunda de explicación, que muestra al usuario los vecinos más cercanos y las características más relevantes compartidas con ellos.
+
+Sea $x$ una imagen cuya clase predicha por el modelo es $c$, y sea $X_{\mathrm{set}}$ el conjunto de características de entrenamiento de esa clase. Se denota $X_k = \{x_1, \ldots, x_K\}$ el conjunto de los $K$ vecinos más cercanos de $x$ en $X_{\mathrm{set}}$ según una distancia $d$ y, para cada vecino $x_i$, $X_k^{i}$ el conjunto de sus $K$ vecinos más cercanos en $X_{\mathrm{set}} \setminus \{x_i\}$. La hipótesis del método es que, si $x$ pertenece a la distribución de entrenamiento, las distancias $D(x, X_k)$ y $D(x_i, X_k^{i})$ siguen la misma distribución; si $x$ es OOD, las primeras serán mayores. Para contrastarlo se aplica el test unilateral de Wilcoxon-Mann-Whitney (\cref{sec:mann-whitney}) entre ambos conjuntos de distancias, con un total de $M = K + K^2$ distancias, y el $p$-valor resultante se utiliza como puntuación: valores altos indican pertenencia a la distribución.
+
+\begin{definicion}[Puntuación de STOOD-X]\label{def:stoodx}
+% A = \{d(x, x_i)\}_{i=1}^K (K valores), B = \{d(x_i, x_j) : x_j \in X_k^i\}_{i=1}^K (K^2 valores);
+% hipótesis alternativa: las distancias de A son estocásticamente mayores que las de B;
+% puntuación p(x) (artículo) o -z(x) (este trabajo, \cref{sec:stoodx-puntuacion}).
+\pendiente{definición formal}
+\end{definicion}
+
+% Segunda etapa (explicación): vecinos más cercanos y características más relevantes compartidas,
+% seleccionadas con CRP en el artículo (\cref{sec:crp}).
+\pendiente{segunda etapa del método: explicaciones}
 
 \endinput

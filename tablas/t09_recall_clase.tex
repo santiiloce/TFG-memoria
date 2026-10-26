@@ -1,0 +1,28 @@
+% Generado por scripts/generar_tablas.py a partir de results_fase1/recall_por_clase.csv. No editar a mano.
+\begin{table}[htbp]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{4pt}
+\caption{Sensibilidad (\emph{recall}) por clase en el test ID de los cinco modelos (más alto es mejor); $n$: imágenes de test de la clase. En negrita, el mejor valor de cada clase.}
+\label{tab:recall-clase}
+\begin{tabular}{lrccccc}
+\toprule
+Clase & $n$ & Swin-S & ConvNeXt-S & EfficientNetV2-S & ViT-B/16 & ResNet-50 \\
+\midrule
+\clase{Glandulas\_no\_neoplasicas} & \num{3590} & \textbf{0{,}98} & 0{,}98 & 0{,}98 & 0{,}97 & 0{,}94 \\
+\clase{Estroma} & \num{2469} & 0{,}99 & \textbf{0{,}99} & 0{,}98 & \textbf{0{,}99} & 0{,}97 \\
+\clase{Adenocarcinoma\_ductal} & \num{2102} & 1{,}00 & \textbf{1{,}00} & 0{,}99 & 0{,}99 & 0{,}98 \\
+\clase{Gleason\_4\_cribiformes} & \num{1414} & \textbf{0{,}96} & 0{,}95 & 0{,}94 & 0{,}93 & 0{,}88 \\
+\clase{Gleason\_5\_no\_glandulas} & \num{1213} & \textbf{0{,}97} & 0{,}97 & 0{,}94 & 0{,}92 & 0{,}83 \\
+\clase{Gleason\_4\_fusionadas} & \num{771} & 0{,}92 & 0{,}92 & 0{,}87 & \textbf{0{,}92} & 0{,}72 \\
+\clase{PIN\_de\_alto\_grado} & \num{276} & \textbf{0{,}95} & 0{,}94 & 0{,}93 & 0{,}91 & 0{,}81 \\
+\clase{Gleason\_3} & \num{253} & \textbf{0{,}81} & 0{,}79 & 0{,}77 & 0{,}77 & 0{,}57 \\
+\clase{Gleason\_4\_pobremente\_formadas} & \num{127} & 0{,}74 & \textbf{0{,}78} & 0{,}59 & 0{,}51 & 0{,}48 \\
+\clase{No\_Cancer} & \num{121} & \textbf{0{,}93} & 0{,}89 & 0{,}93 & 0{,}88 & 0{,}49 \\
+\clase{Carcinoma\_intraductal} & \num{121} & 0{,}89 & \textbf{0{,}93} & 0{,}89 & 0{,}92 & 0{,}69 \\
+\clase{Inflamatorio} & \num{80} & \textbf{0{,}95} & \textbf{0{,}95} & 0{,}89 & 0{,}93 & 0{,}79 \\
+\clase{Gleason\_5\_comedonecrosis} & \num{56} & \textbf{0{,}86} & \textbf{0{,}86} & 0{,}84 & \textbf{0{,}86} & 0{,}66 \\
+\clase{Gleason\_4\_glomeruloide} & \num{25} & 0{,}52 & \textbf{0{,}64} & 0{,}48 & \textbf{0{,}64} & 0{,}52 \\
+\bottomrule
+\end{tabular}
+\end{table}

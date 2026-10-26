@@ -37,3 +37,4 @@
 # Carpeta de trabajo (no se compila): solo se versiona la conversión de pandoc
 notas/*
 !notas/memoria2-pandoc.tex
+!notas/sin-ubicar.tex

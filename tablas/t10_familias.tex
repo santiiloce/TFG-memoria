@@ -1,0 +1,28 @@
+% Generado por scripts/generar_tablas.py a partir de results_ood/faseC_2026-10-20/tabla_principal.csv. No editar a mano.
+\begin{table}[htbp]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{2.5pt}
+\caption{Métodos basados en logits, en la modificación de activaciones y variantes de SHE: \AUROC (más alto es mejor) en los nueve conjuntos y exactitud ID de la clasificación resultante. Clase positiva: OOD. $^{a}$ASH modifica las características y con ellas la predicción.}
+\label{tab:ood-familias}
+\begin{tabular}{lcccccccccc}
+\toprule
+Método & TUM+NORM & TUM & NORM & STR & LYM & MUS & PANDA & Control 128\,px & DTD & Exact.\ ID (\%) \\
+\midrule
+\multicolumn{11}{@{}l}{\textit{Basados en logits}} \\
+MSP & 0{,}876 & 0{,}873 & 0{,}880 & 0{,}823 & 0{,}854 & 0{,}740 & 0{,}843 & 0{,}657 & 0{,}876 & 96{,}87 \\
+MaxLogit & 0{,}828 & 0{,}815 & 0{,}848 & 0{,}767 & 0{,}741 & 0{,}607 & 0{,}723 & 0{,}626 & 0{,}824 & 96{,}87 \\
+Energy & 0{,}821 & 0{,}807 & 0{,}844 & 0{,}759 & 0{,}727 & 0{,}589 & 0{,}706 & 0{,}622 & 0{,}818 & 96{,}87 \\
+\midrule
+\multicolumn{11}{@{}l}{\textit{Modificación de activaciones}} \\
+ReAct & 0{,}861 & 0{,}856 & 0{,}868 & 0{,}798 & 0{,}835 & 0{,}643 & 0{,}741 & 0{,}602 & 0{,}820 & 96{,}89 \\
+ASH$^{a}$ & 0{,}546 & 0{,}496 & 0{,}628 & 0{,}544 & 0{,}504 & 0{,}361 & 0{,}341 & 0{,}503 & 0{,}549 & 68{,}33 \\
+DICE & 0{,}592 & 0{,}581 & 0{,}609 & 0{,}581 & 0{,}831 & 0{,}525 & 0{,}633 & 0{,}554 & 0{,}436 & 96{,}84 \\
+\midrule
+\multicolumn{11}{@{}l}{\textit{Características y distancias}} \\
+SHE (prod.\ escalar) & 0{,}795 & 0{,}746 & 0{,}875 & 0{,}780 & 0{,}647 & 0{,}660 & 0{,}530 & 0{,}603 & 0{,}802 & 96{,}87 \\
+SHE (coseno) & 0{,}938 & 0{,}931 & 0{,}948 & 0{,}898 & 0{,}914 & 0{,}837 & 0{,}834 & 0{,}651 & 0{,}898 & 96{,}87 \\
+SHE (euclídea) & 0{,}942 & 0{,}937 & 0{,}950 & 0{,}902 & 0{,}928 & 0{,}845 & 0{,}851 & 0{,}646 & 0{,}899 & 96{,}87 \\
+\bottomrule
+\end{tabular}
+\end{table}
