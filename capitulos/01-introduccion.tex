@@ -1,8 +1,111 @@
 % !TeX root = ../tfg.tex
 % !TeX encoding = utf8
+%
+%*******************************************************
+% Capítulo 1. Introducción
+%*******************************************************
 
 \chapter{Introducción}\label{cap:introduccion}
 
-\pendiente{introducción}
+% Según la Guía de TFG de la UGR, la introducción describe los objetivos previstos inicialmente,
+% indica si se han alcanzado, los antecedentes, los resultados y las principales fuentes consultadas.
+
+\section{Contexto}\label{sec:contexto}
+
+% Puntos que debería cubrir:
+% - Clasificación de imágenes histopatológicas de próstata con aprendizaje profundo (tinción H&E,
+%   graduación de Gleason).
+% - Necesidad de que un modelo desplegado en clínica reconozca las entradas que no se parecen a
+%   sus datos de entrenamiento (detección OOD).
+% - Papel de la explicabilidad (XAI) en medicina.
+\pendiente{contexto}
+
+\section{Descripción del problema}\label{sec:descripcion-problema}
+
+% Puntos que debería cubrir:
+% - Un clasificador asigna siempre una de las 14 clases, aunque la imagen no sea de próstata o
+%   venga de otro centro.
+% - Distinción entre cambio semántico y desplazamiento de covariables (cambio de centro, escáner,
+%   resolución).
+% - Fuga por lámina en la partición del conjunto de datos como limitación de la evaluación.
+\pendiente{descripción del problema}
+
+\section{Motivación}\label{sec:motivacion}
+
+% Puntos que debería cubrir:
+% - Enlace con el doble grado: fundamentos matemáticos (estadística no paramétrica, predicción
+%   conforme, formalización de las métricas) y evaluación experimental.
+% - Petición del tutor de reforzar la parte matemática.
+% - Yang et al. (2024) señalan la explicabilidad como reto abierto de la detección OOD
+%   (frase de las notas, ubicada en \cref{sec:ea-explicabilidad}).
+\pendiente{motivación}
+
+\section{Preguntas de investigación e hipótesis}\label{sec:preguntas}
+
+% Puntos que debería cubrir (según la Guía de TFG para proyectos de investigación):
+% - P1: ¿Qué arquitectura preentrenada clasifica mejor las 14 clases del conjunto ID?
+% - P2: ¿Qué familias de detectores post hoc separan mejor ID de OOD con un Swin Transformer?
+% - P3: ¿Los detectores responden al tipo de tejido o a las condiciones de adquisición (centro,
+%   resolución)?
+% - P4: ¿Es STOOD-X competitivo y están calibrados sus p-valores?
+% - P5: ¿Ofrece la predicción conforme garantías útiles (falsas alarmas, cobertura por clase)?
+% - Hipótesis asociadas a cada pregunta.
+\pendiente{preguntas de investigación e hipótesis}
+
+\section{Objetivos}\label{sec:objetivos}
+
+\subsection{Objetivos generales}
+
+% - Parte matemática: formalizar la detección OOD, sus métricas y los métodos post hoc, y los
+%   fundamentos estadísticos (Mann-Whitney, bootstrap, McNemar, predicción conforme).
+% - Parte informática: evaluar empíricamente detectores OOD sobre un clasificador de
+%   histopatología de próstata.
+\pendiente{objetivos generales}
+
+\subsection{Objetivos específicos}
+
+% Para cada uno, indicar si se ha alcanzado (requisito de la Guía de TFG).
+% - Entrenar y comparar cinco arquitecturas (ViT-B/16, ResNet-50, ConvNeXt-S, EfficientNetV2-S,
+%   Swin-S) y elegir una.
+% - Diseñar conjuntos OOD que separen cambio semántico, cambio de centro y resolución.
+% - Evaluar 13 detectores de OpenOOD y STOOD-X con IC por bootstrap.
+% - Reimplementar STOOD-X según el artículo y analizar su calibración y su sensibilidad a K.
+% - Aplicar predicción conforme (detección OOD, APS/RAPS, Mondrian).
+% - Analizar la fuga por lámina y su efecto.
+% - Explicabilidad y eliminación de sesgos con CRP (en desarrollo).
+\pendiente{objetivos específicos y grado de consecución}
+
+\section{Principales fuentes consultadas}\label{sec:fuentes}
+
+% - Yang et al. (2024), survey de detección OOD generalizada.
+% - OpenOOD (implementación de referencia de los métodos).
+% - Artículo de STOOD-X (Sevillano-García et al.) y artículo del conjunto de datos
+%   (Ayensa-Jiménez et al.).
+% - Angelopoulos y Bates (2021) para predicción conforme.
+% - Declaración del uso de herramientas de IA generativa, si procede.
+\pendiente{principales fuentes consultadas}
+
+\section{Estructura de la memoria}\label{sec:estructura}
+
+% Describir las cuatro partes y los apéndices, capítulo a capítulo, con \cref.
+\pendiente{estructura de la memoria}
+
+\section{Planificación}\label{sec:planificacion}
+
+\subsection{Planificación temporal}
+
+% - Número de créditos ECTS y horas equivalentes.
+% - Fases: entrenamiento de modelos, evaluación OOD (fases A, B y C), STOOD-X, predicción
+%   conforme, análisis de láminas, explicabilidad, redacción.
+% - Diagrama de Gantt (paquete pgfgantt, ya cargado en preambulo-propio.tex) con la
+%   planificación inicial y la real.
+\pendiente{planificación temporal y diagrama de Gantt}
+
+\subsection{Planificación económica}
+
+% - Coste de personal (horas).
+% - Coste de hardware (GPU del servidor: TITAN Xp para el entrenamiento, RTX 2080 Ti para la
+%   evaluación OOD) y software (libre).
+\pendiente{planificación económica}
 
 \endinput

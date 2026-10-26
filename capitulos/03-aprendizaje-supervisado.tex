@@ -1,0 +1,121 @@
+% !TeX root = ../tfg.tex
+% !TeX encoding = utf8
+%
+%*******************************************************
+% Capítulo 3. Aprendizaje supervisado y redes profundas
+%*******************************************************
+
+\chapter{Aprendizaje supervisado y redes profundas}\label{cap:aprendizaje}
+
+% Capítulo de fundamentos: todo es esqueleto. Notación a fijar: espacio de entrada
+% \mathcal{X} \subseteq \R^{H \times W \times 3}, etiquetas \mathcal{Y} = \{1, \dots, C\} con C = 14,
+% distribución conjunta P(X, Y), clasificador f_\theta: \mathcal{X} \to \R^C (logits),
+% extractor de características h_\theta: \mathcal{X} \to \R^D (D = 768 en el Swin-S).
+
+\section{El problema de clasificación supervisada}\label{sec:clasificacion}
+
+\begin{definicion}[Problema de clasificación]\label{def:clasificacion}
+% Muestra i.i.d. \{(x_i, y_i)\}_{i=1}^n de P(X, Y); clasificador g(x) = \argmax_k f_\theta(x)_k;
+% riesgo esperado con pérdida 0-1 y riesgo empírico.
+\pendiente{definición formal}
+\end{definicion}
+
+% - Clasificador de Bayes y su optimalidad respecto a la pérdida 0-1.
+\begin{proposicion}[Optimalidad del clasificador de Bayes]\label{prop:bayes}
+\pendiente{enunciado}
+\end{proposicion}
+\begin{demostracion}
+\pendiente{demostración}
+\end{demostracion}
+
+\section{Función de pérdida: entropía cruzada y \emph{label smoothing}}\label{sec:perdida}
+
+\begin{definicion}[Función softmax]\label{def:softmax}
+% \softmax(z)_k = e^{z_k} / \sum_j e^{z_j}.
+\pendiente{definición}
+\end{definicion}
+
+\begin{definicion}[Entropía cruzada]\label{def:entropia-cruzada}
+\pendiente{definición}
+\end{definicion}
+
+% - Interpretación como estimación de máxima verosimilitud.
+\begin{proposicion}\label{prop:ce-mv}
+% Minimizar la entropía cruzada empírica equivale a maximizar la log-verosimilitud del modelo
+% categórico.
+\pendiente{enunciado}
+\end{proposicion}
+\begin{demostracion}
+\pendiente{demostración}
+\end{demostracion}
+
+\begin{definicion}[\emph{Label smoothing}]\label{def:label-smoothing}
+% Pérdida (1-\varepsilon) NLL + (\varepsilon/K) \sum_j -\log \pi_j, con \varepsilon = 0,1 (valor por
+% defecto de LabelSmoothingCrossEntropy de fastai, usado en el entrenamiento).
+\pendiente{definición}
+\end{definicion}
+
+\begin{proposicion}[Óptimo de la pérdida con \emph{label smoothing}]\label{prop:ls-optimo}
+% El óptimo asigna \pi = \varepsilon/K a las clases no verdaderas y 1 - \varepsilon + \varepsilon/K a la
+% verdadera (0,00714 y 0,907 con \varepsilon = 0,1 y K = 14). Se usa en el capítulo 12 para explicar
+% el «suelo» del softmax (results_conforme/mondrian/label_smoothing.json).
+\pendiente{enunciado}
+\end{proposicion}
+\begin{demostracion}
+% Minimización con multiplicadores de Lagrange sobre el símplex.
+\pendiente{demostración}
+\end{demostracion}
+
+\section{Optimización: Adam y AdamW}\label{sec:adamw}
+
+% - Descenso de gradiente estocástico por minilotes.
+% - Adam (Kingma y Ba, 2014): estimaciones de primer y segundo momento con corrección de sesgo.
+% - AdamW (Loshchilov y Hutter, 2019): decaimiento de pesos desacoplado; diferencia con la
+%   regularización L2 en métodos adaptativos.
+\begin{definicion}[Adam]\label{def:adam}
+\pendiente{reglas de actualización}
+\end{definicion}
+
+\begin{definicion}[AdamW]\label{def:adamw}
+\pendiente{reglas de actualización}
+\end{definicion}
+
+\begin{observacion}
+% Con Adam, la regularización L2 no equivale al decaimiento de pesos (Loshchilov y Hutter, 2019).
+\pendiente{observación}
+\end{observacion}
+
+\section{Arquitecturas}\label{sec:arquitecturas}
+
+\subsection{Redes neuronales convolucionales}\label{sec:cnn}
+
+% - Operación de convolución discreta, equivarianza a traslaciones, agrupación (pooling).
+% - ResNet (He et al., 2016): conexiones residuales. EfficientNetV2 (Tan y Le, 2021).
+\begin{definicion}[Convolución discreta]\label{def:convolucion}
+\pendiente{definición}
+\end{definicion}
+
+\subsection{Transformers y Vision Transformer}\label{sec:transformer}
+
+% - Atención por producto escalar: Attention(Q, K, V) = softmax(QK^T / \sqrt{d}) V.
+% - Atención multicabeza, LayerNorm, MLP; ViT (Dosovitskiy et al., 2021): parches de 16 px.
+\begin{definicion}[Atención por producto escalar]\label{def:atencion}
+\pendiente{definición}
+\end{definicion}
+
+\subsection{Swin Transformer}\label{sec:swin}
+
+% - Liu et al. (2021): atención en ventanas locales (7x7 parches), ventanas desplazadas entre
+%   bloques consecutivos, fusión de parches (jerarquía), coste lineal en el número de parches.
+% - Swin-S (swin_small_patch4_window7_224): características de 768 dimensiones tras el pooling,
+%   con LayerNorm (relevante para ReAct, ASH y DICE en el capítulo 10).
+\begin{proposicion}[Coste de la atención por ventanas]\label{prop:swin-coste}
+\pendiente{enunciado: complejidad global frente a por ventanas}
+\end{proposicion}
+
+\subsection{ConvNeXt}\label{sec:convnext}
+
+% - Liu et al. (2022): red convolucional modernizada con decisiones de diseño de los transformers.
+\pendiente{ConvNeXt}
+
+\endinput

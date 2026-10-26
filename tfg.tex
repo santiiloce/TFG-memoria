@@ -54,7 +54,53 @@
 % -------------------------------------------------------------------
 \mainmatter % activa la numeración de capítulos, resetea la numeración de las páginas y usa números arábigos
 
+% -------------------------------------------------------------------
+% PARTE I. INTRODUCCIÓN Y ESTADO DEL ARTE
+% -------------------------------------------------------------------
+\part{Introducción y estado del arte}\label{part:introduccion}
 \input{capitulos/01-introduccion}
+\input{capitulos/02-estado-arte}
+
+% -------------------------------------------------------------------
+% PARTE II. FUNDAMENTOS MATEMÁTICOS
+% -------------------------------------------------------------------
+\cleardoublepage
+\part{Fundamentos matemáticos}\label{part:fundamentos}
+\input{capitulos/03-aprendizaje-supervisado}
+\input{capitulos/04-ood-metricas}
+\input{capitulos/05-metodos-posthoc}
+\input{capitulos/06-inferencia}
+\input{capitulos/07-explicabilidad}
+
+% -------------------------------------------------------------------
+% PARTE III. EXPERIMENTACIÓN, RESULTADOS Y DISCUSIÓN
+% -------------------------------------------------------------------
+\cleardoublepage
+\part{Experimentación, resultados y discusión}\label{part:experimentacion}
+\input{capitulos/08-materiales-metodos}
+\input{capitulos/09-clasificacion-id}
+\input{capitulos/10-deteccion-ood}
+\input{capitulos/11-stoodx}
+\input{capitulos/12-prediccion-conforme}
+\input{capitulos/13-fuga-lamina}
+\input{capitulos/14-explicabilidad-sesgos}
+
+% -------------------------------------------------------------------
+% PARTE IV. CONCLUSIONES Y TRABAJO FUTURO
+% -------------------------------------------------------------------
+\cleardoublepage
+\part{Conclusiones y trabajo futuro}\label{part:conclusiones}
+\input{capitulos/15-conclusiones}
+
+% -------------------------------------------------------------------
+% APÉNDICES
+% -------------------------------------------------------------------
+\appendix % Reinicia la numeración de los capítulos y usa letras para numerarlos
+\cleardoublepage
+\part{Apéndices}\label{part:apendices}
+\input{apendices/A-tablas-aupr}
+\input{apendices/B-anexo-nct}
+\input{apendices/C-material-complementario}
 
 % -------------------------------------------------------------------
 % BACKMATTER

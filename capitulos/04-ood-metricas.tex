@@ -1,0 +1,72 @@
+% !TeX root = ../tfg.tex
+% !TeX encoding = utf8
+%
+%*******************************************************
+% Capítulo 4. Formalización de la detección OOD y métricas
+%*******************************************************
+
+\chapter{Formalización de la detección OOD y métricas}\label{cap:ood-metricas}
+
+\section{Distribución de los datos y cambios de distribución}\label{sec:cambios-distribucion}
+
+% - Factorización P(X, Y) = P(Y | X) P(X).
+% - Desplazamiento de covariables: cambia P(X), se mantiene P(Y | X).
+% - Cambio semántico: cambia el espacio de etiquetas, P(Y) \neq P'(Y).
+\begin{definicion}[Desplazamiento de covariables]\label{def:covariate-shift}
+\pendiente{definición}
+\end{definicion}
+
+\begin{definicion}[Cambio semántico]\label{def:semantic-shift}
+\pendiente{definición}
+\end{definicion}
+
+\section{Regla de decisión por umbral}\label{sec:regla-umbral}
+
+% - Puntuación s: \mathcal{X} \to \R (más alto = más ID) y regla G_\tau(x) = ID si s(x) \geq \tau.
+% - Convención de OpenOOD y de este trabajo: clase positiva = OOD.
+\begin{definicion}[Detector OOD por umbral]\label{def:detector}
+\pendiente{definición}
+\end{definicion}
+
+\section{Curva ROC y AUROC}\label{sec:auroc}
+
+\begin{definicion}[Curva ROC]\label{def:roc}
+% TPR(\tau) y FPR(\tau) como funciones del umbral; curva paramétrica (Fawcett, 2006).
+\pendiente{definición}
+\end{definicion}
+
+\begin{teorema}[Interpretación probabilística del AUROC]\label{teo:auroc-prob}
+% \AUROC = \Prob(s(X_{ID}) > s(X_{OOD})) (+ 1/2 \Prob(empate)) con X_{ID} y X_{OOD} independientes.
+\pendiente{enunciado}
+\end{teorema}
+\begin{demostracion}
+\pendiente{demostración}
+\end{demostracion}
+
+\begin{corolario}[AUROC empírico y estadístico U]\label{cor:auroc-u}
+% \widehat{\AUROC} = U / (n_1 n_2), con U el estadístico de Mann-Whitney (\cref{sec:mann-whitney}).
+\pendiente{enunciado}
+\end{corolario}
+\begin{demostracion}
+\pendiente{demostración}
+\end{demostracion}
+
+\section{FPR@95}\label{sec:fpr95}
+
+\begin{definicion}[FPR@TPR$x$]\label{def:fpr95}
+\pendiente{definición}
+\end{definicion}
+
+\section{AUPR-In y AUPR-Out}\label{sec:aupr}
+
+\begin{definicion}[Precisión, exhaustividad y AUPR]\label{def:aupr}
+\pendiente{definición}
+\end{definicion}
+
+\section{CCR@FPR$x$}\label{sec:ccr}
+
+\begin{definicion}[CCR@FPR$x$]\label{def:ccr}
+\pendiente{definición}
+\end{definicion}
+
+\endinput

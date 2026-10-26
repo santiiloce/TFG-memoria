@@ -1,0 +1,65 @@
+% !TeX root = ../tfg.tex
+% !TeX encoding = utf8
+%
+%*******************************************************
+% Capítulo 6. Inferencia estadística
+%*******************************************************
+
+\chapter{Inferencia estadística}\label{cap:inferencia}
+
+\section{El test de Mann-Whitney}\label{sec:mann-whitney}
+
+% Referencias: Mann y Whitney (1947), Wilcoxon (1945); implementación de SciPy (Virtanen et al., 2020).
+
+\begin{definicion}[Estadístico U de Mann-Whitney]\label{def:estadistico-u}
+% Muestras X_1..X_{n_1}, Y_1..Y_{n_2}; U = \sum_i \sum_j \Ind(X_i > Y_j) (+ 1/2 por empate).
+\pendiente{definición}
+\end{definicion}
+
+\begin{proposicion}[Media y varianza de U bajo la hipótesis nula]\label{prop:u-momentos}
+% E[U] = n_1 n_2 / 2; Var(U) = n_1 n_2 (n_1 + n_2 + 1) / 12 sin empates.
+\pendiente{enunciado}
+\end{proposicion}
+\begin{demostracion}
+\pendiente{demostración}
+\end{demostracion}
+
+\begin{teorema}[Aproximación normal]\label{teo:u-normal}
+% z = (U - E[U]) / \sqrt{Var(U)} converge en distribución a N(0, 1).
+\pendiente{enunciado}
+\end{teorema}
+
+% - Corrección por empates de la varianza.
+% - Corrección de continuidad.
+% - Saturación: si todas las distancias de un grupo superan a las del otro, U = n_1 n_2 y z
+%   alcanza su máximo (38,69 con K = 500 en STOOD-X; empates entre imágenes saturadas).
+% - Dependencia: el test supone muestras independientes; en STOOD-X las K^2 distancias de
+%   referencia no lo son (vecinos compartidos), lo que afecta a la calibración (capítulo 11).
+\begin{observacion}[Empates, continuidad y saturación]\label{obs:u-empates}
+\pendiente{desarrollo}
+\end{observacion}
+
+\begin{observacion}[Hipótesis de independencia]\label{obs:u-dependencia}
+\pendiente{desarrollo}
+\end{observacion}
+
+\section{Bootstrap y test de McNemar}\label{sec:bootstrap-mcnemar}
+
+% - Bootstrap no paramétrico: IC por percentiles; bootstrap estratificado (ID y OOD por separado)
+%   y bootstrap pareado (mismos índices para dos métodos).
+% - Bootstrap por lámina (remuestreo de grupos) frente a por imagen.
+% - Test de McNemar para comparar dos clasificadores sobre las mismas imágenes: versión exacta
+%   (binomial) y chi-cuadrado con corrección de continuidad.
+\begin{definicion}[Intervalo bootstrap por percentiles]\label{def:bootstrap}
+\pendiente{definición}
+\end{definicion}
+
+\begin{proposicion}[Test de McNemar]\label{prop:mcnemar}
+\pendiente{enunciado}
+\end{proposicion}
+
+\section{Predicción conforme}\label{sec:prediccion-conforme}
+
+\pendiente{introducción a la predicción conforme}
+
+\endinput
