@@ -95,6 +95,7 @@
 % Nombres de métodos y conjuntos (formato consistente en el texto)
 \newcommand{\stoodx}{STOOD-X\xspace}
 \newcommand{\nctcrc}{NCT-CRC-HE-100K-NONORM\xspace}
-\newcommand{\clase}[1]{\texttt{#1}}
+% Nombres de clase del conjunto ID; se permite cortar la línea tras cada guion bajo
+\DeclareRobustCommand{\clase}[1]{{\renewcommand{\_}{\textunderscore\allowbreak}\texttt{#1}}}
 
 \endinput

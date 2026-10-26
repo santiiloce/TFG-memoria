@@ -268,7 +268,7 @@ def t09_agrupaciones(R, S):
            'Cinco categorías: NM (\\clase{No\\_Cancer}, estroma, glándulas no neoplásicas, inflamatorio), G3, G4, '
            'G5 y NT (PIN de alto grado, carcinoma intraductal, adenocarcinoma ductal). Binario: maligno = '
            'G3 + G4 + G5 + NT. Sens.: sensibilidad; Esp.: especificidad; BA: \\emph{balanced accuracy}. '
-           'Referencia: XCiT-Medium del artículo del conjunto de datos~\\cite{ayensa2025}, con otro reparto de '
+           'Referencia: XCiT-Medium del artículo del conjunto de datos~\\cite{ayensa2026}, con otro reparto de '
            'NM y NT (su BA se calcula como la media de Sens. y Esp.).')
     escribir(S, 't09_agrupaciones.tex',
              tabla(cap, 'tab:agrupaciones', 'lcccccc', cuerpo, '\\footnotesize', '4pt'),
@@ -289,7 +289,7 @@ def t09_sensibilidad_gleason(R, S):
     cuerpo += ['\\midrule', 'XCiT-M (artículo) & %s & %s & %s \\\\' % (n(A['G3']), n(A['G4']), n(A['G5'])),
                '\\bottomrule']
     cap = ('Sensibilidad de las categorías G3, G4 y G5 en el test ID (más alto es mejor). Son las categorías '
-           'directamente comparables con el artículo del conjunto de datos~\\cite{ayensa2025}, porque coinciden '
+           'directamente comparables con el artículo del conjunto de datos~\\cite{ayensa2026}, porque coinciden '
            'en número de imágenes.')
     escribir(S, 't09_sensibilidad_gleason.tex',
              tabla(cap, 'tab:sensibilidad-gleason', 'lccc', cuerpo, '\\small'),
@@ -677,7 +677,7 @@ def t13_contiguidad(R, S):
            'lámina aparece en la partición de referencia y proporción con un parche contiguo (8 vecinos a 224\\,px) '
            'en ella.')
     escribir(S, 't13_contiguidad.tex', tabla(cap, 'tab:fuga-contiguidad', '>{\\raggedright\\arraybackslash}X ccc',
-                                             cuerpo, '\\footnotesize', None, 'tabularx'),
+                                             cuerpo, '\\scriptsize', None, 'tabularx'),
              'results_integridad/informe.json')
 
 

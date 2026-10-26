@@ -1,83 +1,433 @@
-# Página web (Wikipedia)
-@misc{EulerWiki,
-  author = {Wikipedia},
-  title = {{L}eonhard {E}uler --- {W}ikipedia{,} The Free Encyclopedia},
-  year = {2023},
-  howpublished={\url{https://en.wikipedia.org/wiki/Leonhard_Euler}},
-  url={\url{https://en.wikipedia.org/wiki/Leonhard_Euler}},
-  note={[Recurso online, accedido el 27 de julio de 2023]}
+% =====================================================================
+% Bibliografía del TFG
+% Solo referencias que aparecen en las notas del autor o en su trabajo.
+% Metadatos verificados (26/10/2026) en Crossref (DOI), la API de arXiv y
+% Zenodo; los PDF de OpenOOD/docs/ para Yang et al., STOOD-X y el artículo
+% del conjunto de datos. La sede de los artículos de congresos sin DOI se
+% toma del comentario de los autores en arXiv. Las entradas no confirmadas
+% del todo llevan note = {VERIFICAR}.
+% =====================================================================
+
+% ---------------------------------------------------------------------
+% Detección OOD
+% ---------------------------------------------------------------------
+@article{yang2024,
+  author  = {Yang, Jingkang and Zhou, Kaiyang and Li, Yixuan and Liu, Ziwei},
+  title   = {Generalized Out-of-Distribution Detection: A Survey},
+  journal = {International Journal of Computer Vision},
+  year    = {2024},
+  volume  = {132},
+  pages   = {5635--5662},
+  doi     = {10.1007/s11263-024-02117-4}
 }
 
-# Libro
-@book {Aigner2018,
-    AUTHOR = {Aigner, Martin and Ziegler, G\"{u}nter M.},
-     TITLE = {Proofs from {T}he {B}ook},
-   EDITION = {Fifth},
-      NOTE = {Including illustrations by Karl H. Hofmann},
- PUBLISHER = {Springer-Verlag, Berlin},
-      YEAR = {2014},
-     PAGES = {viii+308},
-      ISBN = {978-3-662-44204-3; 978-3-662-44205-0},
-       DOI = {10.1007/978-3-662-44205-0},
-       URL = {https://doi.org/10.1007/978-3-662-44205-0},
+@article{zimmerer2022,
+  author  = {Zimmerer, David and Full, Peter M. and Isensee, Fabian and J{\"a}ger, Paul and Adler, Tim and Petersen, Jens and K{\"o}hler, Gregor and Ross, Tobias and Reinke, Annika and others},
+  title   = {{MOOD} 2020: A Public Benchmark for Out-of-Distribution Detection and Localization on Medical Images},
+  journal = {IEEE Transactions on Medical Imaging},
+  year    = {2022},
+  volume  = {41},
+  number  = {10},
+  pages   = {2728--2738},
+  doi     = {10.1109/TMI.2022.3170077}
 }
 
-# Artículo
-@article {Euler1985,
-    AUTHOR = {Euler, Leonhard},
-     TITLE = {An essay on continued fractions},
-      NOTE = {Translated from the Latin by B. F. Wyman and M. F. Wyman},
-   JOURNAL = {Math. Systems Theory},
-  FJOURNAL = {Mathematical Systems Theory. An International Journal on
-              Mathematical Computing Theory},
-    VOLUME = {18},
-      YEAR = {1985},
-    NUMBER = {4},
-     PAGES = {295--328},
-      ISSN = {0025-5661},
-       DOI = {10.1007/BF01699475},
-       URL = {https://doi.org/10.1007/BF01699475},
+@inproceedings{openood,
+  author    = {Yang, Jingkang and Wang, Pengyun and Zou, Dejian and Zhou, Zitang and Ding, Kunyuan and Peng, Wenxuan and Wang, Haoqi and Chen, Guangyao and Li, Bo and Sun, Yiyou and Du, Xuefeng and Zhou, Kaiyang and Zhang, Wayne and Hendrycks, Dan and Li, Yixuan and Liu, Ziwei},
+  title     = {{OpenOOD}: Benchmarking Generalized Out-of-Distribution Detection},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS), Datasets and Benchmarks Track},
+  year      = {2022},
+  eprint    = {2210.07242},
+  archivePrefix = {arXiv},
+  note      = {arXiv:2210.07242}
 }
 
-# Tesis
-@phdthesis{CitekeyPhdthesis,
-  author  = {Rempel, Robert Charles},
-  title   = {Relaxation Effects for Coupled Nuclear Spins},
-  school  = {Stanford University},
-  address = {Stanford, CA},
-  year    = 1956,
-  month   = jun
+@article{openood15,
+  author  = {Zhang, Jingyang and Yang, Jingkang and Wang, Pengyun and Wang, Haoqi and Lin, Yueqian and Zhang, Haoran and Sun, Yiyou and Du, Xuefeng and Li, Yixuan and Liu, Ziwei and Chen, Yiran and Li, Hai},
+  title   = {{OpenOOD} v1.5: Enhanced Benchmark for Out-of-Distribution Detection},
+  journal = {arXiv preprint arXiv:2306.09301},
+  year    = {2023},
+  note    = {Aceptado en DMLR (según arXiv). VERIFICAR: versión de OpenOOD usada (commit 3c35632) y si se cita esta o la de 2022}
 }
 
-# Trabajo fin de máster
-@mastersthesis{CitekeyMastersthesis,
-  author  = {Jian Tang},
-  title   = {Spin structure of the nucleon in the asymptotic limit},
-  school  = {Massachusetts Institute of Technology},
-  year    = 1996,
-  address = {Cambridge, MA},
-  month   = sep
+@article{sevillano2026,
+  author  = {Sevillano-Garc{\'i}a, Iv{\'a}n and Luengo, Juli{\'a}n and Herrera, Francisco},
+  title   = {{STOOD-X}: Explainable Out-of-Distribution Detection via Nonparametric Statistical Testing on Large-Scale Datasets},
+  journal = {Pattern Recognition},
+  year    = {2026},
+  volume  = {177},
+  pages   = {113254},
+  doi     = {10.1016/j.patcog.2026.113254}
 }
 
-# Trabajo fin de grado
-@phdthesis{CiteKeyBachelorsthesis,
-  author  = {Doe, John},
-  title   = {Are we living in a simulation?},
-  school  = {Massachusetts Institute of Technology},
-  year    = 2003,
-  address = {Cambridge, MA},
-  month   = jul,
-  type    = {Bachelor's Thesis},
-  note    = {Bacherlo's Thesis, Massachusetts Institute of Technology, Cambridge, MA.}
+% ---------------------------------------------------------------------
+% Métodos post hoc
+% ---------------------------------------------------------------------
+@inproceedings{sun2021react,
+  author    = {Sun, Yiyou and Guo, Chuan and Li, Yixuan},
+  title     = {{ReAct}: Out-of-Distribution Detection With Rectified Activations},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
+  year      = {2021},
+  note      = {arXiv:2111.12797}
 }
 
-# Artículo no publicado
-@misc{castroinfantes2022conjugate,
-  title         =  {Conjugate Plateau constructions in product spaces}, 
-  author        =  {Jesús Castro-Infantes and José M. Manzano and Francisco Torralbo},
-  year          =  {2022},
-  eprint        =  {2203.13162},
-  archivePrefix =  {arXiv},
-  primaryClass  =  {math.DG},
-  note          =  {Preprint. arXiv: 2203.13162 [math.DG]}
+@inproceedings{djurisic2023,
+  author    = {Djurisic, Andrija and Bozanic, Nebojsa and Ashok, Arjun and Liu, Rosanne},
+  title     = {Extremely Simple Activation Shaping for Out-of-Distribution Detection},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year      = {2023},
+  note      = {arXiv:2209.09858}
+}
+
+@inproceedings{sun2022dice,
+  author    = {Sun, Yiyou and Li, Yixuan},
+  title     = {{DICE}: Leveraging Sparsification for Out-of-Distribution Detection},
+  booktitle = {Computer Vision -- ECCV 2022},
+  series    = {Lecture Notes in Computer Science},
+  publisher = {Springer},
+  year      = {2022},
+  pages     = {691--708},
+  doi       = {10.1007/978-3-031-20053-3_40}
+}
+
+@inproceedings{lee2018,
+  author    = {Lee, Kimin and Lee, Kibok and Lee, Honglak and Shin, Jinwoo},
+  title     = {A Simple Unified Framework for Detecting Out-of-Distribution Samples and Adversarial Attacks},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
+  year      = {2018},
+  note      = {arXiv:1807.03888}
+}
+
+@inproceedings{liang2018,
+  author    = {Liang, Shiyu and Li, Yixuan and Srikant, R.},
+  title     = {Enhancing the Reliability of Out-of-distribution Image Detection in Neural Networks},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year      = {2018},
+  note      = {arXiv:1706.02690}
+}
+
+@inproceedings{huang2021,
+  author    = {Huang, Rui and Geng, Andrew and Li, Yixuan},
+  title     = {On the Importance of Gradients for Detecting Distributional Shifts in the Wild},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
+  year      = {2021},
+  note      = {arXiv:2110.00218}
+}
+
+@article{igoe2022,
+  author  = {Igoe, Conor and Chung, Youngseog and Char, Ian and Schneider, Jeff},
+  title   = {How Useful are Gradients for {OOD} Detection Really?},
+  journal = {arXiv preprint arXiv:2205.10439},
+  year    = {2022}
+}
+
+% ---------------------------------------------------------------------
+% Limitaciones y métodos generativos
+% ---------------------------------------------------------------------
+@inproceedings{serra2020,
+  author    = {Serr{\`a}, Joan and {\'A}lvarez, David and G{\'o}mez, Vicen{\c{c}} and Slizovskaia, Olga and N{\'u}{\~n}ez, Jos{\'e} F. and Luque, Jordi},
+  title     = {Input Complexity and Out-of-Distribution Detection with Likelihood-Based Generative Models},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year      = {2020},
+  note      = {arXiv:1909.11480}
+}
+
+@inproceedings{zhang2021,
+  author    = {Zhang, Lily H. and Goldstein, Mark and Ranganath, Rajesh},
+  title     = {Understanding Failures in Out-of-Distribution Detection with Deep Generative Models},
+  booktitle = {International Conference on Machine Learning (ICML)},
+  year      = {2021},
+  note      = {arXiv:2107.06908}
+}
+
+@inproceedings{fang2022,
+  author    = {Fang, Zhen and Li, Yixuan and Lu, Jie and Dong, Jiahua and Han, Bo and Liu, Feng},
+  title     = {Is Out-of-Distribution Detection Learnable?},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
+  year      = {2022},
+  note      = {arXiv:2210.14707}
+}
+
+% ---------------------------------------------------------------------
+% Métricas y anomalías
+% ---------------------------------------------------------------------
+@inproceedings{dhamija2018,
+  author    = {Dhamija, Akshay Raj and G{\"u}nther, Manuel and Boult, Terrance E.},
+  title     = {Reducing Network Agnostophobia},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
+  year      = {2018},
+  note      = {arXiv:1811.04110}
+}
+
+@article{fawcett2006,
+  author  = {Fawcett, Tom},
+  title   = {An Introduction to {ROC} Analysis},
+  journal = {Pattern Recognition Letters},
+  year    = {2006},
+  volume  = {27},
+  number  = {8},
+  pages   = {861--874},
+  doi     = {10.1016/j.patrec.2005.10.010}
+}
+
+@article{pang2020,
+  author  = {Pang, Guansong and Shen, Chunhua and Cao, Longbing and van den Hengel, Anton},
+  title   = {Deep Learning for Anomaly Detection: A Review},
+  journal = {ACM Computing Surveys},
+  year    = {2021},
+  volume  = {54},
+  number  = {2},
+  pages   = {1--38},
+  doi     = {10.1145/3439950},
+  note    = {Las notas lo citan como 2020 (versión de arXiv); publicado en 2021}
+}
+
+@article{chalapathy2019,
+  author  = {Chalapathy, Raghavendra and Chawla, Sanjay},
+  title   = {Deep Learning for Anomaly Detection: A Survey},
+  journal = {arXiv preprint arXiv:1901.03407},
+  year    = {2019}
+}
+
+@article{ruff2021,
+  author  = {Ruff, Lukas and Kauffmann, Jacob R. and Vandermeulen, Robert A. and Montavon, Gr{\'e}goire and Samek, Wojciech and Kloft, Marius and Dietterich, Thomas G. and M{\"u}ller, Klaus-Robert},
+  title   = {A Unifying Review of Deep and Shallow Anomaly Detection},
+  journal = {Proceedings of the IEEE},
+  year    = {2021},
+  volume  = {109},
+  number  = {5},
+  pages   = {756--795},
+  doi     = {10.1109/JPROC.2021.3052449}
+}
+
+% ---------------------------------------------------------------------
+% Estadística y predicción conforme
+% ---------------------------------------------------------------------
+@article{shafer2008,
+  author  = {Shafer, Glenn and Vovk, Vladimir},
+  title   = {A Tutorial on Conformal Prediction},
+  journal = {Journal of Machine Learning Research},
+  year    = {2008},
+  volume  = {9},
+  pages   = {371--421},
+  note    = {arXiv:0706.3188}
+}
+
+@article{angelopoulos2021,
+  author  = {Angelopoulos, Anastasios N. and Bates, Stephen},
+  title   = {A Gentle Introduction to Conformal Prediction and Distribution-Free Uncertainty Quantification},
+  journal = {arXiv preprint arXiv:2107.07511},
+  year    = {2021}
+}
+
+@book{vovk2005,
+  author    = {Vovk, Vladimir and Gammerman, Alexander and Shafer, Glenn},
+  title     = {Algorithmic Learning in a Random World},
+  publisher = {Springer},
+  year      = {2005},
+  doi       = {10.1007/b106715},
+  note      = {VERIFICAR: Crossref no devuelve los autores de la 1.ª edición; tomados de la 2.ª (2022, DOI 10.1007/978-3-031-06649-8)}
+}
+
+@article{mann1947,
+  author  = {Mann, H. B. and Whitney, D. R.},
+  title   = {On a Test of Whether One of Two Random Variables is Stochastically Larger than the Other},
+  journal = {The Annals of Mathematical Statistics},
+  year    = {1947},
+  volume  = {18},
+  number  = {1},
+  pages   = {50--60},
+  doi     = {10.1214/aoms/1177730491}
+}
+
+@article{wilcoxon1945,
+  author  = {Wilcoxon, Frank},
+  title   = {Individual Comparisons by Ranking Methods},
+  journal = {Biometrics Bulletin},
+  year    = {1945},
+  volume  = {1},
+  number  = {6},
+  pages   = {80},
+  doi     = {10.2307/3001968},
+  note    = {VERIFICAR: Crossref solo da la página inicial (80); completar el rango de páginas}
+}
+
+@article{virtanen2020,
+  author  = {Virtanen, Pauli and Gommers, Ralf and Oliphant, Travis E. and Haberland, Matt and Reddy, Tyler and Cournapeau, David and Burovski, Evgeni and Peterson, Pearu and Weckesser, Warren and Bright, Jonathan and others},
+  title   = {{SciPy} 1.0: Fundamental Algorithms for Scientific Computing in {Python}},
+  journal = {Nature Methods},
+  year    = {2020},
+  volume  = {17},
+  number  = {3},
+  pages   = {261--272},
+  doi     = {10.1038/s41592-019-0686-2}
+}
+
+% ---------------------------------------------------------------------
+% Entrenamiento
+% ---------------------------------------------------------------------
+@article{kingma2014,
+  author  = {Kingma, Diederik P. and Ba, Jimmy},
+  title   = {Adam: A Method for Stochastic Optimization},
+  journal = {arXiv preprint arXiv:1412.6980},
+  year    = {2014},
+  note    = {Publicado en ICLR 2015}
+}
+
+@inproceedings{loshchilov2019,
+  author    = {Loshchilov, Ilya and Hutter, Frank},
+  title     = {Decoupled Weight Decay Regularization},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year      = {2019},
+  note      = {arXiv:1711.05101}
+}
+
+@inproceedings{micikevicius2018,
+  author    = {Micikevicius, Paulius and Narang, Sharan and Alben, Jonah and Diamos, Gregory and Elsen, Erich and Garcia, David and Ginsburg, Boris and Houston, Michael and Kuchaiev, Oleksii and Venkatesh, Ganesh and Wu, Hao},
+  title     = {Mixed Precision Training},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year      = {2018},
+  note      = {arXiv:1710.03740}
+}
+
+@article{kandel2020,
+  author  = {Kandel, Ibrahem and Castelli, Mauro},
+  title   = {How Deeply to Fine-Tune a Convolutional Neural Network: A Case Study Using a Histopathology Dataset},
+  journal = {Applied Sciences},
+  year    = {2020},
+  volume  = {10},
+  number  = {10},
+  pages   = {3359},
+  doi     = {10.3390/app10103359}
+}
+
+% ---------------------------------------------------------------------
+% Explicabilidad
+% ---------------------------------------------------------------------
+@article{achtibat2023,
+  author  = {Achtibat, Reduan and Dreyer, Maximilian and Eisenbraun, Ilona and Bosse, Sebastian and Wiegand, Thomas and Samek, Wojciech and Lapuschkin, Sebastian},
+  title   = {From Attribution Maps to Human-Understandable Explanations through Concept Relevance Propagation},
+  journal = {Nature Machine Intelligence},
+  year    = {2023},
+  volume  = {5},
+  number  = {9},
+  pages   = {1006--1019},
+  doi     = {10.1038/s42256-023-00711-8}
+}
+
+@article{storas2025,
+  author  = {Stor{\aa}s, Andrea M. and Dreyer, Maximilian and Pahde, Frederik and Lapuschkin, Sebastian and Samek, Wojciech and Halvorsen, P{\aa}l and de Lange, Thomas and Mori, Yuichi and Hann, Alexander and Berzin, Tyler M. and Parasa, Sravanthi and Riegler, Michael A.},
+  title   = {Exploring the Clinical Value of Concept-Based {AI} Explanations in Gastrointestinal Disease Detection},
+  journal = {Scientific Reports},
+  year    = {2025},
+  volume  = {15},
+  doi     = {10.1038/s41598-025-14408-y},
+  note    = {VERIFICAR: que es el artículo de Storås et al. (2025) al que se refieren las notas; falta el número de artículo}
+}
+
+% ---------------------------------------------------------------------
+% Conjuntos de datos
+% ---------------------------------------------------------------------
+@inproceedings{ayensa2026,
+  author    = {Ayensa-Jim{\'e}nez, Jacobo and Navarro, Denis and Sevillano-Garc{\'i}a, Iv{\'a}n and Mena, Andr{\'e}s and Marquina, Isabel and Hakim, Sof{\'i}a and Alfaro, Jorge and Herrera, Francisco and Doblar{\'e}, Manuel and Borque-Fernando, {\'A}ngel},
+  title     = {Fine-Grained Prostate Cancer Tissue Classification Through Expert-Annotated Dataset and Clinically Interpretable Deep Learning},
+  booktitle = {2026 IEEE Conference on Artificial Intelligence (CAI)},
+  year      = {2026},
+  pages     = {1264--1269},
+  doi       = {10.1109/CAI68641.2026.11536250}
+}
+
+@misc{kather2018,
+  author       = {Kather, Jakob Nikolas and Halama, Niels and Marx, Alexander},
+  title        = {100,000 Histological Images of Human Colorectal Cancer and Healthy Tissue},
+  howpublished = {Zenodo},
+  year         = {2018},
+  doi          = {10.5281/zenodo.1214456},
+  note         = {Versión v0.1}
+}
+
+@article{kather2019,
+  author  = {Kather, Jakob Nikolas and Krisam, Johannes and Charoentong, Pornpimol and Luedde, Tom and Herpel, Esther and Weis, Cleo-Aron and Gaiser, Timo and Marx, Alexander and Valous, Nektarios A. and Ferber, Dyke and others},
+  title   = {Predicting Survival from Colorectal Cancer Histology Slides Using Deep Learning: A Retrospective Multicenter Study},
+  journal = {PLOS Medicine},
+  year    = {2019},
+  volume  = {16},
+  number  = {1},
+  pages   = {e1002730},
+  doi     = {10.1371/journal.pmed.1002730}
+}
+
+@inproceedings{macenko2009,
+  author    = {Macenko, Marc and Niethammer, Marc and Marron, J. S. and Borland, David and Woosley, John T. and Guan, Xiaojun and Schmitt, Charles and Thomas, Nancy E.},
+  title     = {A Method for Normalizing Histology Slides for Quantitative Analysis},
+  booktitle = {2009 IEEE International Symposium on Biomedical Imaging: From Nano to Macro},
+  year      = {2009},
+  pages     = {1107--1110},
+  doi       = {10.1109/ISBI.2009.5193250}
+}
+
+@article{bulten2022,
+  author  = {Bulten, Wouter and Kartasalo, Kimmo and Chen, Po-Hsuan Cameron and Str{\"o}m, Peter and Pinckaers, Hans and Nagpal, Kunal and Cai, Yuannan and Steiner, David F. and van Boven, Hester and Vink, Robert and others},
+  title   = {Artificial Intelligence for Diagnosis and {Gleason} Grading of Prostate Cancer: The {PANDA} Challenge},
+  journal = {Nature Medicine},
+  year    = {2022},
+  volume  = {28},
+  number  = {1},
+  pages   = {154--163},
+  doi     = {10.1038/s41591-021-01620-2}
+}
+
+@inproceedings{cimpoi2014,
+  author    = {Cimpoi, Mircea and Maji, Subhransu and Kokkinos, Iasonas and Mohamed, Sammy and Vedaldi, Andrea},
+  title     = {Describing Textures in the Wild},
+  booktitle = {2014 IEEE Conference on Computer Vision and Pattern Recognition (CVPR)},
+  year      = {2014},
+  pages     = {3606--3613},
+  doi       = {10.1109/CVPR.2014.461}
+}
+
+% ---------------------------------------------------------------------
+% Arquitecturas
+% ---------------------------------------------------------------------
+@inproceedings{liu2021swin,
+  author    = {Liu, Ze and Lin, Yutong and Cao, Yue and Hu, Han and Wei, Yixuan and Zhang, Zheng and Lin, Stephen and Guo, Baining},
+  title     = {Swin Transformer: Hierarchical Vision Transformer using Shifted Windows},
+  booktitle = {2021 IEEE/CVF International Conference on Computer Vision (ICCV)},
+  year      = {2021},
+  pages     = {9992--10002},
+  doi       = {10.1109/ICCV48922.2021.00986}
+}
+
+@inproceedings{liu2022convnext,
+  author    = {Liu, Zhuang and Mao, Hanzi and Wu, Chao-Yuan and Feichtenhofer, Christoph and Darrell, Trevor and Xie, Saining},
+  title     = {A {ConvNet} for the 2020s},
+  booktitle = {2022 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
+  year      = {2022},
+  pages     = {11966--11976},
+  doi       = {10.1109/CVPR52688.2022.01167}
+}
+
+@inproceedings{dosovitskiy2021,
+  author    = {Dosovitskiy, Alexey and Beyer, Lucas and Kolesnikov, Alexander and Weissenborn, Dirk and Zhai, Xiaohua and Unterthiner, Thomas and Dehghani, Mostafa and Minderer, Matthias and Heigold, Georg and Gelly, Sylvain and Uszkoreit, Jakob and Houlsby, Neil},
+  title     = {An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year      = {2021},
+  note      = {arXiv:2010.11929}
+}
+
+@inproceedings{he2016,
+  author    = {He, Kaiming and Zhang, Xiangyu and Ren, Shaoqing and Sun, Jian},
+  title     = {Deep Residual Learning for Image Recognition},
+  booktitle = {2016 IEEE Conference on Computer Vision and Pattern Recognition (CVPR)},
+  year      = {2016},
+  pages     = {770--778},
+  doi       = {10.1109/CVPR.2016.90}
+}
+
+@inproceedings{tan2021,
+  author    = {Tan, Mingxing and Le, Quoc V.},
+  title     = {{EfficientNetV2}: Smaller Models and Faster Training},
+  booktitle = {International Conference on Machine Learning (ICML)},
+  year      = {2021},
+  note      = {arXiv:2104.00298}
 }
