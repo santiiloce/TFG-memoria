@@ -7,16 +7,53 @@
 
 \chapter{Inferencia estadística}\label{cap:inferencia}
 
-\section{El test de Mann-Whitney}\label{sec:mann-whitney}
+% Introducción breve del capítulo (3-5 líneas): qué herramientas se presentan y para qué se usan
+% en el trabajo (puntuación de STOOD-X, comparación de modelos, incertidumbre de las métricas,
+% conjuntos de predicción con garantías).
+\pendiente{introducción del capítulo}
+La inferencia estadística se usa en el contexto de la herramienta STOOD-X haciendo uso de diferentes tests y estadísticos con los que poder
+corrobar estadísticamente las distribuciones que siguen las muestras. Siendo así capaces de distinguri entre las muestras ID y las OOD.
+%=======================================================
+\section{Fundamentos de los contrastes de hipótesis}\label{sec:contrastes}
+%=======================================================
 
-% Referencias: Mann y Whitney (1947), Wilcoxon (1945); implementación de SciPy (Virtanen et al., 2020).
-% La lista de referencias de las notas enlaza también a un blog (cienciadedatos.net) como
-% explicación del test: no va a la bibliografía.
-\pendiente{introducción al test (Mann y Whitney~\cite{mann1947}; Wilcoxon~\cite{wilcoxon1945})}
-\pendiente{sustituir por fuente académica (la explicación del test de las notas enlaza a un blog)}
+% Referencia base: Canavos~\cite{canavos2003} (capítulo de pruebas de hipótesis y capítulo de
+% métodos no paramétricos).
+% - Hipótesis nula y alternativa, estadístico de contraste, región crítica.
+% - Errores de tipo I y II, nivel de significación \alpha.
+% - Contrastes no paramétricos: no suponen una forma concreta para la distribución.
+
+\begin{definicion}[Contraste de hipótesis]\label{def:contraste}
+\pendiente{definición}
+\end{definicion}
+
+\begin{definicion}[$p$-valor]\label{def:p-valor}
+% p(t) = P_{H_0}(T \ge t) para un contraste unilateral por la derecha.
+\pendiente{definición}
+\end{definicion}
+
+\begin{proposicion}[Distribución del $p$-valor bajo la hipótesis nula]\label{prop:p-valor-uniforme}
+% Si T es continua con función de distribución F bajo H_0, entonces p = 1 - F(T) ~ U(0, 1).
+% (Transformada integral de probabilidad.) Si T es discreta, P(p \le u) \le u (p-valor conservador).
+% Es la base para hablar de p-valores «calibrados»: se usa en la Observación de independencia
+% (STOOD-X: 82 % de id_val con p < 0,05) y en el p-valor conforme (\cref{prop:p-valor-conforme}).
+\pendiente{enunciado}
+\end{proposicion}
+\begin{demostracion}
+\pendiente{demostración}
+\end{demostracion}
+
+%=======================================================
+\section{El test de Mann-Whitney}\label{sec:mann-whitney}
+%=======================================================
+
+% Referencias: Mann y Whitney (1947), Wilcoxon (1945), Canavos (2003); implementación de SciPy
+% (Virtanen et al., 2020).
+\pendiente{introducción al test (Mann y Whitney~\cite{mann1947}; Wilcoxon~\cite{wilcoxon1945}; Canavos~\cite{canavos2003})}
 
 \begin{definicion}[Estadístico $U$ de Mann-Whitney]\label{def:estadistico-u}
 % Muestras X_1, ..., X_{n_1} e Y_1, ..., Y_{n_2}; U = \sum_i \sum_j [\Ind(X_i > Y_j) + 1/2 \Ind(X_i = Y_j)].
+% Expresión equivalente con rangos: U = R_1 - n_1(n_1+1)/2 (convención de SciPy).
 \pendiente{definición}
 \end{definicion}
 
@@ -30,36 +67,45 @@
 
 \begin{teorema}[Aproximación normal]\label{teo:u-normal}
 % z = (U - E[U]) / \sqrt{Var(U)} converge en distribución a N(0, 1) cuando n_1, n_2 \to \infty.
+% Se enuncia sin demostración (citar Mann y Whitney, 1947, o Lehmann).
 \pendiente{enunciado}
 \end{teorema}
+
+\begin{proposicion}[Relación entre $U$ y el AUROC]\label{prop:auroc-u}
+% \widehat{AUROC} = U / (n_1 n_2) = \hat P(S_{ID} > S_{OOD}) (con empates contados como 1/2).
+% Enlaza con la definición de AUROC del capítulo de métricas (\cref{...}).
+\pendiente{enunciado}
+\end{proposicion}
+\begin{demostracion}
+\pendiente{demostración}
+\end{demostracion}
 
 % - Corrección por empates de la varianza.
 % - Corrección de continuidad (la usada por scipy.stats.mannwhitneyu).
 % - Saturación: si todas las distancias de un grupo superan a las del otro, U = n_1 n_2 y z
-%   alcanza su máximo (38,69 con K = 500 en STOOD-X).
+%   alcanza su máximo (38,69 con K = 500 en STOOD-X); por eso se usa -z como puntuación.
 \begin{observacion}[Empates, corrección de continuidad y saturación]\label{obs:u-empates}
 \pendiente{desarrollo}
 \end{observacion}
 
 % - El test supone muestras independientes; en STOOD-X las K^2 distancias de referencia no lo son
 %   (vecinos compartidos), lo que afecta a la calibración (\cref{sec:stoodx-calibracion}).
+% - Consecuencia: los p-valores no siguen la U(0,1) de \cref{prop:p-valor-uniforme}.
 \begin{observacion}[Hipótesis de independencia]\label{obs:u-dependencia}
 \pendiente{desarrollo}
 \end{observacion}
 
-\section{Bootstrap y test de McNemar}\label{sec:bootstrap-mcnemar}
+%=======================================================
+\section{El test de McNemar}\label{sec:mcnemar}
+%=======================================================
 
-% - Bootstrap no paramétrico: IC por percentiles; bootstrap estratificado (ID y OOD por separado)
-%   y bootstrap pareado (mismos índices para dos métodos).
-% - Bootstrap por lámina (remuestreo de grupos) frente a por imagen: los parches de una misma
-%   lámina no son independientes.
-% - Test de McNemar: versión exacta (binomial sobre los pares discordantes) y chi-cuadrado con
-%   corrección de continuidad.
-\begin{definicion}[Intervalo \emph{bootstrap} por percentiles~\cite{efron1979}]\label{def:bootstrap}
-\pendiente{definición}
-\end{definicion}
+% - Comparación de dos clasificadores sobre el mismo conjunto de test (datos pareados).
+% - Tabla 2x2: b = aciertos solo del modelo A, c = aciertos solo del modelo B.
+% - Versión exacta (binomial sobre los pares discordantes) y chi-cuadrado con corrección de
+%   continuidad. En este trabajo: fase 1, Swin frente al siguiente modelo, p = 0,19.
+\pendiente{planteamiento (McNemar~\cite{mcnemar1947})}
 
-\begin{proposicion}[Test de McNemar~\cite{mcnemar1947}]\label{prop:mcnemar}
+\begin{proposicion}[Distribución del estadístico de McNemar]\label{prop:mcnemar}
 % Bajo H_0, el número de pares discordantes a favor de un modelo, condicionado a b + c, sigue una
 % Bin(b + c, 1/2).
 \pendiente{enunciado}
@@ -68,22 +114,43 @@
 \pendiente{demostración}
 \end{demostracion}
 
+%=======================================================
+\section{Intervalos de confianza \emph{bootstrap}}\label{sec:bootstrap}
+%=======================================================
+
+% Referencias: Efron (1979), Efron y Tibshirani (1993).
+% - Idea: sustituir la distribución desconocida por la empírica (principio de sustitución).
+% - Variantes usadas en el trabajo:
+%   * estratificado: se remuestrean ID y OOD por separado (mantiene n_1 y n_2);
+%   * pareado: los mismos índices para dos métodos (diferencia de AUROC, RMDS frente a cada método);
+%   * por lámina: se remuestrean láminas completas, porque los parches de una misma lámina no son
+%     independientes (enlace con la fuga por lámina).
+% - En el trabajo: 1000 remuestras, semilla 0.
+\pendiente{planteamiento}
+
+\begin{definicion}[Intervalo \emph{bootstrap} por percentiles~\cite{efron1979}]\label{def:bootstrap}
+\pendiente{definición}
+\end{definicion}
+
+\begin{observacion}[Bootstrap estratificado, pareado y por lámina]\label{obs:bootstrap-variantes}
+\pendiente{desarrollo}
+\end{observacion}
+
+%=======================================================
 \section{Predicción conforme}\label{sec:prediccion-conforme}
+%=======================================================
 
 Predicción conforme. La predicción conforme (CP) se erige como un marco estadístico robusto en el aprendizaje automático, diseñado principalmente para proporcionar medidas de confianza para las predicciones (Shafer y Vovk~\cite{shafer2008}; Angelopoulos y Bates~\cite{angelopoulos2021}).
 \revisar{posible traducción casi literal (en las notas aparece bajo «Añadir esta parte de Inferencia Estadística»); comprobar la fuente, parafrasear y citar}
 
-% Puntos que debería cubrir (Vovk et al., 2005; Angelopoulos y Bates, 2021):
-% - Intercambiabilidad.
-% - Predicción conforme dividida (split): puntuación de no conformidad, cuantil
-%   k = \lceil (n+1)(1-\alpha) \rceil de las n puntuaciones de calibración.
-% - Teorema de cobertura marginal con demostración.
-% - p-valor conforme para detección OOD: p(x) = (1 + #\{s_i \le s(x)\}) / (n + 1).
-% - Puntuaciones LAC (1 - \pi_y(x)) y APS (aleatorizada); RAPS.
-% - Mondrian (condicionada por clase) y la condición sobre n_y.
-\pendiente{desarrollo de la predicción conforme dividida}
-
 \begin{definicion}[Intercambiabilidad]\label{def:intercambiabilidad}
+\pendiente{definición}
+\end{definicion}
+
+\begin{definicion}[Predicción conforme dividida]\label{def:split-conformal}
+% Puntuación de no conformidad s(x, y); puntuaciones de calibración s_1, ..., s_n;
+% \hat q = k-ésimo menor valor, k = \lceil (n+1)(1-\alpha) \rceil (\hat q = \infty si k > n);
+% C(x) = \{ y : s(x, y) \le \hat q \}.
 \pendiente{definición}
 \end{definicion}
 
@@ -96,6 +163,16 @@ Predicción conforme. La predicción conforme (CP) se erige como un marco estad�
 \begin{demostracion}
 % Rango de la puntuación de test entre las n+1 puntuaciones: uniforme en \{1, ..., n+1\} por la
 % intercambiabilidad.
+\pendiente{demostración}
+\end{demostracion}
+
+\begin{proposicion}[$p$-valor conforme]\label{prop:p-valor-conforme}
+% p(x) = (1 + #\{i : s_i \ge s(x)\}) / (n + 1) es superuniforme: P(p \le u) \le u bajo intercambiabilidad.
+% Conecta con \cref{prop:p-valor-uniforme} y con la detección OOD (un p-valor que sí está calibrado,
+% a diferencia del de STOOD-X).
+\pendiente{enunciado}
+\end{proposicion}
+\begin{demostracion}
 \pendiente{demostración}
 \end{demostracion}
 

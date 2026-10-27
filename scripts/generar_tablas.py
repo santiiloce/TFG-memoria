@@ -209,7 +209,7 @@ def t09_modelos(R, S):
 def t09_recall_clase(R, S):
     filas = leer_csv(os.path.join(R, 'results_fase1/recall_por_clase.csv'))
     rec = {(f['modelo'], f['clase']): f for f in filas}
-    clases = sorted({f['clase'] for f in filas}, key=lambda c: -int(rec[(list(MODELOS)[0], c)]['n']))
+    clases = sorted({f['clase'] for f in filas}, key=lambda c: (-int(rec[(list(MODELOS)[0], c)]['n']), c))
     cuerpo = ['\\toprule', 'Clase & $n$ & ' + ' & '.join(MODELOS.values()) + ' \\\\', '\\midrule']
     for c in clases:
         vals = [float(rec[(m, c)]['recall']) for m in MODELOS]
@@ -373,7 +373,7 @@ def t10_panda_control(R, S, datos):
               'Método & PANDA & Control 128\\,px & Diferencia & PANDA & Control \\\\', '\\midrule']
     cuerpo += filas_familias(set(metodos), fila, 6)
     cuerpo.append('\\bottomrule')
-    cap = ('Cambio de centro y resolución: PANDA (próstata de otros centros) frente al control de resolución '
+    cap = ('PANDA (próstata de otros centros, adquirida a una escala mucho menor) frente al control de resolución '
            '(las mismas imágenes del test ID reducidas a 128\\,px). \\AUROC (más alto es mejor) y \\FPRn{95} '
            '(más bajo es mejor). Diferencia: \\AUROC de PANDA menos \\AUROC del control. %s %s') % (
         NOTA_BOOT, NOTA_MARCAS.replace('{acc_ash}', acc_ash(datos)))
@@ -635,7 +635,7 @@ def t12_mondrian_clase(R, S):
     filas = [f for f in leer_csv(os.path.join(R, 'results_conforme/mondrian/por_clase.csv'))
              if f['puntuacion'] == 'LAC' and f['alfa'] == '0.05' and f['conjunto'] == 'id_test']
     d = {(f['clase'], f['version']): f for f in filas}
-    clases = sorted({f['clase'] for f in filas}, key=lambda c: int(d[(c, 'mondrian')]['n_cal']))
+    clases = sorted({f['clase'] for f in filas}, key=lambda c: (int(d[(c, 'mondrian')]['n_cal']), c))
     cuerpo = ['\\toprule', '& & & \\multicolumn{2}{c}{Cobertura} & \\multicolumn{2}{c}{Tamaño medio} \\\\',
               '\\cmidrule(lr){4-5}\\cmidrule(lr){6-7}',
               'Clase & $n_y$ & $k_y$ & Marginal & Mondrian & Marginal & Mondrian \\\\', '\\midrule']

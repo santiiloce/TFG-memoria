@@ -48,7 +48,8 @@ Como puntuación de detección se utiliza el estadístico tipificado del test de
 
 \section{Resultados}\label{sec:stoodx-resultados}
 
-En el near-OOD principal (TUM + NORM), STOOD-X obtiene un AUROC de 0,953, estadísticamente indistinguible del de RMDS (0,954; $p = 0{,}75$ en el \emph{bootstrap} pareado), aunque con un FPR@95 claramente mayor (0,349 frente a 0,128). Es el mejor método en NORM (AUROC 0,990), STR (0,978), MUS (0,968) y DTD (0,991). En PANDA alcanza 0,895, prácticamente igual que en el control de resolución (0,894), lo que indica que su detección del cambio de centro se explica casi por completo por la diferencia de resolución. Las configuraciones con el 100\,\% y el 87,5\,\% de las características son indistinguibles.
+En el near-OOD principal (TUM + NORM), STOOD-X obtiene un AUROC de 0,953, estadísticamente indistinguible del de RMDS (0,954; $p = 0{,}75$ en el \emph{bootstrap} pareado), aunque con un FPR@95 claramente mayor (0,349 frente a 0,128). Es el mejor método en NORM (AUROC 0,990), STR (0,978), MUS (0,968) y DTD (0,991). En PANDA alcanza 0,895, prácticamente igual que en el control de resolución (0,894); como se discute en la \cref{sec:ood-panda}, esta coincidencia se debe a la saturación del estadístico y no permite atribuir su detección a la resolución. Las configuraciones con el 100\,\% y el 87,5\,\% de las características son indistinguibles.
+
 
 \input{tablas/t11_stoodx}
 

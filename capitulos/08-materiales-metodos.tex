@@ -66,9 +66,9 @@ Para comenzar se necesita un conjunto de entrenamiento, uno de validación y uno
     \midrule
     (A) NCT-CRC: TUM + NORM (\num{23080}) & Near-OOD & Otro órgano (colon, tejido glandular) y otro centro; misma escala & Buscamos ver si es capaz de rechazar un tejido muy parecido al original \\
     (B) NCT-CRC: STR, LYM, MUS (por separado) & Control interno & Otro centro; tejidos parecidos a clases de entrenamiento (estroma e inflamatorio) & Tejidos nuevamente parecidos a ID: determinamos si descarta por el centro o por el tejido \\
-    (C) PANDA (\num{10000})~\cite{bulten2022,kagglepanda128} & \emph{Covariate shift} & Mismo órgano (próstata), otro centro y escáner; menor resolución (128\,px) & Al repetir el órgano, lo único que cambia es el \emph{covariate shift}, por lo que una detección OOD reflejaría su discriminación por este motivo \\
-    Control de resolución (\num{12618}) & Control & Las mismas imágenes del test ID, reducidas a 128\,px y ampliadas a 224\,px & Buscamos ver si se están clasificando imágenes como OOD solo por la resolución \\
-    DTD / \emph{Textures} & Far-OOD & No es tejido: texturas genéricas & Clasificación sencilla: ha de clasificarla directamente como OOD \\
+    (C) PANDA (\num{10000})~\cite{bulten2022,kagglepanda128} & Cambio de centro y de escala & Mismo órgano (próstata), otros centros y escáneres; aumento mucho menor (cada tesela abarca una región de tejido mucho mayor) y más fondo blanco & Comprobar si el detector señala tejido del mismo órgano adquirido en condiciones muy distintas \\
+    Control de resolución (\num{12618}) & Control & Las mismas imágenes del test ID, reducidas a 128\,px y ampliadas a 224\,px & Valorar únicamente el efecto de la pérdida de detalle (no reproduce la escala de PANDA) \\
+    DTD / \emph{Textures} & Far-OOD & No es tejido: texturas genéricas & Referencia sencilla: el detector debe señalarla como OOD \\
     NCT-CRC: ADI, BACK, DEB, MUC & Anexo (\cref{ap:anexo-nct}) & Grasa, fondo, restos, moco & \\
     \bottomrule
   \end{tabularx}
@@ -87,10 +87,12 @@ Para comenzar se necesita un conjunto de entrenamiento, uno de validación y uno
 \revisar{la referencia que acompañaba a NONORM en las notas (DOI 10.1109/ISBI.2009.5193250) es el método de normalización de Macenko, que se aplica a la versión normalizada NCT-CRC-HE-100K y no a NONORM: reubicar la cita}
 \revisar{el enlace al conjunto de datos (Zenodo) de las notas se sustituye por la cita a Kather et al.}
 
-\begin{enumerate}
-  \item[(A)] TUM y NORM hacen referencia a epitelio de adenocarcinoma colorrectal y a mucosa normal del colon.
-  \item[(B)] STR, LYM y MUS hacen referencia a estroma asociado al cáncer, linfocitos y músculo liso.
-\end{enumerate}
+El control interno consiste en evaluar el detector con distintas clases de un mismo conjunto de datos, NCT-CRC-HE-100K~\cite{kather2019}. Todas sus imágenes proceden del mismo centro y presentan, por tanto, el mismo \emph{covariate shift} respecto a los datos ID, pero solo TUM y NORM son tejido 
+de otro órgano (\emph{semantic shift}). Las clases consideradas son TUM (epitelio de adenocarcinoma colorrectal), NORM (mucosa colónica normal), STR (estroma asociado al cáncer, que cabría esperar que se parezca a la clase ID de estroma, HS), LYM (linfocitos, que cabría esperar que se parezcan 
+a la clase ID Inflamatorio) y MUS (músculo liso, que también podría parecerse al estroma ID, ya que el estroma prostático contiene músculo liso). Si el detector rechaza las imágenes de STR, LYM y MUS con la misma capacidad que las de TUM y NORM, aunque se parezcan más a las clases ID, esto indicaría
+que es sensible principalmente al \emph{covariate shift}. Las imágenes de PANDA son del mismo órgano, pero proceden de otros centros y se adquirieron a una escala muy distinta, por lo que combinan varios cambios respecto a los datos ID; el control de imágenes ID a 128\,px permite valorar únicamente 
+el efecto de la pérdida de detalle. Por último, el conjunto Textures (DTD) sirve como referencia de que el detector funciona correctamente.
+
 
 \begin{figure}[tbp]
   \centering
@@ -128,12 +130,9 @@ Para comenzar se necesita un conjunto de entrenamiento, uno de validación y uno
 
 \subsection{PANDA}\label{sec:panda}
 
-\textbf{\emph{Covariate shift}: PANDA (próstata de otro centro).} Biopsias del mismo órgano (próstata) y mismo tipo de tinción, pero de escáneres y hospitales distintos (Karolinska Institute / Radboud University)~\cite{bulten2022}.
-\revisar{los enlaces a Kaggle de las notas se sustituyen por la cita a Bulten et al.}
-% Las notas enlazan además al conjunto de parches de 128 px de Kaggle (iafoss,
-% panda-16x128x128-tiles-data), que es el origen de las 10.000 imágenes usadas.
-\revisar{la fuente de los parches de 128\,px (conjunto de Kaggle) se cita en la \cref{tab:diseno-ood}}
+\textbf{PANDA (próstata de otros centros).} Biopsias del mismo órgano (próstata) y mismo tipo de tinción, pero de escáneres y hospitales distintos (Karolinska Institute / Radboud University)~\cite{bulten2022}. Se utilizan \num{10000} teselas de $128 \times 128$\,px del conjunto público preparado por iafoss~\cite{kagglepanda128}. En él, cada biopsia se lee en el nivel de menor resolución de la imagen original, de modo que cada tesela abarca una región de tejido mucho mayor que un parche ID (en ella caben decenas de glándulas),, se divide en teselas de $128 \times 128$\,px y se conservan las 16 con más tejido, es decir, las de menor suma de intensidades. Si una biopsia no llega a 16 teselas, se completan con teselas blancas, lo que explica las 291 teselas sin tejido presentes en el conjunto. Para su evaluación, las teselas se reescalan a 224\,px.
 
+De las \num{168256} teselas del conjunto (\num{10516} biopsias con 16 teselas cada una), se seleccionaron al azar \num{10000} (muestreo uniforme sin reemplazo, sin semilla fija), procedentes de \num{6568} biopsias distintas (entre 1 y 6 teselas por biopsia; mediana 1).
 \begin{figure}[tbp]
   \centering
   \begin{subfigure}[b]{0.25\textwidth}

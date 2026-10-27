@@ -10,7 +10,7 @@
 % Patrón: tabla o figura -> análisis -> conclusión parcial; discusión global al final.
 % Fuente: results_ood/faseC_2026-10-20 (16 métodos, 9 conjuntos). Modelo: Swin-S (mismo checkpoint
 % que la \cref{tab:modelos}). Métricas definidas en el \cref{cap:ood-metricas}; clase positiva: OOD.
-\pendiente{introducción del capítulo: modelo, 16 métodos (13 de OpenOOD y tres configuraciones de STOOD-X), nueve conjuntos (\cref{tab:diseno-ood}) y métricas (\cref{sec:auroc,sec:fpr95,sec:ccr}); IC por \emph{bootstrap} (\cref{sec:bootstrap-mcnemar})}
+\pendiente{introducción del capítulo: modelo, 16 métodos (13 de OpenOOD y tres configuraciones de STOOD-X), nueve conjuntos (\cref{tab:diseno-ood}) y métricas (\cref{sec:auroc,sec:fpr95,sec:ccr}); IC por \emph{bootstrap} (\cref{sec:bootstrap})}
 
 \revisar{la tabla principal de las notas (\texttt{tabla\_principal\_ood.tex}) se divide en una tabla por bloque; las tablas de AUPR van al \cref{ap:aupr}}
 
@@ -51,7 +51,11 @@ Los resultados muestran una separación clara entre familias de métodos. Los m�
 
 \input{tablas/t10_control_interno}
 
-\textbf{Control interno: centro frente a tejido.} Las clases afines de NCT-CRC permiten separar el efecto del cambio de centro del efecto del tipo de tejido. En ViM, MDS y KNN, los linfocitos (LYM), el tejido más similar entre órganos, se detectan con un AUROC (0,948--0,969) prácticamente igual al del tejido glandular de colon (TUM: 0,952--0,966; NORM: 0,963--0,975). Por tanto, estos detectores responden principalmente al \textbf{cambio de centro} (laboratorio, tinción, escáner) y no a la naturaleza del tejido. Este resultado es coherente con lo señalado por Yang et al.~\cite{yang2024}: los detectores OOD tienden a ser más sensibles al desplazamiento de covariables que al cambio semántico.
+Los resultados muestran que el principal motivo por el que una imagen se detecta como OOD es que procede de condiciones de adquisición distintas (otro centro y láminas no vistas). 
+Con MDS, TUM (0,964), NORM (0,973) y LYM (0,967) obtienen los valores de AUROC más altos. El caso de LYM es el más revelador: pese a corresponder a un tipo de tejido presente en 
+la próstata, se detecta con la misma capacidad que el tejido de colon. STR (0,944) y MUS (0,912) resultan algo más difíciles de detectar, lo que indica que la similitud con las 
+clases ID influye en parte, aunque los valores siguen siendo altos. Este resultado es coherente con lo señalado por Yang et al.~\cite{yang2024}: los detectores OOD tienden a ser 
+más sensibles al desplazamiento de covariables que al cambio semántico.
 
 \begin{figure}[tbp]
   \centering
@@ -66,16 +70,16 @@ Los resultados muestran una separación clara entre familias de métodos. Los m�
 % (\cref{tab:fuga-control-interno}).
 \pendiente{conclusión parcial}
 
-\section{Cambio de centro y resolución}\label{sec:ood-panda}
+\section{PANDA: cambio de centro y de escala}\label{sec:ood-panda}
 
-\textbf{Cambio de centro y resolución.} PANDA, compuesto por tejido prostático de otros centros, se detecta con AUROC $\approx 0{,}91$ en los mejores métodos (ViM 0,912; RMDS 0,912; MDS 0,911). El control de resolución, formado por las mismas imágenes del test ID degradadas a 128\,px, alcanza entre 0,753 y 0,789 en esos métodos. Al ser claramente inferior, la detección de PANDA no se explica únicamente por la pérdida de nitidez: el cambio de centro contribuye de forma propia. STOOD-X es la excepción, con valores prácticamente iguales en ambos conjuntos (0,895 y 0,894). Desde el punto de vista clínico, estos resultados implican que un sistema validado en un hospital rechazaría una fracción importante de imágenes de otro centro aun siendo del mismo órgano, lo que exigiría recalibrar el detector antes de su despliegue.
+Respecto a PANDA, la comparación con el control debe interpretarse con especial cuidado, ya que sus imágenes presentan más diferencias que el mero reescalado. Además de proceder de otros centros, las teselas se extrajeron del nivel de menor resolución de las imágenes originales, con un aumento mucho menor, de modo que cada una abarca una región de tejido muy superior a los 112\,$\mu$m de los parches ID;; además, contienen mucho más fondo blanco (63\,\% frente a 21\,\%). Los métodos de distancia detectan PANDA (AUROC $\approx 0{,}91$) mejor que el control ($\approx 0{,}77$--$0{,}79$), pero esta diferencia no puede atribuirse solo al cambio de centro, ya que se combina con los cambios de escala y de contenido de fondo. En STOOD-X, ambos AUROC coinciden (0,895 y 0,894) y su puntuación no distingue PANDA del control (AUROC 0,475 [0,467; 0,482]). Sin embargo, cerca de un tercio de las imágenes de ambos conjuntos alcanza el valor extremo del estadístico (\cref{obs:u-empates}), por lo que esta coincidencia refleja la pérdida de capacidad de ordenación por saturación más que una sensibilidad específica a la resolución. Excluir las 291 teselas sin tejido no modifica ninguna de estas conclusiones. Aislar el efecto del centro requeriría extraer las imágenes de PANDA a la misma escala que los datos ID, lo que queda como trabajo futuro.
 
 \input{tablas/t10_panda_control}
 
 \begin{figure}[tbp]
   \centering
   \includegraphics[width=0.7\textwidth]{img/cap10/fig4_panda_vs_control.pdf}
-  \caption{AUROC en PANDA frente a AUROC en el control de resolución (test ID a 128\,px), un punto por método con sus IC. Por encima de la diagonal, PANDA se detecta más de lo que explica la resolución; STOOD-X queda sobre la diagonal.}
+  \caption{AUROC en PANDA frente a AUROC en el control de resolución (test ID a 128\,px), un punto por método con sus IC. La diagonal indica la misma capacidad de detección en ambos conjuntos. Como PANDA difiere también en escala y en contenido de fondo, quedar por encima de la diagonal no permite atribuir la diferencia solo al cambio de centro. STOOD-X queda sobre la diagonal por la saturación de su estadístico.}
   \label{fig:ood-panda-control}
 \end{figure}
 
@@ -83,8 +87,7 @@ Los resultados muestran una separación clara entre familias de métodos. Los m�
 
 \section{Far-OOD}\label{sec:ood-far}
 
-\textbf{Far-OOD.} En DTD, STOOD-X obtiene el mejor resultado (AUROC 0,991; FPR@95 0,028). Llama la atención que, para ViM, MDS y KNN, el far-OOD no resulta más fácil que el near-OOD (0,936--0,959 frente a 0,956--0,969). Esto refuerza la idea de que estos métodos son especialmente sensibles a las características de adquisición de las imágenes histológicas más que a su contenido semántico.
-
+Finalmente, en Textures, STOOD-X obtiene el mejor resultado (AUROC 0,991), lo que confirma, como era de esperar, que las imágenes ajenas al contexto médico se detectan sin dificultad. No obstante, con MDS (0,956) Textures resulta más difícil de detectar que TUM, NORM o LYM, lo que indica que la dificultad que encuentra cada detector no coincide necesariamente con la distancia semántica intuitiva.
 \input{tablas/t10_far}
 
 \pendiente{conclusión parcial}

@@ -194,7 +194,7 @@ Se generan con `python3 scripts/generar_tablas.py` a partir de `OpenOOD/results_
 - `capitulos/09-clasificacion-id.tex:193` — análisis de la \cref{tab:sensibilidad-gleason} y de la \cref{fig:confusion-5clases}
 - `capitulos/09-clasificacion-id.tex:204` — conclusión parcial
 - `capitulos/09-clasificacion-id.tex:215` — discusión global
-- `capitulos/10-deteccion-ood.tex:13` — introducción del capítulo: modelo, 16 métodos (13 de OpenOOD y tres configuraciones de STOOD-X), nueve conjuntos (\cref{tab:diseno-ood}) y métricas (\cref{sec:auroc,sec:fpr95,sec:ccr}); IC por \emph{bootstrap} (\cref{sec:bootstrap-mcnemar})
+- `capitulos/10-deteccion-ood.tex:13` — introducción del capítulo: modelo, 16 métodos (13 de OpenOOD y tres configuraciones de STOOD-X), nueve conjuntos (\cref{tab:diseno-ood}) y métricas (\cref{sec:auroc,sec:fpr95,sec:ccr}); IC por \emph{bootstrap} (\cref{sec:bootstrap})
 - `capitulos/10-deteccion-ood.tex:48` — conclusión parcial
 - `capitulos/10-deteccion-ood.tex:67` — conclusión parcial
 - `capitulos/10-deteccion-ood.tex:82` — conclusión parcial
