@@ -6,6 +6,17 @@
 %*******************************************************
 
 \chapter{Formalización de la detección OOD y métricas}\label{cap:ood-metricas}
+Para comenzar con una formalización matemática del problema OOD se debe esclarecer que se considerará como ID (dentro de la distribución, In-Distribution).
+\begin{definicion}[ID]\label{def:ID}
+    Se determinará $\mathrm{ID}$ como nuestra distribución de referencia $\mathcal{D}_{\mathrm{ID}}$, en donde $(x,y)\sim\mathcal{D}_{\mathrm{ID}}$, considerando $x$ como la entrada e $y$ como su etiqueta correspondiente 
+    dentro de la distribución.Se denotará como $p$ la función de densidad de probabilidad. Entonces, dada una distribución  $\mathcal{D}_{\mathrm{ID}}$ como referencia
+    se considerará que una distribución  $\mathcal{D}_{\mathrm{OOD}}$ está fuera si $\forall \delta\in(0,1) \exists$ una región $\mathcal{D}$ tal que:
+    \begin{itemize}
+        \item   $\iint_{\mathcal{D}}p_{\mathcal{D}_{\mathrm{OOD}}}(x,y)dxdy > \delta$ 
+        \item   $\forall\epsilon>0$, $\iint_{\mathcal{D}}p_{\mathcal{D}_{\mathrm{ID}}}(x,y)\,dx\,dy < \epsilon$ ~\cite{openood15}.
+    \end{itemize}
+\end{definicion}
+
 
 \section{Distribución de los datos y cambios de distribución}\label{sec:cambios-distribucion}
 

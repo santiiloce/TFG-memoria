@@ -212,8 +212,48 @@ que coincide con el exacto. Sin la corrección se obtendría $p = 0{,}171$, que 
 % - En el trabajo: 1000 remuestras, semilla 0.
 \pendiente{planteamiento}
 
+Dada una muestra $(x_1, \dots, x_n)$, el método \emph{bootstrap} consiste en:
+
+\begin{enumerate}
+  \item Consideramos la muestra de partida como una variable que presenta los $n$ valores posibles,
+  teniendo una probabilidad de $1/n$ de tomar cada valor; es decir, su distribución es la
+  distribución empírica
+  \[
+    F_n(t) = \frac{1}{n} \sum_{i=1}^{n} \Ind(x_i \le t).
+  \]
+  Mediante el método de Montecarlo tomamos una muestra de tamaño $n$ de esta distribución. Esto
+  equivaldría a tomar una muestra aleatoria con reemplazamiento de los valores observados. Así pues,
+  se obtiene la muestra
+  \[
+    x^{*b} = \bigl(x^{*b}_1, \dots, x^{*b}_n\bigr), \qquad
+    x^{*b}_j = x_{I_j}, \quad I_1, \dots, I_n \overset{\text{i.i.d.}}{\sim} \mathcal{U}\{1, \dots, n\},
+  \]
+  de modo que $\Prob^*\bigl(x^{*b}_j = x_i\bigr) = 1/n$ para cada $i$ si los valores son distintos.
+
+  \item Sobre la muestra generada se calcula el estimador:
+  \[
+    \hat\theta^*_b = \hat\theta\bigl(x^{*b}_1, \dots, x^{*b}_n\bigr).
+  \]
+
+  \item Se repiten los pasos 1 y 2 un número $B$ grande de veces (1000, por ejemplo). De esta forma se
+  obtiene una secuencia de $B$ valores, $\hat\theta^*_1, \dots, \hat\theta^*_B$, que se considerará
+  una aproximación de la distribución de $\hat\theta$. Su media será
+  \[
+    \bar\theta^* = \frac{1}{B} \sum_{b=1}^{B} \hat\theta^*_b,
+  \]
+  y su varianza,
+  \[
+    \widehat{\Var}^*\bigl(\hat\theta\bigr) = \frac{1}{B-1} \sum_{b=1}^{B} \bigl(\hat\theta^*_b - \bar\theta^*\bigr)^2 .
+  \]
+\end{enumerate}
+
 \begin{definicion}[Intervalo \emph{bootstrap} por percentiles~\cite{efron1979}]\label{def:bootstrap}
-\pendiente{definición}
+Sean $\hat\theta^*_{(1)} \le \hat\theta^*_{(2)} \le \dots \le \hat\theta^*_{(B)}$ las réplicas
+\emph{bootstrap} ordenadas de menor a mayor y sea $\alpha \in (0, 1)$. El intervalo \emph{bootstrap}
+por percentiles de nivel $1 - \alpha$ para $\theta$ es
+\[
+  \Bigl[\, \hat\theta^*_{(\lceil B\alpha/2 \rceil)},\ \hat\theta^*_{(\lceil B(1-\alpha/2) \rceil)} \,\Bigr].
+\]
 \end{definicion}
 
 \begin{observacion}[Bootstrap estratificado, pareado y por lámina]\label{obs:bootstrap-variantes}

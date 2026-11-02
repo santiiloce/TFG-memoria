@@ -38,6 +38,29 @@ Para comenzar se necesita un conjunto de entrenamiento, uno de validación y uno
 % Las notas incluían además una tabla resumen (Train ID 90.800, Validación ID 22.691, Test ID
 % 12.618), recogida en la fila Total de la \cref{tab:particion}.
 
+\begin{figure}[tbp]
+  \centering
+  \begin{subfigure}[b]{0.32\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/cap08/distribution_train.jpg}
+    \caption{Entrenamiento}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.32\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/cap08/distribution_val.jpg}
+    \caption{Validación}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.32\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/cap08/distribution_test.jpg}
+    \caption{Test}
+  \end{subfigure}
+  \caption{Distribución por clase de los conjuntos de entrenamiento, validación y test. \revisar{pie de figura redactado por el agente; las etiquetas de las gráficas aparecen cortadas y solapadas y los colores cambian entre paneles: regenerar}}
+  \label{fig:distribucion-particiones}
+\end{figure}
+
 \subsection{Verificación de la integridad}\label{sec:integridad}
 
 % Puntos que debería cubrir (results_integridad/resumen.md):

@@ -40,8 +40,11 @@
   \caption{Subtareas de la detección OOD generalizada: (a) detección de anomalías sensoriales, (b) detección de novedades de una clase, (c) detección de novedades multiclase, (d) reconocimiento en conjunto abierto y detección OOD y (e) detección de valores atípicos. Fuente: Yang et al.~\cite{yang2024} (figura~2).}
   \label{fig:taxonomia-yang}
 \end{figure}
-
-Cierta literatura previa clasifica las anomalías en tres tipos: anomalías puntuales, anomalías condicionales o contextuales y anomalías grupales o colectivas (Pang et al.~\cite{pang2020}; Chalapathy y Chawla~\cite{chalapathy2019}; Ruff et al.~\cite{ruff2021}). En este estudio, nos centramos principalmente en la detección de anomalías puntuales debido a su popularidad en aplicaciones prácticas y a su idoneidad para esclarecer las similitudes y diferencias entre las subtareas.
+Se define como detección OOD la capacidad de un sistema de reconocimiento inteligente para detectar y manejar imágenes desconocidas. A este problema se le denomina 
+tanto OOD (Out of Distribution) como OSR (Open-Set Recognition). Se puede distinguir entre dos tipos de métodos de algoritmos para detección OOD, algoritmos basados en entrenamiento y métodos post-hoc. El primer tipo
+se basan en poner restricciones durante el proceso de entremiento para que el modelo luego tenga un mejor rendimiento en la tarea de detección OOD. \textbf{poner ejemplo de
+método de detección OOD vs ID en entrenamiento}. Por otro lado los métodos post-hoc abarcan la capacidad de detección OOD en modelos que ya han sido entrenados. Esto 
+es de suma imporantancia en los problemas del mundo real, pues en algunos casos el coste de volver a reentrenar un modelo es desmesurado.
 \revisar{traducción casi literal; parafrasear y citar}
 \revisar{«En este estudio» se refiere al survey de Yang et al., no a este TFG}
 
