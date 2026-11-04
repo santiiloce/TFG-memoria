@@ -6,14 +6,188 @@
 %*******************************************************
 
 \chapter{Explicabilidad}\label{cap:explicabilidad}
+Explicación sacada del libro Explainable AI: Interpreting, Explaining and Visualizing Deep Learning \pendiente{citar}
 
-\section{Layer-wise Relevance Propagation}\label{sec:lrp}
+El aprendizaje automático explicable mira al problema de la siguiente forma. Primero el modelo es 
+entrenado sin importar mucho en las características seleccionadas. Una vez que el modelo
+ha sido entrenado mediante las características que ha aprendido 'malas' características pueden ser 
+eliminadas y el modelo puede ser reentrenado con datos limpios. Un método simple, como la descomposición
+de Taylor produce explicaciones aplicando la expansión de Taylor de la predicción $f(x)$ en un punto de referencia cercano $\tilde{x}$:
 
+\begin{equation}\label{eq:taylor-primer-orden}
+  f(x) = f(\tilde{x}) + \sum_{i=1}^{d} (x_i - \tilde{x}_i) \cdot \bigl[\nabla f(\tilde{x})\bigr]_i + \dots
+\end{equation}
+
+Cada uno de los términos de primer orden, es decir, cada sumando de la
+\cref{eq:taylor-primer-orden}, mide cuánto contribuye la variable de entrada
+correspondiente a la predicción, y el conjunto de todos ellos constituye la
+explicación. A pesar de su sencillez, este procedimiento resulta inestable cuando
+se aplica a redes neuronales profundas~\cite{montavon2019lrp}. Esta inestabilidad
+se debe a varias limitaciones bien conocidas de las funciones que implementan
+dichas redes:
+
+\begin{itemize}
+  \item \emph{Gradientes fragmentados} (\emph{shattered gradients})~\cite{balduzzi2017}:
+  aunque el valor de la función $f(x)$ suele ser preciso, su gradiente presenta
+  mucho ruido.
+  \item \emph{Ejemplos adversarios}~\cite{szegedy2014}: perturbaciones muy pequeñas
+  de la entrada $x$ pueden alterar de forma drástica el valor de $f(x)$.
+\end{itemize}
+
+Debido a estas limitaciones, es difícil encontrar un punto de referencia
+$\tilde{x}$ adecuado cuyo gradiente $\nabla f(\tilde{x})$ sea también
+significativo, lo que impide obtener una explicación fiable~\cite{montavon2018}.
+
+Numerosas técnicas han sido propuestas para abordar mejor la complejidad de las
+redes neuronales profundas. A continuación nos vamos a centrar en \emph{Layer-wise
+Relevance Propagation} (LRP)~\cite{bach2015}, una técnica que aprovecha la
+estructura de grafo de la red neuronal para calcular explicaciones de forma rápida
+y fiable.
+
+\section{Layer-wise Relevance Propagation (LRP)}\label{sec:lrp}
 % Puntos que debería cubrir:
 % - Descomposición de Taylor profunda: aproximación de primer orden de cada neurona alrededor de
 %   un punto raíz.
 % - Propiedad de conservación: \sum_i R_i^{(l)} = \sum_j R_j^{(l+1)} = f(x).
 % - Reglas LRP-\varepsilon y LRP-z^+ y su derivación.
+
+\emph{} Se trata de ~\cite{bach2015,montavon2019lrp} es
+una técnica de explicación aplicable a cualquier modelo con estructura de red
+neuronal, con independencia del tipo de entrada: imágenes, vídeos o texto. Su funcionamiento consiste en
+propagar la predicción $f(x)$ hacia atrás a través de la red, capa a capa,
+mediante reglas de propagación locales diseñadas específicamente para este fin.
+
+Este proceso de propagación está sujeto a una propiedad de conservación: toda la
+relevancia que recibe una neurona debe repartirse íntegramente entre las neuronas
+de la capa anterior, sin que se cree ni se pierda relevancia por el camino. Este
+comportamiento es análogo al de las leyes de conservación de Kirchhoff en los
+circuitos eléctricos, y lo comparten también otros métodos de explicación
+\cite{landecker2013,shrikumar2017,zhang2018excitation}.
+
+Sean $j$ y $k$ neuronas de dos capas consecutivas de la red, de modo que $j$
+pertenece a la capa inferior. Dadas las puntuaciones de relevancia $(R_k)_k$ de
+una capa, su propagación a las neuronas de la capa inferior se obtiene aplicando
+la regla
+\begin{equation}\label{eq:lrp-regla}
+  R_j = \sum_{k} \frac{z_{jk}}{\sum_{j} z_{jk}} \, R_k .
+\end{equation}
+
+La cantidad $z_{jk}$ representa en qué medida la neurona $j$ ha contribuido a
+que la neurona $k$ sea relevante, mientras que el denominador de la
+\cref{eq:lrp-regla} garantiza que se cumpla la propiedad de conservación. La
+propagación se repite capa a capa y finaliza al alcanzar las variables de
+entrada. Si la regla se aplica a todas las neuronas de la red, se comprueba
+fácilmente que la relevancia se conserva entre capas consecutivas,
+\[
+  \sum_{j} R_j = \sum_{k} R_k   
+\]
+y, encadenando esta igualdad desde la salida hasta la entrada, que la relevancia
+total asignada a las variables de entrada coincide con la predicción:
+\[
+  \sum_{i=1}^{d} R_i = f(x).
+\]
+La \cref{fig:lrp-esquema} ilustra el procedimiento completo.
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=\textwidth]{img/LRP_explication.png}
+  \caption{Propagación de la predicción $f(x)$ hacia atrás a través de la red, capa a capa, mediante LRP. Fuente: Samek et al.~\cite{samek2019}.}
+  \label{fig:lrp-esquema}
+\end{figure}
+
+Aunque LRP difiere de la aproximación de Taylor descrita anteriormente, cada paso
+de la propagación puede interpretarse como una descomposición de Taylor propia,
+aplicada sobre magnitudes locales del grafo de la red~\cite{montavon2017}.
+
+Sea LRP  para redes neuronales profundas con recitificadores no lineales (ReLU), considerado como la opción más utilizada en las 
+aplicaciones actuales, compuesto por neuronas del tipo: 
+\begin{equation}\label{eq:lrp-neurona-relu}
+  a_k = \max\Bigl(0,\ \sum_{0,j} a_j w_{jk}\Bigr).
+\end{equation}
+donde $a_1, \dots, a_n$ son las activaciones de la capa inferior y se añade una
+neurona ficticia $a_0 = 1$ cuyo peso $w_{0k}$ representa el sesgo de la
+neurona $k$.
+
+En las reglas que siguen, $j$ recorre las neuronas de la capa inferior, incluida
+la neurona del sesgo $a_0 = 1$ (\cref{eq:lrp-neurona-relu}), y $k$ las de la capa
+superior. Para distinguir el índice del numerador del de la suma del
+denominador, este último se denota $j$. Además, se escribe
+$z_k = \sum_{j=0}^{n} a_{j} w_{jk}$ para la preactivación de la neurona $k$.
+
+\begin{definicion}[Regla básica, LRP-0~\cite{bach2015}]\label{def:lrp-0}
+La regla LRP-0 reparte la relevancia de cada neurona $k$ en proporción a la
+contribución de cada entrada a su activación, tal como aparece en la
+\cref{eq:lrp-neurona-relu}:
+\begin{equation}\label{eq:lrp-0}
+  R_j = \sum_{k} \frac{a_j w_{jk}}{\sum_{j=0}^{n} a_{j} w_{jk}} \, R_k
+      = \sum_{k} \frac{a_j w_{jk}}{z_k} \, R_k .
+\end{equation}
+\end{definicion}
+
+Esta regla cumple propiedades elementales deseables. Por ejemplo, si $a_j = 0$ o
+$w_{jk} = 0$ para todo $k$, entonces $R_j = 0$: una neurona inactiva, un peso nulo
+y la ausencia de conexión reciben el mismo tratamiento. Sin embargo, aplicada de
+forma uniforme a toda la red, produce una explicación equivalente a
+Gradiente~$\times$~Entrada~\cite{shrikumar2016,montavon2019lrp}. Hereda, por
+tanto, el ruido del gradiente de las redes profundas descrito anteriormente, lo
+que motiva el diseño de reglas más robustas.
+
+\begin{definicion}[Regla épsilon, LRP-$\varepsilon$~\cite{bach2015}]\label{def:lrp-epsilon}
+Sea $\varepsilon > 0$. La regla LRP-$\varepsilon$ añade este término al
+denominador de la regla LRP-0:
+\begin{equation}\label{eq:lrp-epsilon}
+  R_j = \sum_{k} \frac{a_j w_{jk}}{\varepsilon + z_k} \, R_k .
+\end{equation}
+\end{definicion}
+
+\emph{Defecto que corrige.} En LRP-0, cuando las contribuciones a la activación
+de una neurona son débiles o se compensan entre sí, el denominador $z_k$ es
+pequeño y la relevancia redistribuida se amplifica, lo que introduce ruido en la
+explicación. El término $\varepsilon$ absorbe parte de la relevancia
+precisamente en esas neuronas. Cuanto mayor es $\varepsilon$, solo sobreviven a
+esta absorción los factores explicativos más destacados, lo que da lugar a
+explicaciones más concentradas en pocas variables y con menos
+ruido~\cite{montavon2019lrp}. A cambio, la conservación deja de ser exacta:
+sumando la \cref{eq:lrp-epsilon} sobre $j$ se obtiene
+\[
+  \sum_{j} R_j = \sum_{k} \frac{z_k}{\varepsilon + z_k} \, R_k ,
+\]
+que se reduce a $\sum_k R_k$ cuando $\varepsilon \to 0$, es decir, cuando la regla
+se reduce a LRP-0.
+
+\begin{definicion}[Regla gamma, LRP-$\gamma$~\cite{montavon2019lrp}]\label{def:lrp-gamma}
+Sea $\gamma \ge 0$ y sea $w^{+}_{jk} = \max(0, w_{jk})$ la parte positiva de cada
+peso. La regla LRP-$\gamma$ favorece las contribuciones positivas frente a las
+negativas:
+\begin{equation}\label{eq:lrp-gamma}
+  R_j = \sum_{k} \frac{a_j \bigl(w_{jk} + \gamma w^{+}_{jk}\bigr)}
+                      {\sum_{j=0}^{n} a_{j} \bigl(w_{jk} + \gamma w^{+}_{jk}\bigr)} \, R_k .
+\end{equation}
+Para $\gamma = 0$ se recupera la regla LRP-0.
+\end{definicion}
+
+\emph{Defecto que corrige.} Cuando en una neurona coexisten contribuciones
+positivas y negativas de magnitud parecida, la relevancia que reciben las
+neuronas de la capa inferior puede crecer mucho, tanto en positivo como en
+negativo, a medida que se propaga, y la explicación se vuelve inestable. El
+parámetro $\gamma$ controla cuánto se favorecen las contribuciones positivas: al
+aumentarlo, las negativas pierden peso progresivamente. El predominio de las
+contribuciones positivas limita el crecimiento de la relevancia durante la
+propagación y produce explicaciones más estables~\cite{montavon2019lrp}. La idea
+de tratar de forma asimétrica las contribuciones positivas y negativas procede
+de la regla LRP-$\alpha\beta$~\cite{bach2015}.
+
+\begin{observacion}[Caso límite: la regla $z^{+}$]\label{obs:lrp-zplus}
+Si $\sum_{j} a_{j} w^{+}_{jk} > 0$, al dividir el numerador y el denominador de
+la \cref{eq:lrp-gamma} entre $\gamma$ y hacer $\gamma \to \infty$ se obtiene
+\[
+  R_j = \sum_{k} \frac{a_j w^{+}_{jk}}{\sum_{j=0}^{n} a_{j} w^{+}_{jk}} \, R_k ,
+\]
+que es la regla $z^{+}$~\cite{montavon2017}. Esta regla equivale a
+LRP-$\alpha_1\beta_0$~\cite{bach2015} y a \emph{excitation
+backprop}~\cite{zhang2018excitation}~\cite{montavon2019lrp}.
+\end{observacion}
+
 \begin{definicion}[Relevancia y conservación~\cite{bach2015}]\label{def:lrp-conservacion}
 \pendiente{definición}
 \end{definicion}
