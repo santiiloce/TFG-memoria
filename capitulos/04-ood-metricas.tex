@@ -17,6 +17,39 @@ Para comenzar con una formalización matemática del problema OOD se debe esclar
     \end{itemize}
 \end{definicion}
 
+A continuación bajo la Definición 1 procedemos a definir el objetivo forma de la detección OOD el cual originalmente en (Scheirer et al., 2012)  se definió solo para la clasificación pero 
+en el OpenOOD v1.5: Enhanced Benchmark for Out-of-Distribution Detection se generalizó:
+
+\begin{definicion}\label{def:objetivoOOD}
+    Dada una distribución de referencia $\mathcal{D}_{\mathrm{ID}}$ y una distribución $\mathcal{D}_{\mathrm{OOD}}$ que está fuera de distribución con respecto a ella. Sea una función de detección $f$ definida como:
+    \[
+    f(x) = \begin{cases} 
+    0 & \text{si } x \in \mathcal{D}_{\mathrm{OOD}} \\ 
+    1 & \text{si } x \in \mathcal{D}_{\mathrm{ID}} 
+    \end{cases}
+    \]
+    Así pues el objetivo de la detección OOD se definde mediante la búsqueda de una función de detección f que minimice el riegso de espacio abierto: $$\arg \min_{f} R_{\mathcal{O}}(f)$$ donde: 
+    \begin{equation}\label{eq:objetivoOOD}
+    R_{\mathcal{O}}(f) = \frac{\iint f(x)p_{\mathcal{D}_{OOD}}(x,y)\,dx\,dy}{\iint f(x)p_{\mathcal{D}_{OOD}}(x,y)\,dx\,dy + \iint f(x)p_{\mathcal{D}_{ID}}(x,y)\,dx\,dy}
+\end{equation}
+
+\end{definicion}
+
+Así pues el riesgo de espacio abierto es una medida cuantitativa del error en el que incunbe un modelo
+al clasificar una muestra fuera de la distribución $\mathcal{D}_{\mathrm{OOD}}$ como si perteneciera a la distribución
+interna $\mathcal{D}_{\mathrm{ID}]}$. De esta forma el objetivo va a ser minimizar dicha función.
+
+Aunque existen ciertos matices a considerar sobre la definición 2, ya que se trabaja sobre una tarea base como la clasificación binaria de imágenes,
+el objetivo es demostrar la capacidad de generalización a otras tareas como la regresión. 
+
+\begin{definicion}[Detección OOD estándar]{def:deteccionOODestandar}
+
+\end{definicion} Dado un problema de clasificación de imágenes existe un conjunto de categorías semánticas que se considera 
+dentro de la distribución $\mathcal{Y}_{ID}$, y por tratarse un problema de mundo abierto existe un conjunto infinito de categorías semátnicas que no 
+pertenecen a la distribución (OOD) $\mathcal{Y}_{OOD}=\{y\vert{}y\notin\mathcal{Y}_{ID}\}$. En el caso de este estudio las 14 clases de prostatectomía radical conformarían nuestro 
+conjunto ID y cualquier categoría semántica ajena como árbol, perro, reloj..., será considerada OOD. En el momento de la inferencia dado una etiqueta de veracidad (ground-truth)
+
+
 
 \section{Distribución de los datos y cambios de distribución}\label{sec:cambios-distribucion}
 

@@ -11,16 +11,83 @@
 
 Como punto de partida contábamos con una base de datos de imágenes médicas clasificadas según el tipo de enfermedad que presentaban. La base contaba con las siguientes clases: \clase{Adenocarcinoma\_ductal}, \clase{Glandulas\_no\_neoplasicas}, \clase{Gleason\_4\_fusionadas}, \clase{Gleason\_5\_comedonecrosis}, \clase{No\_Cancer}, \clase{Carcinoma\_intraductal}, \clase{Gleason\_3}, \clase{Gleason\_4\_glomeruloide}, \clase{Gleason\_5\_no\_glandulas}, \clase{PIN\_de\_alto\_grado}, \clase{Estroma}, \clase{Gleason\_4\_cribiformes}, \clase{Gleason\_4\_pobremente\_formadas} e \clase{Inflamatorio}.
 
-La información de este apartado procede del artículo del conjunto de datos~\cite{ayensa2026}. El muestreo tisular fue realizado por residentes de anatomía patológica o por patólogos titulados. Las piezas se procesaron en un procesador automático de tejidos, se deshidrataron y se incluyeron en parafina. Se obtuvieron cortes de 3--5\,\si{\micro\metre} de grosor con un micrótomo, que se montaron en portaobjetos de vidrio, se desparafinaron y se tiñeron con hematoxilina y eosina (H\&E).
+La información de este apartado procede del artículo del conjunto de datos~\cite{ayensa2026}. El muestreo tisular fue realizado por patólogos experimentados con un amplio conocimiento en hispatología del cancer de próstata.
+En definitiva nuestro conjunto de datos consiste en muestras de prostatectomía radical, durante su obtención las piezas se procesaron en un procesador automático de tejidos, se deshidrataron y se incluyeron en parafina. Se obtuvieron cortes de 3--5\,\si{\micro\metre} de grosor con un micrótomo, que se montaron en portaobjetos de vidrio, se desparafinaron y se tiñeron con hematoxilina y eosina (H\&E).
 
-Las preparaciones teñidas con H\&E se digitalizaron con un escáner de preparaciones completas Aperio/Leica AT2 a 20$\times$ aumentos, con una resolución de escaneo de \num{50000} píxeles por pulgada (0,5\,\si{\micro\metre}/píxel). Las anotaciones se realizaron sobre 85 de esas imágenes de lámina completa (WSI). Todas las imágenes fueron segmentadas manualmente por patólogos experimentados con un amplio conocimiento de la histología del cáncer de próstata. Las regiones anotadas se clasificaron en 14 categorías histológicas distintas que reflejan patrones morfológicos reconocidos en la práctica clínica.
+Las preparaciones teñidas con H\&E se digitalizaron con un escáner de preparaciones completas Aperio/Leica AT2 a 20$\times$ aumentos, con una resolución de escaneo de \num{50000} píxeles por pulgada (0,5\,\si{\micro\metre}/píxel). Las anotaciones se realizaron sobre 85 de esas imágenes de lámina completa (WSI).  Al igual que en el muestreo tisular todas las imágenes fueron segmentadas manualmente por patólogos experimentados con un amplio conocimiento de la histología del cáncer de próstata. Las regiones anotadas se clasificaron en 14 categorías histológicas distintas que reflejan patrones morfológicos reconocidos en la práctica clínica.
 
-Cada WSI anotada se dividió en parches cuadrados de tamaño $H \times H = 224 \times 224$ píxeles, extraídos con un paso (\emph{stride}) de $p = 256$ píxeles. Un parche se asignaba a una clase concreta si más del 75\,\% de sus píxeles pertenecían a una región anotada como dicha clase; en caso contrario, se descartaba.
+Cada WSI anotada se dividió en parches cuadrados de tamaño $H \times H = 224 \times 224$ píxeles, y para evitar continuaciones directas entre una imagen y otra
+se aplicó un paso (\emph{stride}) de $p = 256$ píxeles. Un parche se asignaba a una clase concreta si más del 75\,\% de sus píxeles pertenecían a una región anotada como dicha clase; en caso contrario, se descartaba.
+
+
+Respecto a las clases aparece cierto grado de confusión entre las siguientes casos. Estas similitudes han sido halladas mediante el análisis de las matrices de confusión de los 5 modelos, considerando que únicamente existe una confusión real entre clases cuando todos los modelos la presentan. Además como referencia se usará los datos de la matriz de confusión de swin\_small\_patch4\_window7\_224 que se pueden observar en la figura 9.10:
+\begin{itemize}
+  \item \textbf{Gleason 3, glándulas no neoplásicas y glándulas 4 fusionadas:} Dado el conjunto de imágenes de Gleason 3 un 8,6\%  es clasificado como glándula no neoplásica y 4,7\% como Gleason 4 fusionadas.
+  \item \textbf{Gleason 4 fusionadas con Gleason 3 y Gleason 4 cribiformes:} Las imágenes son clasificadas como Gleason 3 en 1,6\% de los casos y en Gleason 4 cribiformes en un 4\%.
+  \item \textbf{Glomeruloides con Gleason 4 cribiformes:} Las imágenes son clasificadas en la clase incorrecta en un 32\% de los casos y un acierto de 52 \%. Cabe destacar el caso del modelo efficientnetv2\_s el cual llega a tener una clasificacion incorrecta como cribiformes del 36\% y un acierto del 48\%.
+  \item \textbf{Gleason 5 comedonecrosis con Gleason 4 cribiformes:} Este error de clasificacion es espcialmente particular, pues lo modelos de clasificar mal una muestra solo es clasificada en la clase Gleason 4 cribiformes. Todos los modelos presentan un error similar, 14,28\% de clasificacion incorrecta frente al 85,7\% de acierto. El caso más grave lo presenta el modelo Resnet50 con 23,21\% en la clase equivocada nombrada y un 66,07\% de acierto.
+\end{itemize}
+
+G3 estan bien delimitadas y en g4 hay una organización más anormal, según la partición que haga una clasificación gleason 3 puede pertenecer a gleason 4, depende subjetividad
+
+Ambas son proliferacion tumorales de patrón cribiforme, por lo que mantienen una estructura similar lo único que difieren es en la necrósis central que presentan gleason 5 que puede ser dificil de determinar si ocupa superficie menor o si no aparece bien en el parche.
+% En el preámbulo:
+% \usepackage{booktabs}
+% \usepackage{multirow}
+% \usepackage{tabularx}
+% \usepackage{array}
+
+\begin{table}[htbp]
+\centering
+\footnotesize
+\renewcommand{\arraystretch}{1.15}
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{2.6cm} >{\raggedright\arraybackslash}p{3.4cm} >{\raggedright\arraybackslash}X}
+\toprule
+\textbf{Categoría} & \textbf{Clase} & \textbf{Descripción} \\
+\midrule
+\multirow{4}{=}{Tejido no maligno}
+ & Estroma (HS) & Tejido de sostén de la próstata; es músculo liso y tejido conjuntivo. \\
+ & Glándulas no neoplásicas (NG) & Glándulas prostáticas normales. Son estructuras huecas con dos capas de células (basal y luminal). \\
+ & Tejido sano no estromal & Tejido benigno que no pertenece a ninguna de las clases anteriores, como por ejemplo vasos sanguíneos o tejido adíposo. Se trata de una clase pequeña. \\
+ & Tejido inflamatorio & Acúmulo de células inmunitarias; no se trata de cáncer y se identifica mediante muchos núcleos pequeños, oscuros, redondos y muy juntos. \\
+\midrule
+Gleason 3
+ & Gleason 3 (G3) & Cáncer con glándulas bien formadas e individuales. Más pequeñas que las normales y se encuentran entre glándulas sanas. \\
+\midrule
+\multirow{4}{=}{Gleason 4}
+ & Cribiformes (G4c) & Masa grande de células atravesada por muchas luces pequeñas, como un colador. \\
+ & Fusionadas (G4f) & Glándulas que se han unido unas con otras sin estroma entre ellas, formando estructuras irregulares. \\
+ & Pobremente formadas (G4p) & Debido a que en el campo de la medicina hay muchas escalas de grises, ciertas muestras no pueden ser clasificadas en ninguna clase en concreto por lo que se decide clasificar todas estas muestras independientes en una misma clase conjunta. Correspondería a una subclase de Gleason 4 caracterizadas por ser estructuras glandulares tumorales pequeñas, irregulares y mal definidas, con luces glandulares difíciles de identificar o prácticamente ausentes. Presentan una arquitectura incompleta que impide reconocer la formación de glándulas bien delimitadas, característica del patrón Gleason 3.\\
+ & Glomeruloides (G4g) & Glándula dilatada con un ovillo de células dentro, unido a un lado de la pared. \\
+\midrule
+\multirow{2}{=}{Gleason 5}
+ & Comedonecrosis (G5c) & Nidos sólidos o cribiformes de células tumorales con un centro de células muertas (necrosis), que se ve como un material rosado y sucio con restos de núcleos. \\
+ & Sin glándulas & El tumor ya no forma glándulas. Aparecen láminas sólidas, cordones o células sueltas infiltrando el estroma. Es el patrón más agresivo. \\
+\midrule
+\multirow{3}{=}{Lesiones que no se gradúan con Gleason}
+ & PIN de alto grado & Conductos y glándulas preexistentes (con su forma normal) revestidos por células con aspecto atípico (núcleos grandes, nucléolos visibles). \\
+ & Carcinoma intraductal (IC) & Células malignas que rellenan y ensanchan los conductos existentes, formando patrones sólidos o cribiformes densos y con mucha más atipia que el PIN. \\
+ & Adenocarcinoma ductal (DA)* & Una variante del cáncer de próstata que crece formando glándulas grandes revestidas por células altas y alargadas (cilíndricas), a menudo con estructuras papilares. \\
+\bottomrule
+\end{tabularx}
+\caption{Explicación breve de cada clase.}
+\label{tab:clases}
+\vspace{2pt}
+\begin{minipage}{\textwidth}
+\footnotesize * DA presenta 13117 parches pero de solo 12 pacientes; esto refleja la alta probabilidad de que se entrene con parches de una misma lámina que también presente parches en test.
+\end{minipage}
+\end{table}
 
 \revisar{traducción casi literal; parafrasear y citar}
 \revisar{añadida la frase de las 85 WSI anotadas (dato del artículo, como se pidió); la primera frase atribuye el apartado al artículo, en lugar del título «información extraída del paper de Iván Sevillano» de las notas}
 % La discrepancia con los nombres de fichero (95 láminas y rejilla de 224 px) se trata en
 % \cref{sec:fuga-laminas}.
+
+% En el preámbulo:
+% \usepackage{booktabs}
+% \usepackage{multirow}
+% \usepackage{tabularx}
+% \usepackage{array}
 
 \section{Partición e integridad}\label{sec:particion}
 
@@ -38,27 +105,11 @@ Para comenzar se necesita un conjunto de entrenamiento, uno de validación y uno
 % Las notas incluían además una tabla resumen (Train ID 90.800, Validación ID 22.691, Test ID
 % 12.618), recogida en la fila Total de la \cref{tab:particion}.
 
-\begin{figure}[tbp]
+\begin{figure}[H]
   \centering
-  \begin{subfigure}[b]{0.32\textwidth}
-    \centering
-    \includegraphics[width=\textwidth]{img/cap08/distribution_train.jpg}
-    \caption{Entrenamiento}
-  \end{subfigure}
-  \hfill
-  \begin{subfigure}[b]{0.32\textwidth}
-    \centering
-    \includegraphics[width=\textwidth]{img/cap08/distribution_val.jpg}
-    \caption{Validación}
-  \end{subfigure}
-  \hfill
-  \begin{subfigure}[b]{0.32\textwidth}
-    \centering
-    \includegraphics[width=\textwidth]{img/cap08/distribution_test.jpg}
-    \caption{Test}
-  \end{subfigure}
-  \caption{Distribución por clase de los conjuntos de entrenamiento, validación y test. \revisar{pie de figura redactado por el agente; las etiquetas de las gráficas aparecen cortadas y solapadas y los colores cambian entre paneles: regenerar}}
-  \label{fig:distribucion-particiones}
+  \includegraphics[width=0.7\textwidth]{img/cap08/distribution_train.jpg}
+  \caption{Distribución por clase del conjunto de entrenamiento. \revisar{pie de figura redactado por el agente; las etiquetas de la gráfica aparecen cortadas y solapadas: regenerar}}
+  \label{fig:distribucion-entrenamiento}
 \end{figure}
 
 \subsection{Verificación de la integridad}\label{sec:integridad}
