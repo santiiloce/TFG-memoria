@@ -6,19 +6,37 @@
 %*******************************************************
 
 \chapter{Explicabilidad}\label{cap:explicabilidad}
-Los grandes datasets suelen estar repletos de correlaciones espurias entre variables. Esto deja al modelo perplejo a la hora de decidir entre las variables correlacionadas
-cuáles usar para apoyar la predicción. Un ejemplo muy famoso y típico en la estadística es el aumento de asesinatos y ventas de helados entre los meses de mayo y 
-julio de un determinado año. El modelo detecta que existe algún tipo de correlación entre ambas variables, y sin embargo se estaría dando un caso de Clever-Hans, ya 
-que no existe causalidad entre ellas.
+\pendiente{introducción del capítulo: modelos de caja negra frente a caja blanca (petición del tutor, reunión del 30 oct); el trabajo se centra en LRP y CRP}
 
-Para la solución de este problema la selección de características es una buena aproximación presentando al modelo solo un pequeño conjunto de buenas características de entrada.
-Sin embargo esta aproximación no es útil en el contexto de reconocimiento de imágenes, pues el rol que abarca un píxel a nivel individual no está claro.
+Los conjuntos de datos de alta dimensión suelen contener correlaciones espurias:
+asociaciones entre variables que no responden a una relación causal, sino, por
+ejemplo, a un factor común. Un ejemplo clásico es la correlación entre las ventas
+de helados y el número de asesinatos, que aumentan a la vez durante los meses de
+verano porque ambos dependen de la temperatura. Ante varias variables
+correlacionadas, un modelo puede apoyarse en cualquiera de ellas para predecir,
+y nada garantiza que elija la que generaliza correctamente. Cuando un modelo
+acierta basándose en características que no tienen relación con la tarea, se
+habla de un predictor \emph{Clever Hans}, en alusión al caballo que parecía
+resolver operaciones aritméticas cuando en realidad respondía a gestos
+involuntarios de su dueño~\cite{lapuschkin2019}. En histopatología, por ejemplo,
+un clasificador podría apoyarse en la tinción, el escáner o el centro de origen
+de las imágenes en lugar de en la morfología del tejido.
+\pendiente{enlazar con los resultados propios: control interno del capítulo de detección OOD y firma de lámina del capítulo de fuga por lámina}
 
-El aprendizaje automático explicable mira al problema de la siguiente forma. Primero el modelo es 
-entrenado sin importar mucho en las características seleccionadas. Una vez que el modelo
-ha sido entrenado mediante las características que ha aprendido 'malas' características pueden ser 
-eliminadas y el modelo puede ser reentrenado con datos limpios. Un método simple, como la descomposición
-de Taylor produce explicaciones aplicando la expansión de Taylor de la predicción $f(x)$ en un punto de referencia cercano $\tilde{x}$:
+Una solución posible es la selección de características, que consiste en
+proporcionar al modelo solo un conjunto reducido de variables
+adecuadas~\cite{guyon2003}. Sin embargo, esta estrategia es difícil de aplicar en
+el reconocimiento de imágenes, donde el papel de cada píxel individual no está
+fijado de antemano.
+
+El aprendizaje automático explicable aborda el problema en sentido inverso:
+primero se entrena el modelo sin restringir las características de entrada y,
+una vez entrenado, se analiza cuáles ha aprendido a utilizar. A partir de esta
+información, las características inadecuadas pueden eliminarse y el modelo puede
+volver a entrenarse con datos corregidos~\cite{montavon2019lrp}. Un método
+sencillo para obtener estas explicaciones es la descomposición de Taylor, que
+desarrolla la predicción $f(x)$ en torno a un punto de referencia cercano
+$\tilde{x}$~\cite{montavon2019lrp}:
 
 \begin{equation}\label{eq:taylor-primer-orden}
   f(x) = f(\tilde{x}) + \sum_{i=1}^{d} (x_i - \tilde{x}_i) \cdot \bigl[\nabla f(\tilde{x})\bigr]_i + \dots
@@ -112,13 +130,12 @@ capa inferior, así que la relevancia que reciben no se propaga más; si no hay
 sesgos, toda la relevancia llega a las variables de entrada.
 \end{demostracion}
 
-
 La \cref{fig:lrp-esquema} ilustra el procedimiento completo.
 
 \begin{figure}[tbp]
   \centering
   \includegraphics[width=\textwidth]{img/LRP_explication.png}
-  \caption{Propagación de la predicción $f(x)$ hacia atrás a través de la red, capa a capa, mediante LRP. Fuente: Samek et al.~\cite{samek2019}.}
+  \caption{Propagación de la predicción $f(x)$ hacia atrás a través de la red, capa a capa, mediante LRP. Fuente: Montavon et al.~\cite{montavon2019lrp}.}
   \label{fig:lrp-esquema}
 \end{figure}
 
@@ -128,13 +145,12 @@ aplicada sobre magnitudes locales del grafo de la red~\cite{montavon2017} (\cref
 
 \subsection{Reglas de propagación}\label{sec:lrp-reglas}
 
-
 Consideremos redes neuronales profundas con activaciones ReLU (\emph{rectified
 linear unit}), la opción más extendida en las aplicaciones
 actuales~\cite{montavon2019lrp}, formadas por neuronas del tipo
 
 \begin{equation}\label{eq:lrp-neurona-relu}
-  a_k = \max\Bigl(0,\ \sum_{j=0}^{n} a_j w_{jk}\Bigr).
+  a_k = \max\Bigl(0,\ \sum_{j=0}^{n} a_j w_{jk}\Bigr),
 \end{equation}
 donde $a_1, \dots, a_n$ son las activaciones de la capa inferior y se añade una
 neurona ficticia $a_0 = 1$ cuyo peso $w_{0k}$ representa el sesgo de la
@@ -190,7 +206,6 @@ En la práctica, para que el denominador no se anule cuando $z_k < 0$, se suma
 $\varepsilon \operatorname{sign}(z_k)$ en lugar de $\varepsilon$, con el convenio
 $\operatorname{sign}(0) = 1$~\cite{achtibat2023}.
 
-
 \begin{definicion}[Regla gamma, LRP-$\gamma$~\cite{montavon2019lrp}]\label{def:lrp-gamma}
 Sea $\gamma \ge 0$ y sea $w^{+}_{jk} = \max(0, w_{jk})$ la parte positiva de cada
 peso. La regla LRP-$\gamma$ favorece las contribuciones positivas frente a las
@@ -227,7 +242,7 @@ backprop}~\cite{zhang2018excitation,montavon2019lrp}.
 La expresión anterior supone activaciones no negativas, como las que produce la
 ReLU. Cuando las activaciones de entrada pueden ser negativas, la regla $z^{+}$ se
 formula con la parte positiva de cada contribución~\cite{achtibat2023}:
- 
+
 \begin{definicion}[Regla $z^{+}$]\label{def:lrp-zplus}
 \begin{equation}\label{eq:lrp-zplus}
   R_j = \sum_{k} \frac{\bigl(a_j w_{jk}\bigr)^{+}}{\sum_{j=0}^{n} \bigl(a_j w_{jk}\bigr)^{+}} \, R_k ,
@@ -236,7 +251,7 @@ formula con la parte positiva de cada contribución~\cite{achtibat2023}:
 \end{definicion}
 Si $a_j \ge 0$ para todo $j$, se tiene $(a_j w_{jk})^{+} = a_j w^{+}_{jk}$ y se
 recupera la expresión de la \cref{obs:lrp-zplus}.
- 
+
 \begin{definicion}[Regla \emph{flat}, LRP-$\flat$~\cite{achtibat2023}]\label{def:lrp-flat}
 La regla \emph{flat} reparte la relevancia de cada neurona $k$ a partes iguales
 entre las neuronas de la capa inferior conectadas con ella, sin tener en cuenta
@@ -248,11 +263,14 @@ donde $n_k$ es el número de neuronas de la capa inferior conectadas con $k$.
 \end{definicion}
 \pendiente{para qué se usa: en la primera capa suaviza el mapa en el espacio de entrada y lo hace
 invariante a la normalización de la entrada~\cite{achtibat2023}}
- 
-\pendiente{reglas por capa y composite: recomendación de Montavon et al. (LRP-0 en capas superiores,
-$\varepsilon$ en intermedias, $\gamma$ en inferiores) y el composite LRP$_{\varepsilon\text{-}z^{+}\text{-}\flat}$
-usado por Achtibat et al. y en este trabajo; completar cuando se cierre la configuración (fase 2)}
 
+\pendiente{reglas por capa: recomendación de Montavon et al. (LRP-0 en capas superiores, $\varepsilon$ en intermedias, $\gamma$ en inferiores) y composite LRP$_{\varepsilon\text{-}z^{+}\text{-}\flat}$ de Achtibat et al.; describir la configuración final usada en ConvNeXt (variante A, results\_crp/fase5/scripts/composite\_final.py)}
+% Configuración final (variante A, fases 1-5):
+% - stem: flat; conv_dw, fc1, fc2 y conv de downsample: z+ sin sesgo (versión con signo, (a_j w_jk)^+);
+% - LayerNorm, GELU y BatchNorm1d de la cabeza: Pass (identidad);
+% - suma residual: reparto proporcional a |x| de cada rama (adaptación del principio de la regla |z| de Hui y Binder, 2019);
+% - Linear de la cabeza: epsilon sin sesgo (epsilon * sign(z)).
+% - Solo z+ (gamma = infinito) resultó estable en la búsqueda de la fase 5; las gamma finitas divergen con activaciones con signo.
 
 \subsection{LRP como descomposición de Taylor profunda}\label{sec:lrp-dtd}
 
@@ -304,12 +322,9 @@ desarrollada en su propio punto de referencia $\tilde{a}^{(k)}$:
 \end{equation}
 
 Cada elección del punto de referencia da lugar a una forma distinta de
-redistribuir la relevancia, y algunas elecciones concretas recuperan las reglas
-de la \cref{sec:lrp-reglas}.
-
-La siguiente proposición formaliza una observación de Montavon et
-al.~\cite{montavon2019lrp}, que relaciona las reglas de la \cref{sec:lrp-reglas} con
-elecciones concretas del punto de referencia.
+redistribuir la relevancia. La siguiente proposición formaliza una observación
+de Montavon et al.~\cite{montavon2019lrp}: algunas elecciones concretas
+recuperan las reglas de la \cref{sec:lrp-reglas}.
 
 \begin{proposicion}[Reglas LRP como casos de DTD]\label{prop:dtd-lrp}
 Supongamos que todas las neuronas $k$ de la capa superior son activas
@@ -363,6 +378,22 @@ al dato concreto es la explicación: LRP-0 es la regla con mayor distancia,
 mientras que LRP-$\varepsilon$ y LRP-$\gamma$ la reducen
 considerablemente~\cite{montavon2019lrp}.
 
+\subsection{Canonización y arquitecturas modernas}\label{sec:lrp-canonizacion}
+% - Canonización: reescribir el modelo de forma funcionalmente equivalente para que las reglas LRP se apliquen bien
+%   (Pahde et al. 2023; Motzkus et al. 2022; Guillemot et al. 2020).
+% - Fusión de BatchNorm con la capa lineal vecina (casos Linear->BN y BN->Linear); el sesgo resultante.
+% - Tratamiento del sesgo: excluirlo, asignarle relevancia (Wang et al. 2019) o la regla |z| (Hui y Binder 2019, ec. 9).
+% - Conexiones residuales: hacerlas visibles como módulo Sum (canonizer de zennit) y regla para repartir entre rama y atajo.
+% - ConvNeXt: GELU y LayerNorm no son ReLU ni BatchNorm; la justificación de la Taylor profunda es solo aproximada.
+\pendiente{canonización: BatchNorm, sesgos, conexiones residuales y particularidades de ConvNeXt}
+
+\subsection{Interpretación probabilística de la regla $z^{+}$}\label{sec:lrp-markov}
+% - Excitation Backprop (Zhang et al. 2018): P(j|k) = a_j w+_jk / sum_j a_j w+_jk, equivalente a z+.
+% - Cada capa con z+ es una matriz estocástica por columnas; la relevancia normalizada es la ley de una cadena de Markov inhomogénea.
+% - Coeficiente de ergodicidad de Dobrushin: submultiplicativo; productos de matrices estocásticas tienden a rango 1 (olvido del vector inicial).
+% - Consecuencia: insensibilidad a la clase de z+ (Sixt et al. 2020). Comprobación empírica en results_crp/fase5 (Markov).
+\pendiente{definición, proposición (submultiplicatividad del coeficiente de Dobrushin) y su relación con la insensibilidad a la clase}
+
 \section{Concept Relevance Propagation}\label{sec:crp}
 
 % Puntos que debería cubrir:
@@ -373,7 +404,9 @@ considerablemente~\cite{montavon2019lrp}.
 %   relevancia por capa (ec. 54 de Achtibat et al.).
 % - Uso en la segunda etapa de STOOD-X: mapas CRP de las características más presentes compartidas
 %   con los vecinos (capítulo 11 / 14).
+% - Decisión del TFG: dos formatos de explicación, (i) vecinos + 4 características al estilo de STOOD-X y (ii) atlas RelMax.
+% - Producción con la variante A (protocolo) y con Gradiente x Entrada condicional (comparación), results_crp/fase4.
+% - Limitación: con z+ los mapas condicionales de distintos conceptos se parecen (|rho| = 0,735 entre 4 canales).
 \pendiente{CRP}
-
 
 \endinput
