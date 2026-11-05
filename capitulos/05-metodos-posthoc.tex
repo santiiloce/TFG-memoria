@@ -73,7 +73,7 @@ Estos métodos modifican las activaciones o los pesos de la última capa del mod
 Grupo de métodos que comparan con la información de las características (\emph{features}) de entrenamiento:
 
 \begin{itemize}
-  \item \textbf{KNN}~\cite{sun2022knn}: guarda las características de entrenamiento (normalizadas) y, para cada imagen de test, mide la distancia a su $k$-ésimo vecino más cercano. Si está lejos de todo lo visto, es OOD.
+  \item \textbf{KNN}~\cite{sun2022knn}: normaliza el vector de características de cada imagen y mide su distancia al $k$-ésimo vecino más cercano entre las características de entrenamiento. Si esa distancia es grande, la imagen está lejos de todo lo visto en entrenamiento y se considera OOD. No supone ninguna forma concreta (por ejemplo, gaussiana) para la distribución de las características.
   \item \textbf{MDS} (Mahalanobis)~\cite{lee2018}: calcula la media de las características de cada clase y una covarianza compartida. La puntuación es la distancia de Mahalanobis a la media de la clase más cercana.
   \item \textbf{RMDS} (\emph{Relative Mahalanobis})~\cite{ren2021}: igual que MDS, pero resta la distancia a una gaussiana global de todo el conjunto de datos. Así corrige el hecho de que algunas direcciones del espacio de características son «fondo» común a todas las imágenes y no información de clase. Suele funcionar mejor en near-OOD.
   \item \textbf{ViM} (\emph{Virtual-logit Matching})~\cite{wang2022vim}: busca las direcciones principales del espacio de características de entrenamiento (análisis de componentes principales). Lo que queda fuera de ese subespacio principal (el residuo) se considera señal de OOD. Combina la norma de ese residuo con la energía de los logits.
@@ -83,13 +83,36 @@ Grupo de métodos que comparan con la información de las características (\emp
 \revisar{añadidas las citas a los artículos originales de KNN, MDS, RMDS, ViM y SHE}
 
 \begin{definicion}[Puntuación KNN]\label{def:knn}
-% s(x) = -\| z(x) - z_{(k)} \|, con z = h / \|h\| y z_{(k)} el k-ésimo vecino normalizado.
-\pendiente{definición}
+Sea $h(x) \in \R^D$ el vector de características de una imagen $x$ y sea
+$z(x) = h(x)/\norm{h(x)}$ su normalización. Sea
+$\mathcal{Z} = \{z(x_1), \ldots, z(x_N)\}$ el conjunto de características normalizadas
+del conjunto de entrenamiento. Para un entero $k \geq 1$, se denota $z_{(k)}(x)$ el
+$k$-ésimo elemento de $\mathcal{Z}$ más cercano a $z(x)$ en distancia euclídea. La
+puntuación KNN de $x$ es
+\begin{equation}
+  s_{\mathrm{KNN}}(x) = -\norm{z(x) - z_{(k)}(x)}_2 .
+\end{equation}
+Valores altos indican que $x$ tiene al menos $k$ imágenes de entrenamiento cercanas
+(«más ID»). La imagen se considera OOD si $s_{\mathrm{KNN}}(x) < \lambda$, donde el
+umbral $\lambda$ se elige para que se acepte una proporción prefijada de las imágenes
+ID (por ejemplo, el 95\,\%).
+
+Para vectores con norma uno se cumple $\|z - z'\|^2 = 2 - 2 \langle z, z' \rangle$ de forma que la distancia euclídea entre
+caracteristicas normalizadas equivale a la similitud coseno.
 \end{definicion}
 
 \begin{definicion}[Puntuación de Mahalanobis]\label{def:mds}
 % \mu_c medias por clase, \Sigma covarianza compartida; s(x) = -\min_c (h - \mu_c)^T \Sigma^{-1} (h - \mu_c).
-\pendiente{definición}
+Medida de distancia basada en cuanta desviación estándar una muestra de test x se encuentra de la media de una distribución
+multivariante gaussiana. Es definida como: 
+
+\begin{equation}
+D_M(x) = \sqrt{(x - \hat{\mu})^T \hat{\Sigma}^{-1} (x - \hat{\mu})}
+\end{equation}
+
+Se denota por $\hat{\mu}$ el vector de medias, $\hat{\Sigma}^{-1}$ la inversa de la matriz de covarianza de la distribución. 
+Esta medida es invariante a cambios de escala y considera además las correlaciones entre las dimensiones de los
+datos utilizados para estimar la distribución.\cite{lee2018}
 \end{definicion}
 
 \begin{proposicion}[Relación con el análisis discriminante lineal]\label{prop:mds-lda}
@@ -119,8 +142,88 @@ Grupo de métodos que comparan con la información de las características (\emp
 \end{proposicion}
 
 \begin{definicion}[SHE]\label{def:she}
-\pendiente{definición}
+Sea $\mathcal{D}_{\mathrm{train}} = \{(x_n, y_n)\}_{n=1}^{N}$ el conjunto de entrenamiento y
+$\hat y(x) = \argmax_k f_k(x)$ la clase predicha por el modelo. Para cada clase $c$, se
+considera el conjunto de \emph{patrones almacenados} formado por las características de las
+imágenes de entrenamiento de esa clase que el modelo clasifica correctamente,
+\begin{equation}
+  S_c = \{\, h(x_n) : y_n = c,\ \hat y(x_n) = c \,\}, \qquad N_c = |S_c|,
+\end{equation}
+y su \emph{patrón medio}
+\begin{equation}
+  \bar s_c = \frac{1}{N_c} \sum_{h \in S_c} h .
+\end{equation}
+La puntuación SHE de una imagen $x$ es el producto escalar entre sus características y el
+patrón medio de la clase predicha:
+\begin{equation}
+  s_{\mathrm{SHE}}(x) = h(x)^{\top} \, \bar s_{\hat y(x)} .
+\end{equation}
+Valores altos indican mayor parecido con los patrones de entrenamiento de la clase predicha
+(«más ID»).
 \end{definicion}
+
+El método sigue un esquema de \emph{almacenar y comparar}: durante la preparación se guardan
+representaciones de los datos ID de cada clase y, en test, se mide la discrepancia entre la
+representación de la imagen y los patrones almacenados de la clase que el modelo le asigna.
+La idea de fondo, ilustrada por los autores con visualizaciones t-SNE, es que el entrenamiento
+agrupa las representaciones de las imágenes ID de una misma clase en torno a un patrón común,
+mientras que las de las imágenes OOD no se ajustan a ninguno de esos patrones~\cite{zhang2023she}.
+A diferencia de la mayoría de los métodos basados en logits, la puntuación no depende solo de
+la imagen de test, sino también de la información de todas las imágenes de entrenamiento de la
+clase predicha. Además, no tiene hiperparámetros y solo requiere almacenar $C$ vectores.
+
+\begin{observacion}[Origen en la energía de las redes de Hopfield modernas]\label{obs:she-hopfield}
+Las redes de Hopfield modernas~\cite{ramsauer2021} almacenan un conjunto de patrones
+$S = [s_1, \ldots, s_N] \in \R^{D \times N}$ y recuperan, a partir de un patrón de entrada
+$\xi \in \R^{D}$, el patrón almacenado más parecido minimizando la energía
+\begin{equation}
+  E(\xi) = -\operatorname{lse}\bigl(\beta, \xi^{\top} S\bigr) + \tfrac{1}{2}\,\xi^{\top}\xi + c,
+  \qquad
+  \operatorname{lse}(\beta, e) = \frac{1}{\beta} \log \sum_{j=1}^{N} \exp(\beta e_j),
+\end{equation}
+donde $\beta > 0$ y $c$ son constantes y $e_j = \xi^{\top} s_j$. Cuanto más se parece $\xi$ a
+los patrones almacenados, menor es la energía. Zhang et al.~\cite{zhang2023she} proponen usar
+el primer término como puntuación de similitud (método HE): con $\xi = h(x)$ y los patrones
+$S_i$ de la clase predicha $i = \hat y(x)$,
+\begin{equation}
+  \mathrm{HE}(x) = \operatorname{lse}\bigl(\beta, h(x)^{\top} S_i\bigr).
+\end{equation}
+Prescinden del término $\tfrac12 \xi^{\top}\xi$, que en la red de Hopfield solo evita que el
+patrón crezca durante las actualizaciones, porque la magnitud de las características también
+aporta información para distinguir ID de OOD, y de la constante $c$, que no altera el orden de
+las puntuaciones.
+
+SHE se obtiene de HE para $\beta$ pequeño. Con las aproximaciones de Taylor
+$e^{t} \approx 1 + t$ y $\log(1 + t) \approx t$,
+\begin{equation}
+  \operatorname{lse}(\beta, e_i)
+  \approx \frac{1}{\beta} \log \sum_{j=1}^{N_i} (1 + \beta e_{ij})
+  = \frac{1}{\beta} \log N_i + \frac{1}{\beta} \log\bigl(1 + \beta\, h(x)^{\top} \bar s_i\bigr)
+  \approx \frac{1}{\beta} \log N_i + h(x)^{\top} \bar s_i .
+\end{equation}
+El primer sumando es igual para todas las imágenes con la misma clase predicha, y los autores
+lo descartan para quedarse con $s_{\mathrm{SHE}}$. Así, cada conjunto de patrones $S_i$ se
+reduce a su media $\bar s_i$ y desaparece el hiperparámetro $\beta$. En sentido contrario, por
+la \cref{prop:logsumexp} aplicada a $\beta e_i$, cuando $\beta \to \infty$ la puntuación HE tiende
+al máximo producto escalar con un patrón almacenado. HE se sitúa por tanto entre dos extremos:
+la comparación con el patrón más parecido ($\beta$ grande) y la comparación con el patrón medio
+($\beta$ pequeño, SHE).
+\end{observacion}
+
+\begin{observacion}[Elección de la capa y de la medida de similitud]\label{obs:she-capa}
+Los autores justifican el uso de la penúltima capa en lugar de los logits como patrones con un
+argumento que llaman \emph{alineación de picos}: si se usaran los logits, el patrón medio de la
+clase predicha $i$ tendría su máximo precisamente en la componente $i$, la misma en la que lo
+tiene el logit de cualquier imagen clasificada en esa clase, sea ID u OOD. El producto escalar
+sería alto también para las imágenes OOD. Las características de la penúltima capa no
+concentran su valor en una sola componente, y la puntuación separa mejor ambos tipos de
+imágenes. Lo respaldan con un análisis bajo hipótesis de normalidad e independencia
+(apéndice~B del artículo) y, empíricamente, con una reducción del FPR@95 medio sobre nueve
+conjuntos OOD, por ejemplo de 31,70\,\% a 11,74\,\% con ResNet-18 y CIFAR-10 como datos
+ID~\cite{zhang2023she}. En el mismo trabajo, el producto escalar supera a la distancia euclídea
+y a la similitud coseno como medida de similitud, lo que sugiere que la norma de las
+características, que el coseno descarta, contiene información útil para la detección.
+\end{observacion}
 
 \section{STOOD-X}\label{sec:metodo-stoodx}
 
@@ -129,14 +232,100 @@ Se trata de una metodología post hoc de detección OOD en dos etapas~\cite{sevi
 Sea $x$ una imagen cuya clase predicha por el modelo es $c$, y sea $X_{\mathrm{set}}$ el conjunto de características de entrenamiento de esa clase. Se denota $X_k = \{x_1, \ldots, x_K\}$ el conjunto de los $K$ vecinos más cercanos de $x$ en $X_{\mathrm{set}}$ según una distancia $d$ y, para cada vecino $x_i$, $X_k^{i}$ el conjunto de sus $K$ vecinos más cercanos en $X_{\mathrm{set}} \setminus \{x_i\}$. La hipótesis del método es que, si $x$ pertenece a la distribución de entrenamiento, las distancias $D(x, X_k)$ y $D(x_i, X_k^{i})$ siguen la misma distribución; si $x$ es OOD, las primeras serán mayores. Para contrastarlo se aplica el test unilateral de Wilcoxon-Mann-Whitney (\cref{sec:mann-whitney}) entre ambos conjuntos de distancias, con un total de $M = K + K^2$ distancias, y el $p$-valor resultante se utiliza como puntuación: valores altos indican pertenencia a la distribución.
 
 \begin{definicion}[Puntuación de STOOD-X]\label{def:stoodx}
-% A = \{d(x, x_i)\}_{i=1}^K (K valores), B = \{d(x_i, x_j) : x_j \in X_k^i\}_{i=1}^K (K^2 valores);
-% hipótesis alternativa: las distancias de A son estocásticamente mayores que las de B;
-% puntuación p(x) (artículo) o -z(x) (este trabajo, \cref{sec:stoodx-puntuacion}).
-\pendiente{definición formal}
+Sea $x$ una imagen de test con clase predicha $c = \hat y(x)$ y sea
+$X_{\mathrm{set}} = \{h(x_n) : y_n = c\}$ el conjunto de características de entrenamiento de
+la clase $c$. Se emplea la distancia coseno
+\begin{equation}
+  d(u, v) = 1 - \frac{u^{\top} v}{\lVert u \rVert \, \lVert v \rVert}, \qquad u, v \in \R^D .
+\end{equation}
+Con la notación anterior ($X_k$ los $K$ vecinos más cercanos de $h(x)$ en $X_{\mathrm{set}}$ y
+$X_k^{i}$ los $K$ vecinos más cercanos de $x_i$ en $X_{\mathrm{set}} \setminus \{x_i\}$), se
+definen dos muestras de distancias:
+\begin{align}
+  A(x) &= \bigl\{\, d(h(x), x_i) : x_i \in X_k \,\bigr\},
+       & n_1 &= |A(x)| = K, \\
+  B(x) &= \bigl\{\, d(x_i, x_j) : x_i \in X_k,\ x_j \in X_k^{i} \,\bigr\},
+       & n_2 &= |B(x)| = K^2,
+\end{align}
+donde $B(x)$ se entiende como multiconjunto (una misma distancia puede aparecer varias veces).
+Se contrasta la hipótesis nula de que las distancias de $A(x)$ y de $B(x)$ siguen la misma
+distribución frente a la alternativa unilateral de que las de $A(x)$ son estocásticamente
+mayores, es decir, de que $x$ está más lejos de sus vecinos que estos de los suyos.
+
+Sea $R_1$ la suma de los rangos de los elementos de $A(x)$ en la muestra conjunta de
+$M = n_1 + n_2 = K + K^2$ distancias, asignando a los empates el rango medio, y sea
+\begin{equation}
+  U(x) = R_1 - \frac{n_1 (n_1 + 1)}{2}
+\end{equation}
+el estadístico de Mann-Whitney (\cref{sec:mann-whitney}). Se definen:
+\begin{enumerate}
+  \item \emph{Puntuación del artículo}~\cite{sevillano2026}: el $p$-valor unilateral
+        $p(x) = \Prob_{H_0}\bigl(U \geq U(x)\bigr)$. Valores altos indican pertenencia a la
+        distribución de entrenamiento, y $x$ se clasifica como OOD si $p(x) < \alpha$ para un
+        nivel de significación $\alpha$ prefijado.
+  \item \emph{Puntuación empleada en este trabajo}: el opuesto del estadístico tipificado
+        \begin{equation}
+          z(x) = \frac{U(x) - \frac{n_1 n_2}{2} - \frac12}{\sigma_U},
+          \qquad
+          \sigma_U^2 = \frac{n_1 n_2}{12}
+          \left[ (M + 1) - \frac{\sum_{g} (t_g^3 - t_g)}{M (M - 1)} \right],
+        \end{equation}
+        donde $t_g$ es el número de distancias empatadas en el grupo $g$ y el término $-\frac12$
+        es la corrección por continuidad. La puntuación es $s_{\mathrm{STOOD}}(x) = -z(x)$.
+\end{enumerate}
 \end{definicion}
+
+\begin{observacion}[Equivalencia de ambas puntuaciones]\label{obs:stoodx-z}
+Con la aproximación normal, $p(x) \approx 1 - \Phi\bigl(z(x)\bigr)$, que es una función
+estrictamente decreciente de $z(x)$. Por tanto, $p(x)$ y $-z(x)$ ordenan las imágenes de la
+misma forma, y las métricas basadas en el orden (AUROC, FPR@95, CCR@FPR5) coinciden salvo
+empates numéricos. Con $K = 500$ hay $M = 250\,500$ distancias, y para muchas imágenes OOD el
+$p$-valor es menor que el menor número representable en coma flotante: se redondea a cero y
+se pierde el orden entre ellas. El estadístico $z(x)$ no tiene ese problema
+(\cref{sec:stoodx-puntuacion}).
+\end{observacion}
+
+\begin{observacion}[Elección del test]\label{obs:stoodx-test}
+El artículo justifica el uso de un test no paramétrico porque las distancias, al ser
+estrictamente positivas, no siguen una distribución normal (lo comprueban con el test de
+Shapiro-Wilk), y los tests no paramétricos son preferibles en ese caso. Lo describe como un
+test de Wilcoxon-Mann-Whitney con hipótesis nula $X - Y \leq 0$ y alternativa $X - Y > 0$. Como
+$A(x)$ y $B(x)$ tienen tamaños distintos ($K$ frente a $K^2$) y sus elementos no están
+emparejados, el test aplicable es el de Mann-Whitney para dos muestras independientes, y no
+el de rangos con signo de Wilcoxon para datos pareados. Esta es la interpretación adoptada
+en este trabajo.
+\end{observacion}
+
+\paragraph{Hiperparámetros y coste computacional.}
+El método tiene tres hiperparámetros~\cite{sevillano2026}: la distancia $d$ (coseno, adecuada
+para espacios de alta dimensión), el número de vecinos $K$ y la proporción $N_f$ de
+características empleadas. Los autores prueban $K \in \{9, 18, 36, 72, 144, 288, 500\}$ y el
+conjunto de entrenamiento completo, observan que el rendimiento mejora con $K$ pero con
+ganancias decrecientes, y fijan $K = 500$ como compromiso entre rendimiento y tiempo de
+cálculo. $N_f$ selecciona las características más relevantes de la penúltima capa según su
+relevancia absoluta calculada con CRP. Para un conjunto de referencia de tamaño $N$ y
+características de dimensión $D$, el coste por imagen es
+$O(N D + N \log N + M \log M)$, que para $K$ grande se reduce a
+$O(N \log N + K^2 \log K)$ dominado por el cálculo de distancias y la ordenación.
 
 % Segunda etapa (explicación): vecinos más cercanos y características más relevantes compartidas,
 % seleccionadas con CRP en el artículo (\cref{sec:crp}).
-\pendiente{segunda etapa del método: explicaciones}
+La segunda etapa genera explicaciones para el usuario final, en la línea de la inteligencia
+artificial explicable BLUE (responsable, legal, confiable y ética) y en dos pasos:
+\begin{enumerate}
+  \item \emph{Búsqueda de vecinos.} Se muestran las imágenes de entrenamiento más cercanas a
+        $x$ en el espacio de características. Como la puntuación se basa precisamente en esas
+        distancias, los vecinos explican de forma directa por qué la puntuación es alta o
+        baja: si se parecen visualmente a $x$, la decisión ID está respaldada por ejemplos
+        validados; si no, la imagen no tiene precedentes cercanos.
+  \item \emph{Visualización de características.} Para las características más relevantes,
+        seleccionadas con CRP (\cref{sec:crp}), se muestra dónde aparecen en la imagen de test y
+        en sus vecinos. El usuario puede comprobar si la imagen comparte con sus vecinos los
+        mismos conceptos o si la decisión se apoya en características ajenas a la tarea, como
+        un fondo o un objeto irrelevante, lo que puede revelar un sesgo del modelo.
+\end{enumerate}
+Esta etapa resulta especialmente útil en los casos dudosos: en lugar de una decisión opaca,
+el sistema presenta al usuario los ejemplos validados más próximos y le pregunta, de forma
+implícita, si la nueva imagen debe procesarse aunque no se parezca a ninguno de ellos.
 
 \endinput

@@ -121,6 +121,32 @@
   year    = {2022}
 }
 
+@article{denouden2018improving,
+  title={Improving Reconstruction Autoencoder Out-of-distribution Detection with Mahalanobis Distance},
+  author={Denouden, Taylor and Salay, Rick and Czarnecki, Krzysztof and Abdelzad, Vahdat and Phan, Buu and Vernekar, Sachin},
+  journal={arXiv preprint arXiv:1812.02765},
+  year={2018}
+}
+
+
+@inproceedings{sun2022knn,
+  author    = {Sun, Yiyou and Ming, Yifei and Zhu, Xiaojin and Li, Yixuan},
+  title     = {Out-of-Distribution Detection with Deep Nearest Neighbors},
+  booktitle = {Proceedings of the 39th International Conference on Machine Learning (ICML)},
+  series    = {Proceedings of Machine Learning Research},
+  volume    = {162},
+  pages     = {20827--20840},
+  year      = {2022},
+  note      = {arXiv:2204.06507}
+}
+
+@inproceedings{ramsauer2021,
+  author    = {Ramsauer, Hubert and Sch{\"a}fl, Bernhard and Lehner, Johannes and Seidl, Philipp and Widrich, Michael and Gruber, Lukas and Holzleitner, Markus and Pavlovi{\'c}, Milena and Sandve, Geir Kjetil and Greiff, Victor and Kreil, David and Kopp, Michael and Klambauer, G{\"u}nter and Brandstetter, Johannes and Hochreiter, Sepp},
+  title     = {Hopfield Networks is All You Need},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year      = {2021}
+}
+
 % ---------------------------------------------------------------------
 % Limitaciones y métodos generativos
 % ---------------------------------------------------------------------
@@ -266,12 +292,12 @@
 % ---------------------------------------------------------------------
 % Entrenamiento
 % ---------------------------------------------------------------------
-@article{kingma2014,
-  author  = {Kingma, Diederik P. and Ba, Jimmy},
-  title   = {Adam: A Method for Stochastic Optimization},
-  journal = {arXiv preprint arXiv:1412.6980},
-  year    = {2014},
-  note    = {Publicado en ICLR 2015}
+@inproceedings{kingma2014,
+  author    = {Kingma, Diederik P. and Ba, Jimmy},
+  title     = {Adam: A Method for Stochastic Optimization},
+  booktitle = {3rd International Conference on Learning Representations (ICLR)},
+  year      = {2015},
+  note      = {arXiv:1412.6980}
 }
 
 @inproceedings{loshchilov2019,
@@ -459,14 +485,6 @@
   note      = {arXiv:2010.03759}
 }
 
-@inproceedings{sun2022knn,
-  author    = {Sun, Yiyou and Ming, Yifei and Zhu, Xiaojin and Li, Yixuan},
-  title     = {Out-of-Distribution Detection with Deep Nearest Neighbors},
-  booktitle = {International Conference on Machine Learning (ICML)},
-  year      = {2022},
-  note      = {arXiv:2204.06507}
-}
-
 @article{ren2021,
   author  = {Ren, Jie and Fort, Stanislav and Liu, Jeremiah and Roy, Abhijit Guha and Padhy, Shreyas and Lakshminarayanan, Balaji},
   title   = {A Simple Fix to {Mahalanobis} Distance for Improving Near-{OOD} Detection},
@@ -591,7 +609,90 @@
   editor    = {Samek, Wojciech and Montavon, Gr{\'e}goire and Vedaldi, Andrea and Hansen, Lars Kai and M{\"u}ller, Klaus-Robert},
   title     = {Explainable {AI}: Interpreting, Explaining and Visualizing Deep Learning},
   series    = {Lecture Notes in Computer Science},
+  volume    = {11700},
   publisher = {Springer},
   year      = {2019},
   doi       = {10.1007/978-3-030-28954-6}
+}
+
+% ---------------------------------------------------------------------
+% Referencias del capítulo 7 (verificadas en Crossref, arXiv y PMLR el 05/11/2026)
+% ---------------------------------------------------------------------
+@incollection{montavon2019lrp,
+  author    = {Montavon, Gr{\'e}goire and Binder, Alexander and Lapuschkin, Sebastian and Samek, Wojciech and M{\"u}ller, Klaus-Robert},
+  title     = {Layer-Wise Relevance Propagation: An Overview},
+  booktitle = {Explainable {AI}: Interpreting, Explaining and Visualizing Deep Learning},
+  series    = {Lecture Notes in Computer Science},
+  volume    = {11700},
+  publisher = {Springer},
+  year      = {2019},
+  pages     = {193--209},
+  doi       = {10.1007/978-3-030-28954-6_10}
+}
+
+@article{montavon2018,
+  author  = {Montavon, Gr{\'e}goire and Samek, Wojciech and M{\"u}ller, Klaus-Robert},
+  title   = {Methods for Interpreting and Understanding Deep Neural Networks},
+  journal = {Digital Signal Processing},
+  year    = {2018},
+  volume  = {73},
+  pages   = {1--15},
+  doi     = {10.1016/j.dsp.2017.10.011}
+}
+
+@inproceedings{balduzzi2017,
+  author    = {Balduzzi, David and Frean, Marcus and Leary, Lennox and Lewis, J. P. and Ma, Kurt Wan-Duo and McWilliams, Brian},
+  title     = {The Shattered Gradients Problem: If resnets are the answer, then what is the question?},
+  booktitle = {Proceedings of the 34th International Conference on Machine Learning (ICML)},
+  series    = {Proceedings of Machine Learning Research},
+  volume    = {70},
+  pages     = {342--350},
+  year      = {2017},
+  note      = {arXiv:1702.08591}
+}
+
+@inproceedings{szegedy2014,
+  author    = {Szegedy, Christian and Zaremba, Wojciech and Sutskever, Ilya and Bruna, Joan and Erhan, Dumitru and Goodfellow, Ian and Fergus, Rob},
+  title     = {Intriguing Properties of Neural Networks},
+  booktitle = {2nd International Conference on Learning Representations (ICLR)},
+  year      = {2014},
+  note      = {arXiv:1312.6199}
+}
+
+@inproceedings{landecker2013,
+  author    = {Landecker, Will and Thomure, Michael D. and Bettencourt, Luis M. A. and Mitchell, Melanie and Kenyon, Garrett T. and Brumby, Steven P.},
+  title     = {Interpreting Individual Classifications of Hierarchical Networks},
+  booktitle = {2013 IEEE Symposium on Computational Intelligence and Data Mining (CIDM)},
+  year      = {2013},
+  pages     = {32--38},
+  doi       = {10.1109/CIDM.2013.6597214}
+}
+
+@article{shrikumar2016,
+  author  = {Shrikumar, Avanti and Greenside, Peyton and Shcherbina, Anna and Kundaje, Anshul},
+  title   = {Not Just a Black Box: Learning Important Features Through Propagating Activation Differences},
+  journal = {arXiv preprint arXiv:1605.01713},
+  year    = {2016}
+}
+
+@inproceedings{shrikumar2017,
+  author    = {Shrikumar, Avanti and Greenside, Peyton and Kundaje, Anshul},
+  title     = {Learning Important Features Through Propagating Activation Differences},
+  booktitle = {Proceedings of the 34th International Conference on Machine Learning (ICML)},
+  series    = {Proceedings of Machine Learning Research},
+  volume    = {70},
+  pages     = {3145--3153},
+  year      = {2017},
+  note      = {arXiv:1704.02685}
+}
+
+@article{zhang2018excitation,
+  author  = {Zhang, Jianming and Bargal, Sarah Adel and Lin, Zhe and Brandt, Jonathan and Shen, Xiaohui and Sclaroff, Stan},
+  title   = {Top-Down Neural Attention by Excitation Backprop},
+  journal = {International Journal of Computer Vision},
+  year    = {2018},
+  volume  = {126},
+  number  = {10},
+  pages   = {1084--1102},
+  doi     = {10.1007/s11263-017-1059-x}
 }

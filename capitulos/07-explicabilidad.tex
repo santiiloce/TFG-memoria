@@ -7,12 +7,12 @@
 
 \chapter{Explicabilidad}\label{cap:explicabilidad}
 Los grandes datasets suelen estar repletos de correlaciones espurias entre variables. Esto deja al modelo perplejo a la hora de decidir entre las variables correlacionadas
-cuales usar para apoyar la predicción. Un ejemplo muy famoso y típico en la estadística es el aumento de asesinatos y ventas de helados entre los meses de mayo y 
+cuáles usar para apoyar la predicción. Un ejemplo muy famoso y típico en la estadística es el aumento de asesinatos y ventas de helados entre los meses de mayo y 
 julio de un determinado año. El modelo detecta que existe algún tipo de correlación entre ambas variables, y sin embargo se estaría dando un caso de Clever-Hans, ya 
-que no existe causalidad entre ellas
+que no existe causalidad entre ellas.
 
-Para la solución de este problma la selección de características es una buena aproximación presentando al modelo solo un pequeño conjunto de buenas características de entrada.
-Sin embargo esta aproximación no es útil en el contexto de reconocimiento de imágenes, pues el rol que abarca un pixel a nivel individual no está claro.
+Para la solución de este problema la selección de características es una buena aproximación presentando al modelo solo un pequeño conjunto de buenas características de entrada.
+Sin embargo esta aproximación no es útil en el contexto de reconocimiento de imágenes, pues el rol que abarca un píxel a nivel individual no está claro.
 
 El aprendizaje automático explicable mira al problema de la siguiente forma. Primero el modelo es 
 entrenado sin importar mucho en las características seleccionadas. Una vez que el modelo
@@ -134,7 +134,7 @@ linear unit}), la opción más extendida en las aplicaciones
 actuales~\cite{montavon2019lrp}, formadas por neuronas del tipo
 
 \begin{equation}\label{eq:lrp-neurona-relu}
-  a_k = \max\Bigl(0,\ \sum_{0,j}^{n} a_j w_{jk}\Bigr).
+  a_k = \max\Bigl(0,\ \sum_{j=0}^{n} a_j w_{jk}\Bigr).
 \end{equation}
 donde $a_1, \dots, a_n$ son las activaciones de la capa inferior y se añade una
 neurona ficticia $a_0 = 1$ cuyo peso $w_{0k}$ representa el sesgo de la
@@ -221,7 +221,7 @@ la \cref{eq:lrp-gamma} entre $\gamma$ y hacer $\gamma \to \infty$ se obtiene
 \]
 que es la regla $z^{+}$~\cite{montavon2017}. Esta regla equivale a
 LRP-$\alpha_1\beta_0$~\cite{bach2015} y a \emph{excitation
-backprop}~\cite{zhang2018excitation}~\cite{montavon2019lrp}.
+backprop}~\cite{zhang2018excitation,montavon2019lrp}.
 \end{observacion}
 
 La expresión anterior supone activaciones no negativas, como las que produce la
@@ -296,10 +296,6 @@ orden:
 y el término de orden cero puede hacerse tan pequeño como se quiera eligiendo
 $\tilde{a}$ cerca del punto de corte de la ReLU. 
 
-Cada elección del punto de referencia da lugar a una forma distinta de
-redistribuir la relevancia, y algunas elecciones concretas recuperan las reglas
-de la \cref{sec:lrp-reglas}:
-
 La relevancia que recibe cada neurona $j$ es, entonces, la suma de los términos
 de primer orden de todas las neuronas $k$ a las que está conectada, cada una
 desarrollada en su propio punto de referencia $\tilde{a}^{(k)}$:
@@ -307,8 +303,12 @@ desarrollada en su propio punto de referencia $\tilde{a}^{(k)}$:
   R_j = \sum_{k} \bigl(a_j - \tilde{a}^{(k)}_j\bigr) \, w_{jk} c_k .
 \end{equation}
 
+Cada elección del punto de referencia da lugar a una forma distinta de
+redistribuir la relevancia, y algunas elecciones concretas recuperan las reglas
+de la \cref{sec:lrp-reglas}.
+
 La siguiente proposición formaliza una observación de Montavon et
-al.~\cite{montavon2019lrp}, que relaciona las reglas de la \cref{sec:...} con
+al.~\cite{montavon2019lrp}, que relaciona las reglas de la \cref{sec:lrp-reglas} con
 elecciones concretas del punto de referencia.
 
 \begin{proposicion}[Reglas LRP como casos de DTD]\label{prop:dtd-lrp}
@@ -363,6 +363,8 @@ al dato concreto es la explicación: LRP-0 es la regla con mayor distancia,
 mientras que LRP-$\varepsilon$ y LRP-$\gamma$ la reducen
 considerablemente~\cite{montavon2019lrp}.
 
+\section{Concept Relevance Propagation}\label{sec:crp}
+
 % Puntos que debería cubrir:
 % - CRP (Achtibat et al., 2023): condicionar la propagación de relevancia a un concepto (canal o
 %   neurona) para obtener mapas de relevancia por concepto.
@@ -371,9 +373,7 @@ considerablemente~\cite{montavon2019lrp}.
 %   relevancia por capa (ec. 54 de Achtibat et al.).
 % - Uso en la segunda etapa de STOOD-X: mapas CRP de las características más presentes compartidas
 %   con los vecinos (capítulo 11 / 14).
-
-
-\section{Concept Relevance Propagation}\label{sec:crp}
+\pendiente{CRP}
 
 
 \endinput

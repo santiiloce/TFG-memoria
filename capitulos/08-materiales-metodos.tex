@@ -244,7 +244,8 @@ Vamos a usar el repositorio OpenOOD~\cite{openood} para continuar con nuestro an
 %   (config.json de la fase A).
 % - Software de la evaluación OOD: Python 3.9.25, PyTorch 2.8.0 (CUDA 12.8), timm 1.0.25,
 %   NumPy 1.26.4, scikit-learn 1.6.1, pandas 1.5.3, OpenOOD (commit 3c35632).
-% - Software del entrenamiento: fastai (entorno fastai_env) \pendiente{versiones}.
+% - Software del entrenamiento: fastai 2.7.19 y PyTorch 1.12.1 (entorno fastai_env; slurm-*.out).
+% - Software de la explicabilidad: torch 2.8 y fastai 2.7.19 (entorno crp_env).
 \pendiente{hardware y software}
 
 \section{Protocolo de entrenamiento}\label{sec:protocolo}
@@ -263,14 +264,24 @@ Debido a la complejidad del problema, no tardó en aparecer el error de memoria 
 \revisar{«infiriendo» corregido a «influyendo»}
 \revisar{añadida la cita a Micikevicius et al. (2018) para la precisión mixta}
 
-% Configuración del entrenamiento (clasificador_svim.py), para completar este apartado:
+% Configuración real del entrenamiento, para completar este apartado:
 % - Preprocesado: Resize al tamaño de entrada con method='squish' (224 px; ConvNeXt-S a 256 px),
 %   aug_transforms() de fastai y normalización con las estadísticas de ImageNet.
 % - Pérdida: LabelSmoothingCrossEntropy (\varepsilon = 0,1, \cref{def:label-smoothing}).
-% - fit_one_cycle durante 25 épocas con lr_max = 1e-4; EarlyStoppingCallback sobre valid_loss
-%   (min_delta = 0,005, patience = 10); to_fp16().
+% - Común a los cinco: Adam de fastai (decaimiento desacoplado, es decir, AdamW), wd = 0,1,
+%   sqr_mom = 0,99, eps = 1e-5, moms = (0,95; 0,85; 0,95), lote de 64, to_fp16(), y
+%   EarlyStoppingCallback sobre valid_loss (min_delta = 0,005, patience = 10).
+% - ViT-B/16, ResNet-50, ConvNeXt-S y EfficientNetV2-S (clasificador.py): vision_learner con ps = 0,5,
+%   lr_find (valley) y fine_tune(epochs = 90, freeze_epochs = 10, base_lr = lr_valley). Tras las 10
+%   épocas congeladas, la parada temprana dejó 28, 22, 40 y 51 épocas. lr máxima de la cabeza,
+%   reconstruida del optimizador guardado en el .pth: 6,01e-4, 5,00e-4, 4,16e-4 y 7,23e-4; la del
+%   cuerpo es 100 veces menor.
+% - Swin-S (clasificador_svim.py): Learner sobre el modelo de timm, sin congelar, y
+%   fit_one_cycle(25, lr_max = 1e-4). La parada temprana no se activó: 25 de 25 épocas.
+% - Versiones: entrenamiento con PyTorch 1.12.1 y fastai 2.7.19; explicabilidad con torch 2.8.
 % - La validación se usó para elegir la época (relevante para la predicción conforme, \cref{cap:conforme}).
 \pendiente{completar la configuración del entrenamiento (preprocesado, pérdida con \emph{label smoothing}, política de entrenamiento y parada temprana)}
+\pendiente{explicar la diferencia de protocolo: Swin-S con \texttt{fit\_one\_cycle} sin congelar; los otros cuatro modelos con \texttt{fine\_tune}}
 
 Llegados a este punto, solo queda probar con diversos modelos ya preentrenados, hacerles un ajuste fino (\emph{fine tuning}) y analizar cuál genera mejores resultados, que será por tanto con el que sigamos trabajando a lo largo del proyecto (\cref{cap:clasificacion-id}).
 

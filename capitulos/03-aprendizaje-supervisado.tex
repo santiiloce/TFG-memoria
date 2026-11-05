@@ -68,21 +68,210 @@
 
 \section{Optimización: Adam y AdamW}\label{sec:adamw}
 
-% - Descenso de gradiente estocástico por minilotes.
-% - Adam (Kingma y Ba, 2014): estimaciones de primer y segundo momento con corrección de sesgo.
-% - AdamW (Loshchilov y Hutter, 2019): decaimiento de pesos desacoplado; diferencia con la
-%   regularización L2 en métodos adaptativos.
-\begin{definicion}[Adam]\label{def:adam}
-\pendiente{reglas de actualización}
+Sea $f(\theta)$ la función de pérdida, que depende de los parámetros
+$\theta \in \R^n$ de la red. En la práctica no se minimiza directamente
+$f$, sino una sucesión de realizaciones estocásticas $f_1, f_2, \dots$, cada una
+evaluada sobre un minilote distinto de datos de entrenamiento. Se denota por
+\[
+  g_t = \nabla_\theta f_t(\theta_{t-1})
+\]
+el gradiente del minilote $t$ evaluado en los parámetros de la iteración
+anterior. El método más sencillo es el descenso de gradiente estocástico (SGD),
+que actualiza $\theta_t = \theta_{t-1} - \alpha\, g_t$ con una tasa de aprendizaje
+$\alpha > 0$ común a todos los parámetros.
+
+\subsection{Adam}\label{sec:adam}
+
+Adam~\cite{kingma2014} (\emph{adaptive moment estimation}) asigna a cada
+parámetro una tasa de aprendizaje propia y adaptativa, calculada a partir de
+estimaciones del primer y del segundo momento del gradiente. Combina las ideas
+de AdaGrad, adecuado para gradientes dispersos, y de RMSProp, adecuado para
+objetivos no estacionarios~\cite{kingma2014}.
+
+\begin{definicion}[Adam~\cite{kingma2014}]\label{def:adam}
+Sean $\alpha > 0$ la tasa de aprendizaje, $\beta_1, \beta_2 \in [0, 1)$ las tasas
+de decaimiento de las medias móviles y $\varepsilon > 0$ una constante de
+estabilidad numérica. Partiendo de $\theta_0$, $m_0 = 0$ y $v_0 = 0$, en cada
+iteración $t \ge 1$ Adam calcula
+\begin{align}
+  m_t &= \beta_1\, m_{t-1} + (1 - \beta_1)\, g_t ,
+      \label{eq:adam-m}\\
+  v_t &= \beta_2\, v_{t-1} + (1 - \beta_2)\, g_t^{2} ,
+      \label{eq:adam-v}\\
+  \widehat{m}_t &= \frac{m_t}{1 - \beta_1^{t}}, \qquad
+  \widehat{v}_t = \frac{v_t}{1 - \beta_2^{t}},
+      \label{eq:adam-correccion}\\
+  \theta_t &= \theta_{t-1} - \alpha\, \frac{\widehat{m}_t}{\sqrt{\widehat{v}_t} + \varepsilon},
+      \label{eq:adam-actualizacion}
+\end{align}
+donde $g_t^2$, la raíz cuadrada y el cociente se entienden componente a
+componente, y $\beta_1^t$, $\beta_2^t$ denotan potencias. Los valores propuestos
+por defecto son $\alpha = 10^{-3}$, $\beta_1 = 0{,}9$, $\beta_2 = 0{,}999$ y
+$\varepsilon = 10^{-8}$.
 \end{definicion}
 
-\begin{definicion}[AdamW]\label{def:adamw}
-\pendiente{reglas de actualización}
-\end{definicion}
+Las sucesiones $m_t$ y $v_t$ son medias móviles exponenciales del gradiente y de
+su cuadrado, es decir, estimaciones de su media y de su momento de segundo orden
+no centrado. Como se inicializan en cero, están sesgadas hacia cero en las
+primeras iteraciones. Los cocientes de la \cref{eq:adam-correccion} corrigen ese
+sesgo, como muestra el siguiente resultado.
+
+\begin{proposicion}[Corrección del sesgo de inicialización~\cite{kingma2014}]\label{prop:adam-sesgo}
+Supongamos que los gradientes $g_1, g_2, \dots$ tienen el mismo momento de
+segundo orden, $\E[g_i^2] = \E[g^2]$ para todo $i$. Entonces, para todo $t \ge 1$,
+\[
+  \E[v_t] = \bigl(1 - \beta_2^{t}\bigr)\, \E[g^2],
+  \qquad\text{y por tanto}\qquad
+  \E[\widehat{v}_t] = \E[g^2].
+\]
+El resultado análogo se cumple para $m_t$ y $\widehat{m}_t$ si
+$\E[g_i] = \E[g]$ para todo $i$.
+\end{proposicion}
+\begin{demostracion}
+Desarrollando la recurrencia de la \cref{eq:adam-v} a partir de $v_0 = 0$ se
+obtiene, por inducción sobre $t$,
+\[
+  v_t = (1 - \beta_2) \sum_{i=1}^{t} \beta_2^{\,t-i}\, g_i^{2}.
+\]
+Tomando esperanzas, por linealidad y por la hipótesis,
+\[
+  \E[v_t] = \E[g^2]\, (1 - \beta_2) \sum_{i=1}^{t} \beta_2^{\,t-i}
+          = \E[g^2]\, (1 - \beta_2)\, \frac{1 - \beta_2^{t}}{1 - \beta_2}
+          = \bigl(1 - \beta_2^{t}\bigr)\, \E[g^2],
+\]
+donde se ha usado la suma de la progresión geométrica
+$\sum_{i=1}^{t} \beta_2^{\,t-i} = \sum_{k=0}^{t-1} \beta_2^{\,k}$, válida porque
+$\beta_2 < 1$. Dividiendo entre $1 - \beta_2^t > 0$ se obtiene
+$\E[\widehat{v}_t] = \E[g^2]$. El caso de $m_t$ es idéntico, sustituyendo
+$g_i^2$ por $g_i$ y $\beta_2$ por $\beta_1$.
+\end{demostracion}
 
 \begin{observacion}
-% Con Adam, la regularización L2 no equivale al decaimiento de pesos (Loshchilov y Hutter, 2019).
-\pendiente{observación}
+Si el momento de segundo orden no es constante, aparece un término adicional
+$\zeta$ en la expresión de $\E[v_t]$. Kingma y Ba~\cite{kingma2014} argumentan que
+$\zeta$ es pequeño, porque $\beta_2$ puede elegirse de modo que la media móvil
+asigne pesos muy pequeños a los gradientes lejanos en el tiempo.
+\end{observacion}
+
+El paso efectivo de Adam,
+$\Delta_t = \alpha\, \widehat{m}_t / \sqrt{\widehat{v}_t}$ (tomando
+$\varepsilon = 0$), tiene dos propiedades que explican su uso extendido:
+\begin{itemize}
+  \item \emph{Es invariante frente a reescalados del gradiente.} Si los
+  gradientes se multiplican por $c > 0$, $\widehat{m}_t$ se multiplica por $c$ y
+  $\widehat{v}_t$ por $c^2$, de modo que el cociente
+  $c\,\widehat{m}_t / \sqrt{c^2\, \widehat{v}_t}$ no cambia.
+  \item \emph{Está aproximadamente acotado por $\alpha$.} En los casos
+  habituales $|\widehat{m}_t / \sqrt{\widehat{v}_t}| \lesssim 1$, lo que actúa
+  como una región de confianza alrededor de los parámetros actuales y facilita
+  elegir el orden de magnitud de $\alpha$~\cite{kingma2014}.
+\end{itemize}
+
+\subsection{Regularización $L_2$ y decaimiento de pesos}\label{sec:l2-wd}
+
+Para reducir el sobreajuste es habitual penalizar los pesos grandes. Hay dos
+formas de hacerlo que suelen confundirse:
+\begin{itemize}
+  \item La \emph{regularización $L_2$} añade un término a la pérdida,
+  \[
+    f_t^{\mathrm{reg}}(\theta) = f_t(\theta) + \frac{\lambda'}{2}\, \|\theta\|_2^2 ,
+  \]
+  y aplica el optimizador a $f_t^{\mathrm{reg}}$.
+  \item El \emph{decaimiento de pesos} (\emph{weight decay}) reduce los pesos
+  directamente en cada paso, de forma separada del gradiente de la pérdida:
+  \[
+    \theta_{t} = (1 - \lambda)\, \theta_{t-1} - \alpha\, \nabla f_t(\theta_{t-1}),
+  \]
+  donde $\lambda$ es la tasa de decaimiento por paso.
+\end{itemize}
+Loshchilov y Hutter~\cite{loshchilov2019} muestran que ambas formas coinciden
+para SGD, pero no para métodos adaptativos como Adam.
+
+\begin{proposicion}[Equivalencia para SGD~\cite{loshchilov2019}]\label{prop:sgd-l2-wd}
+SGD con tasa de aprendizaje $\alpha$ y decaimiento de pesos $\lambda$ sobre $f_t$
+produce los mismos iterados que SGD sin decaimiento sobre $f_t^{\mathrm{reg}}$ con
+$\lambda' = \lambda / \alpha$.
+\end{proposicion}
+\begin{demostracion}
+Como $\nabla f_t^{\mathrm{reg}}(\theta) = \nabla f_t(\theta) + \lambda' \theta$,
+SGD sobre $f_t^{\mathrm{reg}}$ da
+\[
+  \theta_t = \theta_{t-1} - \alpha \nabla f_t(\theta_{t-1}) - \alpha \lambda'\, \theta_{t-1}
+           = (1 - \alpha\lambda')\, \theta_{t-1} - \alpha \nabla f_t(\theta_{t-1}),
+\]
+que coincide con la regla del decaimiento de pesos si y solo si
+$\alpha\lambda' = \lambda$.
+\end{demostracion}
+
+La equivalencia exige $\lambda' = \lambda / \alpha$: el mejor valor de la
+regularización $L_2$ depende de la tasa de aprendizaje, y ambos hiperparámetros
+quedan acoplados.
+
+\begin{proposicion}[No equivalencia para métodos adaptativos~\cite{loshchilov2019}]\label{prop:adaptativo-l2-wd}
+Sea un optimizador cuyos iterados sin regularización son
+$\theta_t = \theta_{t-1} - \alpha M_t \nabla f_t(\theta_{t-1})$, con una matriz de
+precondicionamiento $M_t$ que no es múltiplo de la identidad, y que con
+decaimiento de pesos $\lambda > 0$ son
+$\theta_t = (1-\lambda)\theta_{t-1} - \alpha M_t \nabla f_t(\theta_{t-1})$.
+Entonces no existe ningún $\lambda' \in \R$ tal que aplicar el optimizador sin
+decaimiento a $f_t^{\mathrm{reg}}$ produzca los mismos iterados que aplicarlo con
+decaimiento $\lambda$ a $f_t$.
+\end{proposicion}
+\begin{demostracion}
+Sobre $f_t^{\mathrm{reg}}$, los iterados son
+\[
+  \theta_t = \theta_{t-1} - \alpha\lambda' M_t\, \theta_{t-1} - \alpha M_t \nabla f_t(\theta_{t-1}).
+\]
+Restando la regla con decaimiento de pesos, ambos iterados coinciden para todo
+$\theta_{t-1}$ si y solo si $\lambda\, \theta_{t-1} = \alpha\lambda' M_t\, \theta_{t-1}$
+para todo $\theta_{t-1}$, es decir, si $\alpha\lambda' M_t = \lambda I$. Como
+$\lambda > 0$, esto exige que $M_t$ sea un múltiplo de la identidad, en
+contradicción con la hipótesis.
+\end{demostracion}
+
+En Adam, el precondicionador es diagonal y depende de cada parámetro,
+$M_t = \operatorname{diag}\bigl(\sqrt{\widehat{v}_t} + \varepsilon\bigr)^{-1}$,
+así que la \cref{prop:adaptativo-l2-wd} se aplica. Intuitivamente, con
+regularización $L_2$ el gradiente del término de penalización también se divide
+por $\sqrt{\widehat{v}_t}$, de modo que los pesos con gradientes históricamente
+grandes se regularizan menos que con el decaimiento de pesos, que los reduce a
+todos a la misma tasa $\lambda$~\cite{loshchilov2019}.
+
+\subsection{AdamW}\label{sec:adamw-def}
+
+\begin{definicion}[AdamW~\cite{loshchilov2019}]\label{def:adamw}
+AdamW es Adam con decaimiento de pesos desacoplado: los momentos
+$m_t, v_t, \widehat{m}_t, \widehat{v}_t$ se calculan como en la
+\cref{def:adam}, a partir del gradiente de la pérdida sin término de
+regularización, y la actualización de la \cref{eq:adam-actualizacion} se
+sustituye por
+\begin{equation}\label{eq:adamw}
+  \theta_t = \theta_{t-1} - \eta_t \left( \alpha\, \frac{\widehat{m}_t}{\sqrt{\widehat{v}_t} + \varepsilon}
+             + \lambda\, \theta_{t-1} \right),
+\end{equation}
+donde $\lambda \ge 0$ es la tasa de decaimiento de pesos y $\eta_t > 0$ es un
+multiplicador que permite modificar la tasa de aprendizaje a lo largo del
+entrenamiento (fijo, decreciente, con reinicios…).
+\end{definicion}
+
+Así, el decaimiento de pesos actúa fuera del mecanismo adaptativo y todos los
+pesos se reducen a la misma tasa. Loshchilov y Hutter~\cite{loshchilov2019}
+muestran empíricamente que este cambio mejora la generalización de Adam en
+clasificación de imágenes y que hace más independientes los valores óptimos de
+$\alpha$ y $\lambda$, lo que facilita ajustar ambos hiperparámetros.
+
+\begin{observacion}\label{obs:adamw-fastai}
+Los modelos de este trabajo se entrenaron con la implementación de Adam de
+fastai, que por defecto aplica el decaimiento de pesos de forma desacoplada y es,
+por tanto, AdamW. Esta implementación aplica el decaimiento como
+$\theta \leftarrow (1 - \mathrm{lr}_t\,\mathrm{wd})\,\theta$, donde
+$\mathrm{lr}_t$ es la tasa de aprendizaje vigente; equivale a la
+\cref{eq:adamw} con $\lambda = \alpha\,\mathrm{wd}$. Además, no aplica
+decaimiento a los sesgos ni a los parámetros de las capas de normalización. Se
+usaron $\mathrm{wd} = 0{,}1$, $\beta_2 = 0{,}99$ y $\varepsilon = 10^{-5}$, y
+$\beta_1$ varió entre $0{,}95$ y $0{,}85$ según la política de un ciclo, por lo
+que la corrección de la \cref{prop:adam-sesgo}, que supone $\beta_1$ fijo, es
+solo aproximada. La configuración completa se detalla en el \cref{cap:materiales}.
 \end{observacion}
 
 \section{Arquitecturas}\label{sec:arquitecturas}
