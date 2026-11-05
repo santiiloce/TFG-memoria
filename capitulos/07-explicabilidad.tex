@@ -6,7 +6,13 @@
 %*******************************************************
 
 \chapter{Explicabilidad}\label{cap:explicabilidad}
-Explicación sacada del libro Explainable AI: Interpreting, Explaining and Visualizing Deep Learning \pendiente{citar}
+Los grandes datasets suelen estar repletos de correlaciones espurias entre variables. Esto deja al modelo perplejo a la hora de decidir entre las variables correlacionadas
+cuales usar para apoyar la predicción. Un ejemplo muy famoso y típico en la estadística es el aumento de asesinatos y ventas de helados entre los meses de mayo y 
+julio de un determinado año. El modelo detecta que existe algún tipo de correlación entre ambas variables, y sin embargo se estaría dando un caso de Clever-Hans, ya 
+que no existe causalidad entre ellas
+
+Para la solución de este problma la selección de características es una buena aproximación presentando al modelo solo un pequeño conjunto de buenas características de entrada.
+Sin embargo esta aproximación no es útil en el contexto de reconocimiento de imágenes, pues el rol que abarca un pixel a nivel individual no está claro.
 
 El aprendizaje automático explicable mira al problema de la siguiente forma. Primero el modelo es 
 entrenado sin importar mucho en las características seleccionadas. Una vez que el modelo
@@ -45,13 +51,8 @@ estructura de grafo de la red neuronal para calcular explicaciones de forma ráp
 y fiable.
 
 \section{Layer-wise Relevance Propagation (LRP)}\label{sec:lrp}
-% Puntos que debería cubrir:
-% - Descomposición de Taylor profunda: aproximación de primer orden de cada neurona alrededor de
-%   un punto raíz.
-% - Propiedad de conservación: \sum_i R_i^{(l)} = \sum_j R_j^{(l+1)} = f(x).
-% - Reglas LRP-\varepsilon y LRP-z^+ y su derivación.
 
-\emph{} Se trata de ~\cite{bach2015,montavon2019lrp} es
+LRP~\cite{bach2015,montavon2019lrp} es
 una técnica de explicación aplicable a cualquier modelo con estructura de red
 neuronal, con independencia del tipo de entrada: imágenes, vídeos o texto. Su funcionamiento consiste en
 propagar la predicción $f(x)$ hacia atrás a través de la red, capa a capa,
@@ -76,16 +77,42 @@ La cantidad $z_{jk}$ representa en qué medida la neurona $j$ ha contribuido a
 que la neurona $k$ sea relevante, mientras que el denominador de la
 \cref{eq:lrp-regla} garantiza que se cumpla la propiedad de conservación. La
 propagación se repite capa a capa y finaliza al alcanzar las variables de
-entrada. Si la regla se aplica a todas las neuronas de la red, se comprueba
-fácilmente que la relevancia se conserva entre capas consecutivas,
-\[
-  \sum_{j} R_j = \sum_{k} R_k   
-\]
-y, encadenando esta igualdad desde la salida hasta la entrada, que la relevancia
-total asignada a las variables de entrada coincide con la predicción:
+entrada.
+
+\begin{proposicion}[Conservación de la relevancia]\label{prop:lrp-conservacion}
+Supongamos que en una capa se aplica la \cref{eq:lrp-regla}, con
+$\sum_{j} z_{jk} \neq 0$ para toda neurona $k$, y que el índice $j$ recorre todas
+las neuronas de la capa inferior. Entonces
+\begin{equation}\label{eq:lrp-conservacion-capa}
+  \sum_{j} R_j = \sum_{k} R_k .
+\end{equation}
+En consecuencia, si la propagación se inicia en la salida con $R = f(x)$ y la
+\cref{eq:lrp-regla} se aplica en todas las capas, la relevancia total de las
+variables de entrada es $f(x)$, salvo la parte asignada en cada capa a las neuronas
+de sesgo. En particular, si la red no tiene sesgos,
 \[
   \sum_{i=1}^{d} R_i = f(x).
 \]
+\end{proposicion}
+\begin{demostracion}
+Sumando la \cref{eq:lrp-regla} sobre $j$ e intercambiando el orden de las sumas
+finitas,
+\[
+  \sum_{j} R_j
+  = \sum_{j} \sum_{k} \frac{z_{jk}}{\sum_{j'} z_{j'k}} \, R_k
+  = \sum_{k} \frac{\sum_{j} z_{jk}}{\sum_{j'} z_{j'k}} \, R_k
+  = \sum_{k} R_k ,
+\]
+donde el cociente vale $1$ para cada $k$ por ser el denominador no nulo. (Aquí se
+escribe $j'$ para el índice del denominador solo para distinguirlo del índice de
+la suma exterior.) Aplicando la \cref{eq:lrp-conservacion-capa} capa a capa desde
+la salida, donde la relevancia total es $f(x)$, hasta la entrada, la relevancia
+total se mantiene igual a $f(x)$ en cada capa. Las neuronas de sesgo no tienen
+capa inferior, así que la relevancia que reciben no se propaga más; si no hay
+sesgos, toda la relevancia llega a las variables de entrada.
+\end{demostracion}
+
+
 La \cref{fig:lrp-esquema} ilustra el procedimiento completo.
 
 \begin{figure}[tbp]
@@ -97,12 +124,17 @@ La \cref{fig:lrp-esquema} ilustra el procedimiento completo.
 
 Aunque LRP difiere de la aproximación de Taylor descrita anteriormente, cada paso
 de la propagación puede interpretarse como una descomposición de Taylor propia,
-aplicada sobre magnitudes locales del grafo de la red~\cite{montavon2017}.
+aplicada sobre magnitudes locales del grafo de la red~\cite{montavon2017} (\cref{sec:lrp-dtd}).
 
-Sea LRP  para redes neuronales profundas con recitificadores no lineales (ReLU), considerado como la opción más utilizada en las 
-aplicaciones actuales, compuesto por neuronas del tipo: 
+\subsection{Reglas de propagación}\label{sec:lrp-reglas}
+
+
+Consideremos redes neuronales profundas con activaciones ReLU (\emph{rectified
+linear unit}), la opción más extendida en las aplicaciones
+actuales~\cite{montavon2019lrp}, formadas por neuronas del tipo
+
 \begin{equation}\label{eq:lrp-neurona-relu}
-  a_k = \max\Bigl(0,\ \sum_{0,j} a_j w_{jk}\Bigr).
+  a_k = \max\Bigl(0,\ \sum_{0,j}^{n} a_j w_{jk}\Bigr).
 \end{equation}
 donde $a_1, \dots, a_n$ son las activaciones de la capa inferior y se añade una
 neurona ficticia $a_0 = 1$ cuyo peso $w_{0k}$ representa el sesgo de la
@@ -110,9 +142,8 @@ neurona $k$.
 
 En las reglas que siguen, $j$ recorre las neuronas de la capa inferior, incluida
 la neurona del sesgo $a_0 = 1$ (\cref{eq:lrp-neurona-relu}), y $k$ las de la capa
-superior. Para distinguir el índice del numerador del de la suma del
-denominador, este último se denota $j$. Además, se escribe
-$z_k = \sum_{j=0}^{n} a_{j} w_{jk}$ para la preactivación de la neurona $k$.
+superior. Se denota por
+$z_k = \sum_{j=0}^{n} a_{j} w_{jk}$ la preactivación de la neurona $k$.
 
 \begin{definicion}[Regla básica, LRP-0~\cite{bach2015}]\label{def:lrp-0}
 La regla LRP-0 reparte la relevancia de cada neurona $k$ en proporción a la
@@ -155,6 +186,11 @@ sumando la \cref{eq:lrp-epsilon} sobre $j$ se obtiene
 que se reduce a $\sum_k R_k$ cuando $\varepsilon \to 0$, es decir, cuando la regla
 se reduce a LRP-0.
 
+En la práctica, para que el denominador no se anule cuando $z_k < 0$, se suma
+$\varepsilon \operatorname{sign}(z_k)$ en lugar de $\varepsilon$, con el convenio
+$\operatorname{sign}(0) = 1$~\cite{achtibat2023}.
+
+
 \begin{definicion}[Regla gamma, LRP-$\gamma$~\cite{montavon2019lrp}]\label{def:lrp-gamma}
 Sea $\gamma \ge 0$ y sea $w^{+}_{jk} = \max(0, w_{jk})$ la parte positiva de cada
 peso. La regla LRP-$\gamma$ favorece las contribuciones positivas frente a las
@@ -188,29 +224,156 @@ LRP-$\alpha_1\beta_0$~\cite{bach2015} y a \emph{excitation
 backprop}~\cite{zhang2018excitation}~\cite{montavon2019lrp}.
 \end{observacion}
 
-\begin{definicion}[Relevancia y conservación~\cite{bach2015}]\label{def:lrp-conservacion}
-\pendiente{definición}
+La expresión anterior supone activaciones no negativas, como las que produce la
+ReLU. Cuando las activaciones de entrada pueden ser negativas, la regla $z^{+}$ se
+formula con la parte positiva de cada contribución~\cite{achtibat2023}:
+ 
+\begin{definicion}[Regla $z^{+}$]\label{def:lrp-zplus}
+\begin{equation}\label{eq:lrp-zplus}
+  R_j = \sum_{k} \frac{\bigl(a_j w_{jk}\bigr)^{+}}{\sum_{j=0}^{n} \bigl(a_j w_{jk}\bigr)^{+}} \, R_k ,
+  \qquad (t)^{+} = \max(0, t).
+\end{equation}
 \end{definicion}
+Si $a_j \ge 0$ para todo $j$, se tiene $(a_j w_{jk})^{+} = a_j w^{+}_{jk}$ y se
+recupera la expresión de la \cref{obs:lrp-zplus}.
+ 
+\begin{definicion}[Regla \emph{flat}, LRP-$\flat$~\cite{achtibat2023}]\label{def:lrp-flat}
+La regla \emph{flat} reparte la relevancia de cada neurona $k$ a partes iguales
+entre las neuronas de la capa inferior conectadas con ella, sin tener en cuenta
+pesos ni activaciones:
+\begin{equation}\label{eq:lrp-flat}
+  R_j = \sum_{k} \frac{1}{n_k} \, R_k ,
+\end{equation}
+donde $n_k$ es el número de neuronas de la capa inferior conectadas con $k$.
+\end{definicion}
+\pendiente{para qué se usa: en la primera capa suaviza el mapa en el espacio de entrada y lo hace
+invariante a la normalización de la entrada~\cite{achtibat2023}}
+ 
+\pendiente{reglas por capa y composite: recomendación de Montavon et al. (LRP-0 en capas superiores,
+$\varepsilon$ en intermedias, $\gamma$ en inferiores) y el composite LRP$_{\varepsilon\text{-}z^{+}\text{-}\flat}$
+usado por Achtibat et al. y en este trabajo; completar cuando se cierre la configuración (fase 2)}
 
-\begin{proposicion}[Regla LRP-$z^+$ como descomposición de Taylor profunda~\cite{montavon2017}]\label{prop:lrp-zplus}
-\pendiente{enunciado}
+
+\subsection{LRP como descomposición de Taylor profunda}\label{sec:lrp-dtd}
+
+Aunque LRP se ha presentado como un conjunto de reglas de propagación, estas
+reglas admiten una justificación teórica dentro del marco de la
+\emph{descomposición de Taylor profunda} (\emph{Deep Taylor Decomposition},
+DTD)~\cite{montavon2017,montavon2019lrp}. La idea consiste en sustituir el
+desarrollo de Taylor de la red completa, que resulta inestable
+(\cref{eq:taylor-primer-orden}), por una sucesión de desarrollos de Taylor
+locales, uno en cada neurona.
+
+Concretamente, la relevancia $R_k$ de una neurona se considera función de las
+activaciones de la capa inferior, $a = (a_j)_j$, y se desarrolla en primer orden
+en torno a un punto de referencia $\tilde{a}$:
+\begin{equation}\label{eq:dtd-taylor}
+  R_k(a) = R_k(\tilde{a}) + \sum_{j=0}^{n} (a_j - \tilde{a}_j) \,
+           \bigl[\nabla R_k(\tilde{a})\bigr]_j + \dots
+\end{equation}
+Cada término de primer orden indica qué parte de $R_k$ debe asignarse a la
+neurona $j$. Sin embargo, la relación entre $a$ y $R_k$ puede ser muy compleja,
+por lo que no es inmediato elegir el punto de referencia ni calcular el
+gradiente.
+
+Para obtener una expresión cerrada, DTD sustituye la función de relevancia real
+por un \emph{modelo de relevancia} más sencillo. En redes con activaciones ReLU
+se utiliza la activación ReLU modulada
+\begin{equation}\label{eq:dtd-modelo}
+  \widehat{R}_k(a) = \max\Bigl(0, \sum_{j=0}^{n} a_j w_{jk}\Bigr) \cdot c_k ,
+\end{equation}
+donde $c_k$ es una constante elegida de modo que $\widehat{R}_k(a) = R_k(a)$ en
+el punto observado; es decir, si la neurona está activa ($z_k > 0$),
+$c_k = R_k / z_k$. Tratar $c_k$ como constante está justificado cuando la
+relevancia de las capas superiores se ha obtenido con las reglas LRP-0,
+LRP-$\varepsilon$ o LRP-$\gamma$~\cite{montavon2019lrp}. Como la función ReLU es
+lineal en su región activa, el desarrollo de $\widehat{R}_k$ es exacto en primer
+orden:
+\[
+  \widehat{R}_k(a) = \widehat{R}_k(\tilde{a})
+    + \sum_{j=0}^{n} (a_j - \tilde{a}_j) \, w_{jk} c_k ,
+\]
+y el término de orden cero puede hacerse tan pequeño como se quiera eligiendo
+$\tilde{a}$ cerca del punto de corte de la ReLU. 
+
+Cada elección del punto de referencia da lugar a una forma distinta de
+redistribuir la relevancia, y algunas elecciones concretas recuperan las reglas
+de la \cref{sec:lrp-reglas}:
+
+La relevancia que recibe cada neurona $j$ es, entonces, la suma de los términos
+de primer orden de todas las neuronas $k$ a las que está conectada, cada una
+desarrollada en su propio punto de referencia $\tilde{a}^{(k)}$:
+\begin{equation}\label{eq:dtd-propagacion}
+  R_j = \sum_{k} \bigl(a_j - \tilde{a}^{(k)}_j\bigr) \, w_{jk} c_k .
+\end{equation}
+
+La siguiente proposición formaliza una observación de Montavon et
+al.~\cite{montavon2019lrp}, que relaciona las reglas de la \cref{sec:...} con
+elecciones concretas del punto de referencia.
+
+\begin{proposicion}[Reglas LRP como casos de DTD]\label{prop:dtd-lrp}
+Supongamos que todas las neuronas $k$ de la capa superior son activas
+($z_k > 0$) y sea $c_k = R_k / z_k$.
+\begin{enumerate}
+  \item Si $\tilde{a}^{(k)} = 0$ para todo $k$, la \cref{eq:dtd-propagacion}
+  coincide con la regla LRP-0 (\cref{eq:lrp-0}).
+  \item Si $\tilde{a}^{(k)} = \frac{\varepsilon}{z_k + \varepsilon}\, a$ para todo
+  $k$, con $\varepsilon > 0$, la \cref{eq:dtd-propagacion} coincide con la regla
+  LRP-$\varepsilon$ (\cref{eq:lrp-epsilon}).
+\end{enumerate}
 \end{proposicion}
+
 \begin{demostracion}
-\pendiente{demostración}
+Sustituyendo $c_k = R_k / z_k$ en la \cref{eq:dtd-propagacion} se obtiene
+\begin{equation}\label{eq:dtd-dem-base}
+  R_j = \sum_{k} \bigl(a_j - \tilde{a}^{(k)}_j\bigr) \, \frac{w_{jk}}{z_k} \, R_k .
+\end{equation}
+
+\emph{Caso 1.} Si $\tilde{a}^{(k)} = 0$, entonces
+$a_j - \tilde{a}^{(k)}_j = a_j$ para todo $k$, y la \cref{eq:dtd-dem-base} queda
+\[
+  R_j = \sum_{k} \frac{a_j w_{jk}}{z_k} \, R_k ,
+\]
+que es exactamente la regla LRP-0 (\cref{eq:lrp-0}).
+
+\emph{Caso 2.} Si $\tilde{a}^{(k)} = \frac{\varepsilon}{z_k + \varepsilon}\, a$,
+entonces, para cada $k$,
+\[
+  a_j - \tilde{a}^{(k)}_j
+  = a_j - \frac{\varepsilon}{z_k + \varepsilon}\, a_j
+  = \frac{z_k + \varepsilon - \varepsilon}{z_k + \varepsilon}\, a_j
+  = \frac{z_k}{z_k + \varepsilon}\, a_j ,
+\]
+donde el denominador no se anula porque $z_k > 0$ y $\varepsilon > 0$.
+Sustituyendo en la \cref{eq:dtd-dem-base}, el factor $z_k$ se cancela:
+\[
+  R_j = \sum_{k} \frac{z_k}{z_k + \varepsilon}\, a_j \, \frac{w_{jk}}{z_k} \, R_k
+      = \sum_{k} \frac{a_j w_{jk}}{\varepsilon + z_k} \, R_k ,
+\]
+que es la regla LRP-$\varepsilon$ (\cref{eq:lrp-epsilon}).
 \end{demostracion}
 
-\begin{definicion}[Regla LRP-$\varepsilon$]\label{def:lrp-eps}
-\pendiente{definición}
-\end{definicion}
-
-\section{Concept Relevance Propagation}\label{sec:crp}
+La regla LRP-$\gamma$ también se obtiene de este modo, tomando como punto de
+referencia la intersección entre el punto de corte de la ReLU y una recta que
+parte de $a$ en una dirección que favorece los pesos positivos. Para las tres
+reglas puede demostrarse que el punto de referencia cumple
+$\tilde{a} \ge 0$~\cite{montavon2017}, de modo que pertenece al dominio de las
+activaciones ReLU. Además, cuanto más cerca está $\tilde{a}$ de $a$, más ligada
+al dato concreto es la explicación: LRP-0 es la regla con mayor distancia,
+mientras que LRP-$\varepsilon$ y LRP-$\gamma$ la reducen
+considerablemente~\cite{montavon2019lrp}.
 
 % Puntos que debería cubrir:
 % - CRP (Achtibat et al., 2023): condicionar la propagación de relevancia a un concepto (canal o
 %   neurona) para obtener mapas de relevancia por concepto.
-% - Selección de ejemplos de referencia por relevancia (explicaciones glocales).
-% - Uso en STOOD-X para seleccionar las características relevantes (no aplicable directamente al
-%   Swin; ver capítulo 11).
-\pendiente{CRP}
+% - Explicaciones glocales: local (dónde) + global (qué).
+% - Selección de ejemplos de referencia por relevancia: RelMax frente a ActMax; normalización de la
+%   relevancia por capa (ec. 54 de Achtibat et al.).
+% - Uso en la segunda etapa de STOOD-X: mapas CRP de las características más presentes compartidas
+%   con los vecinos (capítulo 11 / 14).
+
+
+\section{Concept Relevance Propagation}\label{sec:crp}
+
 
 \endinput
