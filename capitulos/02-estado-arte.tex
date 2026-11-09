@@ -20,6 +20,10 @@
 
 \section{Detección de datos fuera de distribución}\label{sec:ea-ood}
 
+Para que los sistemas de reconocimiento inteligente pueda operar de forma autónoma en el mundo abierto es indispensable
+que sean capaces de manejar y detectar entradas desconocidas. Este problema es denominado comunmente como Out-of-Distribution (OOD)
+detection o Open-Set Recognition (OSR). 
+
 \subsection{Taxonomía de la detección OOD generalizada}\label{sec:ea-taxonomia}
 
 % Puntos que debería cubrir: AD, ND, OSR, OOD y detección de valores atípicos según la taxonomía
@@ -40,15 +44,28 @@
   \caption{Subtareas de la detección OOD generalizada: (a) detección de anomalías sensoriales, (b) detección de novedades de una clase, (c) detección de novedades multiclase, (d) reconocimiento en conjunto abierto y detección OOD y (e) detección de valores atípicos. Fuente: Yang et al.~\cite{yang2024} (figura~2).}
   \label{fig:taxonomia-yang}
 \end{figure}
-Se define como detección OOD la capacidad de un sistema de reconocimiento inteligente para detectar y manejar imágenes desconocidas. A este problema se le denomina 
-tanto OOD (Out of Distribution) como OSR (Open-Set Recognition). Se puede distinguir entre dos tipos de métodos de algoritmos para detección OOD, algoritmos basados en entrenamiento y métodos post-hoc. El primer tipo
-se basan en poner restricciones durante el proceso de entremiento para que el modelo luego tenga un mejor rendimiento en la tarea de detección OOD. \textbf{poner ejemplo de
+En el contexto de clasificación de imágenes se define como detección OOD la capacidad de un sistema de reconocimiento inteligente para detectar y manejar imágenes desconocidas, es decir no pertenecen al conjunto de las conocidas, 
+al que denominaremos como in-distribution (ID). El estudio del progreso de este campo ha sido obstacaulizaco por tres tramps que suelen 
+ser pasadas por alto por los investigadores: 1) terminología confusa, 2) conjuntos de datos incosistentes, y 3) prácticas erroneas. En en este contexto donde aparece OpenOOD como plataforma
+y benchmark unificado cuya función es evaluar las metodologías presentes y futuras ~\cite{openood15}. Dicha plataforma provee de diferentes modelos y es compatible tanto con diversos conjuntos de datos
+con como distintos tipos de métricas, permitiendo realizar experimentos a pequeña y gran escala.
+
+Se puede distinguir entre dos tipos de métodos de algoritmos para detección OOD, algoritmos basados en entrenamiento y métodos post-hoc. El primer tipo
+se basan en poner restricciones durante el proceso de entremiento para que el modelo luego tenga un mejor rendimiento en la tarea de detección OOD. Alguna restricción puede ser por ejemplo añadir imágenes OOD al proceso de entrenamiento ~\cite{yu2019unsupervised}\textbf{poner ejemplo de
 método de detección OOD vs ID en entrenamiento}. Por otro lado los métodos post-hoc abarcan la capacidad de detección OOD en modelos que ya han sido entrenados. Esto 
 es de suma imporantancia en los problemas del mundo real, pues en algunos casos el coste de volver a reentrenar un modelo es desmesurado.
 \revisar{traducción casi literal; parafrasear y citar}
 \revisar{«En este estudio» se refiere al survey de Yang et al., no a este TFG}
 
 Formalmente, OSR aborda el caso en el que las muestras OOD experimentan un cambio semántico durante las pruebas, es decir, $P(Y) \neq P'(Y)$. El objetivo de OSR es similar al de la detección de conjuntos abiertos multiclase (ND); la única diferencia radica en que OSR requiere, además, una clasificación precisa de las muestras ID de $P(Y)$.
+
+Actualmente no existe ningún método que consistentemente supere a los demás benchmarks, y el ranking puede ser muy diferente de un dataset a otro ~\cite{openood15}. Por otro lado ha sido visto que la técnica de data augmentation es beneficial para la clasificación estandar y para la generelazión OOD, sin embargo 
+sus efectos en detección OOD aún no están del todo esclarecidos. A pesar de que estos que estos métodos no han sido diseñaods para mejorar la detección 
+OOD si que puede mejorar los ratios de deteccion en distintas ocasiones. Lo más interesante es la mejora de rendimiento es ampliada cuando son combinadas con potentes posprocesadores.
+
+¿Por qué el aumento de datos mejora la detección OOD? Una posible explicación es que, al disponer de muestras de entrenamiento más variadas, el modelo aprende a apoyarse en características relacionadas con el significado de la imagen y no en \emph{características espurias}. Llamamos espurias a las características que están correlacionadas con la etiqueta, pero que no tienen relación semántica con ella. 
+
+Si un modelo depende mucho de este tipo de características, puede activarse con fuerza ante una muestra OOD que las contenga ~\cite{ming2024finetuning}. El aumento de datos actúa en sentido contrario: genera muestras de entrenamiento diversas que conservan el contenido semántico, de modo que el modelo se ve obligado a fijarse en las características que realmente caracterizan a las clases ID. En consecuencia, en la fase de inferencia, un modelo entrenado con aumento de datos tiende a responder solo a los rasgos semánticos de las muestras ID y a activarse menos ante las OOD, lo que facilita separar ambos tipos de datos.~cite{openood15}
 \pendiente{citar}
 \revisar{traducción casi literal; parafrasear y citar}
 

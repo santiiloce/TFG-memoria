@@ -32,6 +32,7 @@ en el OpenOOD v1.5: Enhanced Benchmark for Out-of-Distribution Detection se gene
     \begin{equation}\label{eq:objetivoOOD}
     R_{\mathcal{O}}(f) = \frac{\iint f(x)p_{\mathcal{D}_{OOD}}(x,y)\,dx\,dy}{\iint f(x)p_{\mathcal{D}_{OOD}}(x,y)\,dx\,dy + \iint f(x)p_{\mathcal{D}_{ID}}(x,y)\,dx\,dy}
 \end{equation}
+~\cite{openood15}
 
 \end{definicion}
 
@@ -63,7 +64,7 @@ G(x;f)=
 0 \text{ (ID)}, & S(x;f)<\lambda.
 \end{cases}
 \]
-siendo $S\(\cdot\)$ la función de puntación que califica el grado de \textit{"OOD-ness"} que tiene cada muestra, y el $\lambda$ es el umbral asociado a cada caso.
+siendo $S(\cdot)$ la función de puntuación que califica el grado de \textit{``OOD-ness''} que tiene cada muestra, y $\lambda$ es el umbral asociado a cada caso.
 
 
 \section{Distribución de los datos y cambios de distribución}\label{sec:cambios-distribucion}
@@ -81,9 +82,32 @@ siendo $S\(\cdot\)$ la función de puntación que califica el grado de \textit{"
 \pendiente{definición}
 \end{definicion}
 
+\begin{definicion}[Detección OOD del espectro completo]\label{def:deteccionfullspectrum}
+    La detección estándar OOD estudia el desplazamiento de la distribución semántica (semantic distribution shift), entre $\mathcal{Y}_{ID}$ y $\mathcal{Y}_{OOD}$, ignorando otro tipo
+    de desplazamiento de distribución igualmente importante en el munto real, el desplazamiento de covariables (covariate shift). Bajo este contexto nace
+    la detección OOD del especto completo, en donde se estudia por primera vez ambos tipos de alteraciones. Cabe recalcar que en el contexto 
+    de la detección OOD, aquellas imágenes con covariate shift  son consideras como in-distribution (csID) ya que sus etiquetas siguen perteneciendo a $\mathcal{Y}_{OOD}$.
+\end{definicion}
+
+\paragraph{Clasificación de los conjuntos de muestras}
+Llamamos conjunto \emph{en distribución} (ID), $\mathcal{D}_{\mathrm{ID}}$, al conjunto de datos que define la tarea de clasificación de imágenes, con espacio de etiquetas
+ $\mathcal{Y}_{\mathrm{ID}}$. Como es habitual en la literatura, las muestras \emph{fuera de distribución} (OOD), $\mathcal{D}_{\mathrm{OOD}}$, se toman de conjuntos de datos
+  públicos cuyas categorías no pertenecen a $\mathcal{Y}_{\mathrm{ID}}$.
+
+El clasificador se entrena únicamente con imágenes ID, $\mathcal{D}^{\mathrm{train}}_{\mathrm{ID}}$. La evaluación se hace con dos conjuntos de prueba: imágenes ID,
+ $\mathcal{D}^{\mathrm{test}}_{\mathrm{ID}}$, e imágenes OOD, $\mathcal{D}^{\mathrm{test}}_{\mathrm{OOD}}$. Para que la evaluación sea más completa, cada conjunto ID 
+ se enfrenta a varios conjuntos OOD distintos, y no a uno solo.
+
+Además, los conjuntos OOD se clasifican en dos grupos según su dificultad: \emph{near-OOD} (OOD cercano) y \emph{far-OOD} (OOD lejano). El criterio
+ puede ser semántico (cuánto se parecen las imágenes a las de la tarea ID) o empírico (lo difícil que resulta detectarlas en la práctica). Esta división permite analizar 
+ con más detalle el comportamiento de los detectores ante distintos tipos de muestras OOD.
+
+ Como se mencionó en \ref{def:deteccionfullspectrum} la detección del espectro completo considera también muestras con covariate shift (csID). En la práctica esto se realiza mediante 
+ incorporar muestras csID $\mathcal{D}^{\mathrm{test}}_{\mathrm{cdID}}$, juntas con $\mathcal{D}^{\mathrm{test}}_{\mathrm{ID}}$, para que sirva como datos ID de test. 
 % Aprendibilidad de la detección OOD (Fang et al., 2022): condiciones bajo las que la detección
 % OOD es aprendible en el sentido PAC.
 \pendiente{aprendibilidad de la detección OOD (Fang et al.~\cite{fang2022})}
+
 
 \section{Regla de decisión por umbral}\label{sec:regla-umbral}
 
@@ -94,15 +118,18 @@ siendo $S\(\cdot\)$ la función de puntación que califica el grado de \textit{"
 \end{definicion}
 
 \section{Métricas de evaluación}\label{sec:metricas}
-
-Hay tres métricas que miden lo bien que mi clasificador separa ID de OOD. El inconveniente está en que no miden si la clasificación de las 14 clases es correcta. Para ello conviene mejor usar CCR@FPR$x$. Al final estas métricas se comportan como modelos de clasificación binaria en ID y OOD.
+Debido a que la detección se trata de un problema de clasificación binaria según \cref{def:ID} se utilizarán las siguintes métricas: área bajo la curva característica de funcionamiento del receptor (AUROC), area bajo la curva precisión-recuperación (AUPR) y tasa falsos positivos al 95\% de tasa de verdaderos positivos (FPR@95).
+El inconveniente de estas métricas está en que no miden si la clasificación de las 14 clases es correcta. Para ello se ha considerado añadir en este trabajo la mejor CCR@FPR$x$. Debido al potencial de esta métrica como evolución de la métrica FPR@95 y su capacidad para medir tanto covariate shift como semantic shift distribution
+se considerará como un indicador de la detección full-spectrum. \revisar{Iván}[No sé si la afirmaciónd de CCR@FPRx de indicador full spectrum es apropiada]. Además siguiendo la convención en aprendizaje automático ~\cite{provost1998case} y la obra fundamental de detección OOD ~\cite{hendrycks2017baseline} se tratarán las muestras "anómalas" OOD como \textit{positivas} y las muestras "normales" ID como negativas ~\cite{openood15}.
 
 Evaluación. Además de las puntuaciones F, AUROC y AUPR, otra métrica comúnmente utilizada es FPR@TPR$x$, que mide la FPR cuando la TPR es $x$ (por ejemplo, $0{,}95$). Algunos trabajos también utilizan una métrica alternativa, TNR@TPR$x$, que es equivalente a $1 - \text{FPR@TPR}x$. La detección de OOD también afecta al rendimiento de la clasificación de ID.
 \revisar{traducción casi literal; parafrasear y citar}
 
 \subsection{Curva ROC y AUROC}\label{sec:auroc}
 
-\textbf{AUROC}: representa la probabilidad de que el modelo asigne una puntuación o probabilidad más alta a un ejemplo positivo elegido al azar que a uno negativo. \textbf{Rango de valores:} va de 0 a 1; 0,5 representa que el modelo no tiene capacidad discriminatoria (equivale a adivinar al azar), 1 que el modelo tiene una clasificación perfecta, y los valores inferiores a 0,5 indican que el modelo invierte las clases (si se invierte la predicción, el valor pasa a ser $1 - \text{valor}$). En este caso también la clase positiva es la OOD.
+\textbf{AUROC}: representa la probabilidad de que el modelo asigne una puntuación o probabilidad más alta a un ejemplo positivo elegido al azar que a uno negativo. 
+Puede ser interpretado como la probabilidad de que el detector separe correctamente muestras ID y OOD ~\cite{openood15}.
+\textbf{Rango de valores:} va de 0 a 1; 0,5 representa que el modelo no tiene capacidad discriminatoria (equivale a adivinar al azar), 1 que el modelo tiene una clasificación perfecta, y los valores inferiores a 0,5 indican que el modelo invierte las clases (si se invierte la predicción, el valor pasa a ser $1 - \text{valor}$). En este caso también la clase positiva es la OOD.
 
 % Nota de las notas: «puedes citar este párrafo [de Yang et al.], o directamente a Fawcett (2006)
 % para la curva ROC, al explicar tus métricas».
