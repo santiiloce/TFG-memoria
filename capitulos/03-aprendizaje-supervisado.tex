@@ -167,7 +167,8 @@ $\varepsilon = 0$), tiene dos propiedades que explican su uso extendido:
   elegir el orden de magnitud de $\alpha$~\cite{kingma2014}.
 \end{itemize}
 
-\subsection{Regularización $L_2$ y decaimiento de pesos}\label{sec:l2-wd}
+\subsection{Regularización \texorpdfstring{$L_2$}{L2} y decaimiento de pesos}\label{sec:l2-wd}
+
 
 Para reducir el sobreajuste es habitual penalizar los pesos grandes. Hay dos
 formas de hacerlo que suelen confundirse:
@@ -230,7 +231,9 @@ contradicción con la hipótesis.
 \end{demostracion}
 
 En Adam, el precondicionador es diagonal y depende de cada parámetro,
-$M_t = \operatorname{diag}\bigl(\sqrt{\widehat{v}_t} + \varepsilon\bigr)^{-1}$,
+\[
+  M_t = \operatorname{diag}\bigl(\sqrt{\widehat{v}_t} + \varepsilon\bigr)^{-1},
+\]
 así que la \cref{prop:adaptativo-l2-wd} se aplica. Intuitivamente, con
 regularización $L_2$ el gradiente del término de penalización también se divide
 por $\sqrt{\widehat{v}_t}$, de modo que los pesos con gradientes históricamente
@@ -278,11 +281,200 @@ solo aproximada. La configuración completa se detalla en el \cref{cap:materiale
 
 \subsection{Redes neuronales convolucionales}\label{sec:cnn}
 
-% - Operación de convolución discreta, equivarianza a traslaciones, agrupación (pooling).
-% - ResNet (He et al., 2016): conexiones residuales. EfficientNetV2 (Tan y Le, 2021).
-\begin{definicion}[Convolución discreta]\label{def:convolucion}
-\pendiente{definición}
+Las redes neuronales convolucionales (CNN) son redes especializadas en datos
+con estructura de rejilla, como las imágenes, que pueden verse como rejillas
+bidimensionales de píxeles. Seguimos la presentación de
+~\cite[cap.~9]{goodfellow2016deep}.
+
+\subsubsection{La operación de convolución}
+
+\begin{definicion}[Convolución]\label{def:convolucion}
+Sean $x, w \colon \mathbb{R} \to \mathbb{R}$ dos funciones integrables, en particular se exigirá que $x, w \in L^1(\mathbb{R})$. Se
+define su \emph{convolución} como
+\begin{equation}\label{eq:conv-continua}
+  s(t) = (x * w)(t) = \int_{-\infty}^{\infty} x(a)\, w(t-a)\, da .
+\end{equation}
+Si $x, w \colon \mathbb{Z} \to \mathbb{R}$ son discretas, la convolución es
+\begin{equation}\label{eq:conv-discreta}
+  s(t) = (x * w)(t) = \sum_{a=-\infty}^{\infty} x(a)\, w(t-a).
+\end{equation}
+En el contexto de las redes convolucionales, $x$ recibe el nombre de
+\emph{entrada}, $w$ el de \emph{núcleo} (\emph{kernel}) y la salida $s$ el de
+\emph{mapa de características} (\emph{feature map})
+\cite[sec.~9.1]{goodfellow2016deep}.
 \end{definicion}
+
+En la práctica, la entrada y el núcleo son tensores de valores finitos y se
+suponen nulos fuera de las posiciones almacenadas, de modo que la suma
+infinita de \cref{eq:conv-discreta} se reduce a una suma finita, siempre y cuando la entrada o 
+el núcleo tengan soporte finito. Para una
+imagen bidimensional $I$ y un núcleo bidimensional $K$, la convolución es
+\begin{equation}\label{eq:conv-2d}
+  S(i,j) = (I * K)(i,j) = \sum_{m}\sum_{n} I(m,n)\, K(i-m,\, j-n),
+\end{equation}
+y, por ser conmutativa,
+\begin{equation}\label{eq:conv-2d-conmutativa}
+  S(i,j) = (K * I)(i,j) = \sum_{m}\sum_{n} I(i-m,\, j-n)\, K(m,n).
+\end{equation}  
+La conmutatividad se debe a que el núcleo aparece \emph{volteado (flipped)} respecto de
+la entrada: al crecer $m$, el índice de la entrada crece y el del núcleo
+decrece. Esta propiedad es útil en las demostraciones, pero no es relevante
+para la implementación de una red \cite[sec.~9.1]{goodfellow2016deep}.
+
+\begin{definicion}[Correlación cruzada]\label{def:correlacion-cruzada}
+La \emph{correlación cruzada} de una imagen $I$ con un núcleo $K$ es
+\begin{equation}\label{eq:correlacion-cruzada}
+  S(i,j) = (K \star I)(i,j) = \sum_{m}\sum_{n} I(i+m,\, j+n)\, K(m,n).
+\end{equation}
+\end{definicion}
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=0.6\textwidth]{img/91_CNN.png}
+  \caption{Correlación cruzada bidimensional de una entrada de $3 \times 4$ con un núcleo de $2 \times 2$, sin volteo del núcleo: cada salida es la suma de los productos de una región de la entrada por el núcleo. Fuente: Goodfellow et al.~\cite[fig.~9.1]{goodfellow2016deep}.}
+  \label{fig:correlacion-cruzada}
+\end{figure}
+
+\begin{observacion}
+La correlación cruzada coincide con la convolución salvo por el volteo del
+núcleo. Muchas bibliotecas de aprendizaje automático implementan en realidad
+\cref{eq:correlacion-cruzada} pero la llaman convolución, y
+\cite[sec.~9.1]{goodfellow2016deep} adopta ese mismo convenio. Como el núcleo
+se aprende, ambas operaciones son equivalentes a efectos del modelo: la red
+aprendería simplemente el núcleo volteado. En lo que sigue llamaremos
+convolución a \cref{eq:correlacion-cruzada}, como es habitual.
+\end{observacion}
+
+\begin{definicion}[Red neuronal convolucional]\label{def:cnn}
+Una \emph{red neuronal convolucional} es una red neuronal que, en al menos una
+de sus capas, sustituye la multiplicación por una matriz general por una
+convolución \cite[cap.~9]{goodfellow2016deep}.
+\end{definicion}
+
+\subsubsection{Convolución con varios canales, paso y relleno}
+
+Las imágenes tienen varios canales (por ejemplo, RGB) y cada capa calcula
+varios mapas de características en paralelo. Sea $\mathsf{V}$ la entrada, con
+$\mathsf{V}_{l,j,k}$ el valor del canal $l$ en la fila $j$ y la columna $k$,
+y sea $\mathsf{K}$ un núcleo de orden cuatro, donde $\mathsf{K}_{i,l,m,n}$ es
+el peso que conecta la unidad del canal de salida $i$ con la del canal de
+entrada $l$ cuando hay un desplazamiento de $m$ filas y $n$ columnas. La
+salida $\mathsf{Z}$ es
+\begin{equation}\label{eq:conv-multicanal}
+  \mathsf{Z}_{i,j,k} = \sum_{l,m,n}
+  \mathsf{V}_{l,\, j+m-1,\, k+n-1}\, \mathsf{K}_{i,l,m,n},
+\end{equation}
+donde la suma recorre los índices para los que los tensores están definidos
+y el $-1$ se debe a que los índices empiezan en $1$
+\cite[sec.~9.5]{goodfellow2016deep}.
+
+Para reducir el coste se puede evaluar la salida solo cada $s$ píxeles en
+cada dirección. La \emph{convolución con paso} (\emph{stride}) $s$ es
+\begin{equation}\label{eq:conv-stride}
+  \mathsf{Z}_{i,j,k} = c(\mathsf{K}, \mathsf{V}, s)_{i,j,k} = \sum_{l,m,n}
+  \mathsf{V}_{l,\, (j-1)s+m,\, (k-1)s+n}\, \mathsf{K}_{i,l,m,n},
+\end{equation}
+lo que equivale a una convolución con paso unidad seguida de un submuestreo,
+pero sin calcular los valores que se descartarían
+\cite[sec.~9.5]{goodfellow2016deep}.
+
+Por último, el \emph{relleno con ceros} (\emph{zero padding}) de la entrada
+permite controlar el tamaño de la salida con independencia del tamaño del
+núcleo. Si la entrada tiene anchura $m$ y el núcleo anchura $k$, hay tres
+casos habituales \cite[sec.~9.5]{goodfellow2016deep}:
+\begin{itemize}
+  \item \emph{Válida} (\emph{valid}): sin relleno; el núcleo solo se aplica
+        donde cabe entero y la salida tiene anchura $m-k+1$.
+  \item \emph{Misma} (\emph{same}): se rellena lo justo para que la salida
+        tenga la misma anchura $m$ que la entrada.
+  \item \emph{Completa} (\emph{full}): se rellena lo suficiente para que cada
+        píxel se visite $k$ veces en cada dirección; la salida tiene anchura
+        $m+k-1$.
+\end{itemize}
+
+\subsubsection{Motivación: interacciones dispersas, parámetros compartidos y
+equivarianza}
+
+La convolución aporta tres propiedades frente a una capa densa
+\cite[sec.~9.2]{goodfellow2016deep}:
+\begin{enumerate}
+  \item \emph{Interacciones dispersas}. El núcleo es mucho más pequeño que la
+        entrada, así que cada unidad de salida depende solo de una región
+        local. Con $m$ entradas y $n$ salidas, una capa densa necesita
+        $m \times n$ parámetros y un coste $O(m \times n)$; si cada salida
+        se conecta como mucho a $k \ll m$ entradas, bastan $k \times n$
+        parámetros y un coste $O(k \times n)$.
+  \item \emph{Parámetros compartidos}. Cada peso del núcleo se usa en todas
+        las posiciones de la entrada, de modo que se aprende un único
+        conjunto de $k$ parámetros en lugar de uno por posición.
+  \item \emph{Equivarianza a traslaciones}, que precisamos a continuación.
+\end{enumerate}
+
+\begin{definicion}[Equivarianza]\label{def:equivarianza}
+Una función $f$ es \emph{equivariante} respecto de una transformación $g$ si
+$f(g(x)) = g(f(x))$ para toda entrada $x$ \cite[sec.~9.2]{goodfellow2016deep}.
+\end{definicion}
+
+\begin{proposicion}[Equivarianza de la convolución a traslaciones]
+\label{prop:equivarianza-conv}
+Sean $I, K \colon \mathbb{Z}^2 \to \mathbb{R}$ con $K$ de soporte finito y,
+para $\tau = (\tau_1, \tau_2) \in \mathbb{Z}^2$, sea $T_\tau$ el operador de
+traslación $(T_\tau I)(m,n) = I(m-\tau_1,\, n-\tau_2)$. Entonces
+\[
+  K \star (T_\tau I) = T_\tau (K \star I).
+\]
+\end{proposicion}
+
+\begin{demostracion}
+Para todo $(i,j) \in \mathbb{Z}^2$, por la definición
+\cref{eq:correlacion-cruzada},
+\[
+  \bigl(K \star T_\tau I\bigr)(i,j)
+  = \sum_{m}\sum_{n} I\bigl(i+m-\tau_1,\, j+n-\tau_2\bigr)\, K(m,n)
+  = (K \star I)(i-\tau_1,\, j-\tau_2)
+  = \bigl(T_\tau(K \star I)\bigr)(i,j).
+\]
+Las sumas son finitas porque $K$ tiene soporte finito.
+\end{demostracion}
+
+\begin{observacion}
+En una imagen finita la igualdad solo se cumple lejos de los bordes, donde el
+relleno con ceros rompe la equivarianza. Además, la convolución \emph{no} es
+equivariante a otras transformaciones, como los cambios de escala o las
+rotaciones \cite[sec.~9.2]{goodfellow2016deep}.
+\end{observacion}
+
+\subsubsection{Estructura de una capa convolucional y \emph{pooling}}
+
+Una capa convolucional típica consta de tres etapas
+\cite[sec.~9.3]{goodfellow2016deep}:
+\begin{enumerate}
+  \item \emph{Etapa de convolución}: se calculan varias convoluciones en
+        paralelo, que dan un conjunto de activaciones lineales (afines, si se
+        suma un sesgo).
+  \item \emph{Etapa de detección}: a cada activación se le aplica una función
+        no lineal, como la rectificada lineal $\operatorname{ReLU}(z) =
+        \max\{0, z\}$.
+  \item \emph{Etapa de agregación} (\emph{pooling}): se modifica la salida
+        sustituyéndola, en cada posición, por un resumen estadístico de las
+        salidas cercanas.
+\end{enumerate}
+
+\begin{definicion}[\emph{Max pooling}]\label{def:max-pooling}
+Dada una vecindad rectangular $\mathcal{N}(i,j)$ de la posición $(i,j)$, el
+\emph{max pooling} devuelve
+\[
+  P(i,j) = \max_{(m,n) \in \mathcal{N}(i,j)} S(m,n).
+\]
+Otras funciones de agregación habituales son la media en la vecindad, la
+norma $L^2$ o una media ponderada por la distancia al píxel central
+\cite[sec.~9.3]{goodfellow2016deep}.
+\end{definicion}
+
+El \emph{pooling} hace que la representación sea aproximadamente
+\emph{invariante} a traslaciones pequeñas de la entrada: si la entrada se
+desplaza ligeramente, la mayoría de las salidas agregadas no cambian
+\cite[sec.~9.3]{goodfellow2016deep}.
 
 \subsection{Transformers y Vision Transformer}\label{sec:transformer}
 
