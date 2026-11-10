@@ -279,6 +279,222 @@ solo aproximada. La configuración completa se detalla en el \cref{cap:materiale
 
 \section{Arquitecturas}\label{sec:arquitecturas}
 
+\subsection{Neuronas y funciones de activación}\label{sec:activaciones}
+
+% Puntos que debería cubrir:
+% - Neurona: preactivación z = \sum_j a_j w_j + b y activación a = \sigma(z); sin no linealidad, la
+%   composición de capas sigue siendo lineal.
+% - ReLU: \max(0, z); activaciones no negativas, gradiente 0 o 1. ResNet-50 y la cabeza de fastai
+%   de ViT-B/16, ConvNeXt-S y EfficientNetV2-S. La usa la etapa de detección de las CNN
+%   (\cref{sec:cnn}) y la suponen LRP (\cref{sec:lrp}) y ReAct, ASH y DICE
+%   (\cref{sec:metodos-activaciones}).
+% - GELU: z \Phi(z), con \Phi la función de distribución de la normal estándar; suave y con
+%   valores negativos pequeños. ViT-B/16, ConvNeXt-S y Swin-S.
+% - SiLU (Swish): z \sigma(z), con \sigma la sigmoide; comparación con la GELU. EfficientNetV2-S,
+%   con la sigmoide también en sus bloques de excitación.
+% - Consecuencia: con GELU y SiLU las activaciones tienen signo (relevante para ASH en el
+%   capítulo 10 y para la regla z+ con signo del capítulo 7).
+% - La softmax ya está definida en la \cref{def:softmax}.
+% Fuente de los modelos: resumen de capas de tfg/executions/def1/param0..4/resultados.txt.
+% Referencias originales de ReLU, GELU y SiLU: añadir a library.bib tras verificarlas.
+
+\begin{definicion}[Neurona artificial]\label{def:neurona}
+Según la Enciclopedia Británica esta se define como un programa informático que funciona basándode en las redes del cerebro
+para realizar funciones cognitivas como la resolución de problemas y el aprendizaje. Este proceso consta de un conjunto de datos de entrada
+lo que equilvadrían a las dendritas biológicas. Cada entrada se multiplica por un factor de peso 
+que determina su importancia. Estos pesos son los que el modelo ajusta en el proceso de entrenamiento.Finalmente se suman el resultado de entradas
+multiplicadas por sus pesos (normalmente también se le suele añadir un término de sesgo) y es una función matemática no lineal que en base 
+al valor final decide si la neurona se activa y qué valor transmite a la siguiente capa.
+
+% En el preámbulo, si no lo tienes ya:
+% \usepackage{graphicx}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.85\textwidth]{img/neurona_artificial.png}
+  \caption[Neurona biológica y neurona artificial]{%
+    (a) Neurona biológica. (b) Neurona artificial: las entradas $x_j$ se ponderan
+    con los pesos $w_{j}$, se suman junto con el sesgo $b$ y el resultado pasa por
+    una función de activación $\sigma$. Fuente:\cite[fig.~2.1]{terleth2019ann}, a partir de \cite{reed1999neural}.}
+  \label{fig:neurona}
+\end{figure}
+\end{definicion}
+
+\begin{definicion}[ReLU]\label{def:relu}
+Sea $y$ un valor número la función de activación se define como $h(y) = \max(0,y)$
+\end{definicion}
+
+% En el preámbulo, si no lo tienes ya:
+% \usepackage{amsmath,amssymb}
+% \DeclareMathOperator{\erf}{erf}
+
+La función GELU (\emph{Gaussian Error Linear Unit}) fue propuesta por ~\cite{hendrycks2016gelu}. Su idea de partida es combinar dos mecanismos que, hasta entonces, se trataban por separado: la función de activación y la regularización estocástica (como el \emph{dropout}). En una ReLU, la entrada $x$ se multiplica por $0$ o por $1$ según su signo, de forma determinista; en el \emph{dropout}, se multiplica por $0$ o por $1$ al azar, sin tener en cuenta su valor. La GELU une ambas ideas: la entrada se multiplica por una máscara aleatoria $m \sim \operatorname{Bernoulli}(\Phi(x))$, de modo que la probabilidad de anularla es mayor cuanto menor es $x$. Como en la práctica se busca una salida determinista, la activación se define como el valor esperado de esta transformación:
+\[
+  \mathbb{E}[m\,x] = \Phi(x)\cdot x + \bigl(1-\Phi(x)\bigr)\cdot 0 = x\,\Phi(x).
+\]
+Se elige la distribución normal estándar porque las entradas de las neuronas suelen tener una distribución aproximadamente normal, sobre todo cuando se usa normalización por lotes.
+
+\begin{definicion}[GELU]\label{def:gelu}
+Sea $\Phi$ la función de distribución de una variable aleatoria $X \sim \mathcal{N}(0,1)$. La \emph{unidad lineal de error gaussiano} (GELU) es la función $\operatorname{GELU}\colon \mathbb{R} \to \mathbb{R}$ dada por
+\[
+  \operatorname{GELU}(x) = x\,\mathbb{P}(X \le x) = x\,\Phi(x)
+  = \frac{x}{2}\left[1 + \erf\!\left(\frac{x}{\sqrt{2}}\right)\right],
+\]
+donde $\erf(t) = \frac{2}{\sqrt{\pi}} \int_0^t e^{-s^2}\,ds$ es la función error.
+\end{definicion}
+
+Dicho de otro modo, la GELU pondera cada entrada por la probabilidad de que una normal estándar no la supere: escala $x$ según lo grande que es en comparación con el resto de entradas. Así, mientras que la ReLU, $\operatorname{ReLU}(x) = x\,\mathbf{1}_{\{x>0\}}$, \emph{filtra} las entradas por su signo, la GELU las \emph{pondera} por su valor.
+
+\begin{observacion}
+\begin{enumerate}
+  \item La GELU es una versión suavizada de la ReLU: basta sustituir la función indicadora $\mathbf{1}_{\{x>0\}}$ por $\Phi(x)$. Si en lugar de $\mathcal{N}(0,1)$ se toma $\mathcal{N}(0,\sigma^2)$, la GELU tiende a la ReLU cuando $\sigma \to 0$. Además, ambas funciones son asintóticamente iguales cuando $|x| \to \infty$.
+  \item A diferencia de la ReLU, la GELU no es monótona ni convexa, y toma valores negativos (pequeños) para $x<0$.
+  \item Cuando se prioriza la velocidad sobre la exactitud, se puede aproximar por
+  \[
+    \operatorname{GELU}(x) \approx \tfrac{1}{2}\,x\left(1 + \tanh\!\left[\sqrt{2/\pi}\,\bigl(x + 0.044715\,x^3\bigr)\right]\right)
+    \quad\text{o}\quad
+    \operatorname{GELU}(x) \approx x\,\sigma(1.702\,x),
+  \]
+  donde $\sigma$ es la función sigmoide.
+\end{enumerate}
+\end{observacion}
+
+Para la pregunta de por qué la no linealidad no es necesaria se justifica con la siguietne proposición:
+
+\begin{definicion}[SiLU]\label{def:silu}
+  La SiLU, $SiLU(x) = x \sigma(x)$, se obtiene al sustituir $\phi$ por la función de distribución logística en la definición de la GELU \cite{hendrycks2016gelu}.
+\end{definicion}
+
+\begin{proposicion}\label{prop:sin-activacion}
+Sean $f_\ell(x) = W^{(\ell)}x + b^{(\ell)}$, con $W^{(\ell)} \in \mathbb{R}^{n_\ell \times n_{\ell-1}}$ y $b^{(\ell)} \in \mathbb{R}^{n_\ell}$, para $\ell = 1, \dots, L$. Entonces la composición $f = f_L \circ \cdots \circ f_1$ es también afín: existen $W \in \mathbb{R}^{n_L \times n_0}$ y $b \in \mathbb{R}^{n_L}$ tales que $f(x) = Wx + b$ para todo $x \in \mathbb{R}^{n_0}$.
+\end{proposicion}
+
+\begin{demostracion}
+Por inducción sobre $L$. Para $L = 1$ no hay nada que probar. Supongamos que $g = f_{L-1} \circ \cdots \circ f_1$ cumple $g(x) = \widetilde{W}x + \widetilde{b}$. Entonces
+\[
+  f(x) = W^{(L)}\bigl(\widetilde{W}x + \widetilde{b}\bigr) + b^{(L)}
+       = \bigl(W^{(L)}\widetilde{W}\bigr)x + \bigl(W^{(L)}\widetilde{b} + b^{(L)}\bigr),
+\]
+que es afín con $W = W^{(L)}\widetilde{W}$ y $b = W^{(L)}\widetilde{b} + b^{(L)}$.
+\end{demostracion}
+
+\begin{observacion}
+Por tanto, una red sin funciones de activación, por muchas capas que tenga, solo puede representar funciones afines; en clasificación, sus fronteras de decisión están formadas por hiperplanos~\cite[cap.~6]{goodfellow2016deep}. Las funciones de activación no lineales son las que permiten que la red aproxime funciones más complejas.
+\end{observacion}
+
+Estas funciones de activación han sido definidas en concreto pues son las que han sido usadas en los modelos de la fase de experimentación. En concreto ResNet-50 usó ReLU,
+ViT-B/16, ConvNeXt-S y Swin-S usaron GELU, y unicamente EfficientNetV2-S empleó SiLU.
+
+% Preámbulo: \usepackage{amsmath,amssymb,amsthm}
+% \DeclareMathOperator{\spn}{span}
+
+\subsection{Teorema de aproximación universal}
+
+La Proposición~\ref{prop:sin-activacion} muestra que la no linealidad de $\sigma$ es necesaria para que la red pueda representar algo más que funciones afines. Cabe preguntarse si también es suficiente, es decir, qué condición debe cumplir $\sigma$ 
+para que una red pueda aproximar cualquier función continua. Para redes con una capa oculta, la respuesta la da el siguiente teorema: la condición exacta no es que $\sigma$ sea no lineal, sino que no sea un polinomio.
+
+Dada una función de activación $\sigma\colon\mathbb{R}\to\mathbb{R}$, una red neuronal con una capa oculta de $r$ neuronas y una salida escalar calcula funciones de la forma
+\[
+  N(x) = \sum_{i=1}^{r} c_i\,\sigma(w_i\cdot x + b_i), \qquad w_i\in\mathbb{R}^n,\ b_i, c_i\in\mathbb{R}.
+\]
+Denotamos por $\mathcal{M}(\sigma) = \spn\{\sigma(w\cdot x + b) : w\in\mathbb{R}^n,\ b\in\mathbb{R}\}$ el conjunto de todas ellas. En $C(\mathbb{R}^n)$ consideramos la topología de la convergencia uniforme sobre compactos: decimos que $\mathcal{M}(\sigma)$ es \emph{denso} en $C(\mathbb{R}^n)$ si para toda $f\in C(\mathbb{R}^n)$, todo compacto $K\subset\mathbb{R}^n$ y todo $\varepsilon>0$ existe $N\in\mathcal{M}(\sigma)$ con $\sup_{x\in K}|f(x)-N(x)|<\varepsilon$. Escribimos $\overline{\mathcal{M}(\sigma)}$ para su clausura, que es un subespacio vectorial cerrado.
+\begin{teorema}[Aproximación universal~{\cite[Teorema 3.1]{pinkus1999approximation}}]\label{teo:aprox-universal}
+Sea $\sigma\in C(\mathbb{R})$. Entonces $\mathcal{M}(\sigma)$ es denso en $C(\mathbb{R}^n)$ si y solo si $\sigma$ no es un polinomio.
+\end{teorema}
+
+La demostración se divide en tres pasos: primero se reduce el problema a dimensión $n=1$ (Lema~\ref{lem:reduccion}); después se prueba para activaciones de clase $C^\infty$ (Lema~\ref{lem:suave}); y, por último, se extiende a activaciones continuas mediante convolución.
+
+\begin{lema}\label{lem:homogeneos}
+Sea $H_k$ el espacio de los polinomios homogéneos de grado $k$ en $n$ variables. Entonces $H_k = \spn\{(a\cdot x)^k : a\in\mathbb{R}^n\}$.
+\end{lema}
+
+\begin{proof}
+Los monomios $x^\alpha = x_1^{\alpha_1}\cdots x_n^{\alpha_n}$ con $|\alpha|=k$ forman una base de $H_k$. Para $p=\sum_\alpha p_\alpha x^\alpha$ y $q=\sum_\alpha q_\alpha x^\alpha$ definimos el producto escalar $\langle p,q\rangle = \sum_{|\alpha|=k}\alpha!\,p_\alpha q_\alpha$, donde $\alpha! = \alpha_1!\cdots\alpha_n!$. Por la fórmula multinomial,
+\[
+  (a\cdot x)^k = \sum_{|\alpha|=k}\frac{k!}{\alpha!}\,a^\alpha x^\alpha,
+  \qquad\text{luego}\qquad
+  \bigl\langle (a\cdot x)^k, q\bigr\rangle = \sum_{|\alpha|=k} k!\,a^\alpha q_\alpha = k!\,q(a).
+\]
+Si $q\in H_k$ es ortogonal a todos los $(a\cdot x)^k$, entonces $q(a)=0$ para todo $a\in\mathbb{R}^n$, y por tanto $q=0$. Como $H_k$ tiene dimensión finita, el complemento ortogonal del subespacio generado es trivial y se tiene la igualdad.
+\end{proof}
+
+\begin{lema}[Reducción a dimensión uno]\label{lem:reduccion}
+Si $\mathcal{M}(\sigma)$ es denso en $C(\mathbb{R})$, entonces es denso en $C(\mathbb{R}^n)$ para todo $n\ge 1$.
+\end{lema}
+
+\begin{proof}
+Sean $g\in C(\mathbb{R})$, $a\in\mathbb{R}^n$, $K\subset\mathbb{R}^n$ compacto y $\varepsilon>0$. Existe $R>0$ con $a\cdot K\subset[-R,R]$. Por hipótesis hay $c_i, w_i, b_i\in\mathbb{R}$ tales que $|g(t)-\sum_i c_i\sigma(w_i t+b_i)|<\varepsilon$ para $t\in[-R,R]$. Tomando $t=a\cdot x$,
+\[
+  \sup_{x\in K}\Bigl|g(a\cdot x)-\sum_i c_i\,\sigma\bigl((w_i a)\cdot x+b_i\bigr)\Bigr|<\varepsilon,
+\]
+luego $g(a\cdot x)\in\overline{\mathcal{M}(\sigma)}$. En particular, $(a\cdot x)^k\in\overline{\mathcal{M}(\sigma)}$ para todo $a$ y todo $k$, y por el Lema~\ref{lem:homogeneos} la clausura contiene todos los polinomios en $n$ variables. Por el teorema de Stone--Weierstrass, los polinomios son densos en $C(K)$ para todo compacto $K$, así que $\overline{\mathcal{M}(\sigma)}=C(\mathbb{R}^n)$.
+\end{proof}
+
+\begin{lema}[Caso suave, ~\cite{pinkus1999approximation}, Prop.~3.4]\label{lem:suave}
+Sea $\sigma\in C^\infty(\mathbb{R})$. Entonces:
+\begin{enumerate}
+  \item[(a)] $x^k\sigma^{(k)}(b)\in\overline{\mathcal{M}(\sigma)}$ para todo $k\ge 0$ y todo $b\in\mathbb{R}$;
+  \item[(b)] si $\sigma$ no es un polinomio, $\mathcal{M}(\sigma)$ es denso en $C(\mathbb{R})$.
+\end{enumerate}
+\end{lema}
+
+\begin{demostracion}
+(a) Para $k=0$ basta tomar $w=0$. Sea $k\ge 1$ y, fijado $b$, sea $f(w)=\sigma(wx+b)$, con $f^{(k)}(w) = x^k\sigma^{(k)}(wx+b)$. La diferencia finita de orden $k$,
+\[
+  D_h(x) = \frac{1}{h^k}\sum_{j=0}^{k}(-1)^{k-j}\binom{k}{j}\,\sigma\bigl((w+jh)x+b\bigr),
+\]
+pertenece a $\mathcal{M}(\sigma)$ y, por el teorema del valor medio para diferencias finitas, $D_h(x) = x^k\sigma^{(k)}(\xi x+b)$ para algún $\xi\in(w,w+kh)$ que depende de $x$. Así, para $|x|\le R$,
+\[
+  \bigl|D_h(x)-x^k\sigma^{(k)}(wx+b)\bigr| \le R^k \sup_{|\xi-w|\le kh,\ |x|\le R}\bigl|\sigma^{(k)}(\xi x+b)-\sigma^{(k)}(wx+b)\bigr|,
+\]
+que tiende a $0$ cuando $h\to 0$ por la continuidad uniforme de $\sigma^{(k)}$ en compactos. Luego $x^k\sigma^{(k)}(wx+b)\in\overline{\mathcal{M}(\sigma)}$, y basta tomar $w=0$.
+
+(b) Si $\sigma$ no es un polinomio, ninguna $\sigma^{(k)}$ es idénticamente nula, así que para cada $k$ existe $b_k$ con $\sigma^{(k)}(b_k)\ne 0$. Por (a), $x^k\in\overline{\mathcal{M}(\sigma)}$ para todo $k$. La clausura contiene todos los polinomios y, por el teorema de Weierstrass, es todo $C(\mathbb{R})$.
+\end{demostracion}
+
+\begin{demostracion}[Demostración del Teorema~\ref{teo:aprox-universal}]
+\emph{Necesidad.} Si $\sigma$ es un polinomio de grado $m$, cada $\sigma(w\cdot x+b)$ es un polinomio de grado a lo sumo $m$, de modo que $\mathcal{M}(\sigma)$ está contenido en el espacio $\mathcal{P}_m$ de los polinomios de grado $\le m$. Este espacio tiene dimensión finita, luego es cerrado, y no coincide con $C(\mathbb{R}^n)$. Por tanto, $\mathcal{M}(\sigma)$ no es denso.
+
+\emph{Suficiencia} ~\cite[Prop.~3.7]{pinkus1999approximation}. Por el Lema~\ref{lem:reduccion} basta el caso $n=1$. Para $\varphi\in C_c^\infty(\mathbb{R})$ con soporte en $[-\alpha,\alpha]$, la convolución $\sigma_\varphi = \sigma*\varphi$ es de clase $C^\infty$, y
+\[
+  \sigma_\varphi(wx+b) = \int_{-\alpha}^{\alpha}\sigma(wx+b-y)\,\varphi(y)\,dy.
+\]
+Las sumas de Riemann $\sum_j \sigma(wx+b-y_j)\varphi(y_j)\Delta y$ pertenecen a $\mathcal{M}(\sigma)$ y, por la continuidad uniforme de $(t,y)\mapsto\sigma(t-y)\varphi(y)$ en compactos, convergen a $\sigma_\varphi(wx+b)$ uniformemente para $x$ en compactos. Luego $\mathcal{M}(\sigma_\varphi)\subset\overline{\mathcal{M}(\sigma)}$ y, como la clausura es cerrada, también $\overline{\mathcal{M}(\sigma_\varphi)}\subset\overline{\mathcal{M}(\sigma)}$.
+
+Supongamos, por reducción al absurdo, que $\mathcal{M}(\sigma)$ no es denso en $C(\mathbb{R})$. Por el teorema de Weierstrass, existe $k$ tal que $x^k\notin\overline{\mathcal{M}(\sigma)}$. Por el Lema~\ref{lem:suave}(a), $x^k\sigma_\varphi^{(k)}(b)\in\overline{\mathcal{M}(\sigma_\varphi)}\subset\overline{\mathcal{M}(\sigma)}$ para todo $b\in\mathbb{R}$, así que necesariamente $\sigma_\varphi^{(k)}(b)=0$ para todo $b$. Es decir, $\sigma_\varphi\in\mathcal{P}_{k-1}$ para toda $\varphi\in C_c^\infty(\mathbb{R})$, con el mismo $k$.
+
+Tomemos ahora una aproximación de la identidad (\emph{mollifiers}): $\varphi_m\in C_c^\infty(\mathbb{R})$, $\varphi_m\ge 0$, $\int\varphi_m=1$ y soporte en $[-1/m,1/m]$. Por la continuidad uniforme de $\sigma$ en compactos, $\sigma*\varphi_m\to\sigma$ uniformemente en compactos. Como $\sigma*\varphi_m\in\mathcal{P}_{k-1}$ y este subespacio es cerrado por tener dimensión finita, $\sigma\in\mathcal{P}_{k-1}$, lo que contradice que $\sigma$ no es un polinomio.
+\end{demostracion}
+
+\begin{demostracion}[Demostración del Teorema~\ref{teo:aprox-universal}]
+\emph{Necesidad.} Si $\sigma$ es un polinomio de grado $m$, cada $\sigma(w\cdot x+b)$ es un polinomio de grado a lo sumo $m$, de modo que $\mathcal{M}(\sigma)$ está contenido en el espacio $\mathcal{P}_m$ de los polinomios de grado $\le m$. Este espacio tiene dimensión finita, luego es cerrado, y no coincide con $C(\mathbb{R}^n)$. Por tanto, $\mathcal{M}(\sigma)$ no es denso.
+
+\emph{Suficiencia.} Por el Lema~\ref{lem:reduccion} basta el caso $n=1$. Para $\varphi\in C_c^\infty(\mathbb{R})$ con soporte en $[-\alpha,\alpha]$, la convolución $\sigma_\varphi = \sigma*\varphi$ es de clase $C^\infty$, y
+\[
+  \sigma_\varphi(wx+b) = \int_{-\alpha}^{\alpha}\sigma(wx+b-y)\,\varphi(y)\,dy.
+\]
+Las sumas de Riemann $\sum_j \sigma(wx+b-y_j)\varphi(y_j)\Delta y$ pertenecen a $\mathcal{M}(\sigma)$ y, por la continuidad uniforme de $(t,y)\mapsto\sigma(t-y)\varphi(y)$ en compactos, convergen a $\sigma_\varphi(wx+b)$ uniformemente para $x$ en compactos. Luego $\mathcal{M}(\sigma_\varphi)\subset\overline{\mathcal{M}(\sigma)}$. Si algún $\sigma_\varphi$ no es un polinomio, el Lema~\ref{lem:suave} concluye.
+
+Supongamos, por reducción al absurdo, que $\sigma_\varphi$ es un polinomio para toda $\varphi\in C_c^\infty([-\alpha,\alpha])$. Este espacio, con su topología usual, es un espacio de Fréchet, y los conjuntos $F_k = \{\varphi : \sigma_\varphi\in\mathcal{P}_k\}$ son cerrados (si $\varphi_m\to\varphi$, entonces $\sigma_{\varphi_m}\to\sigma_\varphi$ uniformemente en compactos, y $\mathcal{P}_k$ es cerrado). Como su unión es todo el espacio, por el teorema de Baire algún $F_k$ contiene una bola $B(\varphi_0,\delta)$. Dada cualquier $\varphi$, para $t>0$ pequeño se tiene $\varphi_0+t\varphi\in B(\varphi_0,\delta)$ y, por linealidad,
+\[
+  \sigma_\varphi = \tfrac{1}{t}\bigl(\sigma_{\varphi_0+t\varphi}-\sigma_{\varphi_0}\bigr)\in\mathcal{P}_k.
+\]
+Tomemos ahora una aproximación de la identidad $\varphi_m\ge 0$, con $\int\varphi_m=1$ y soporte en $[-1/m,1/m]$. Entonces $\sigma*\varphi_m\to\sigma$ uniformemente en compactos y $\sigma*\varphi_m\in\mathcal{P}_k$, que es cerrado, luego $\sigma\in\mathcal{P}_k$: contradicción.
+\end{demostracion}
+
+\begin{observacion}
+\begin{enumerate}
+  \item Las activaciones ReLU, GELU y SiLU son continuas y no son polinomios, así que el Teorema~\ref{teo:aprox-universal} se aplica a todas ellas. La identidad es un polinomio de grado~1, lo que es coherente con la Proposición~\ref{prop:sin-activacion}.
+  \item El resultado es de existencia: garantiza que \emph{existe} una red con una capa oculta suficientemente ancha que aproxima $f$, pero no dice cuántas neuronas hacen falta ni cómo encontrar los pesos mediante el entrenamiento.
+\end{enumerate}
+\end{observacion}
+
+\begin{observacion}
+Los dos resultados anteriores se complementan. Una activación afín no aporta nada (Proposición~\ref{prop:sin-activacion}), y una activación polinómica, aunque sea no lineal, tampoco basta con una capa oculta: si $\sigma$ es un polinomio de grado $m$, la red solo genera polinomios de grado a lo sumo $m$. Las activaciones que usamos en este trabajo (ReLU, GELU y SiLU) son continuas y no polinómicas, de modo que el Teorema~\ref{teo:aprox-universal} garantiza que las redes con una capa oculta suficientemente ancha pueden aproximar cualquier función continua sobre un compacto.
+\end{observacion}
+
+Este resultado, junto con otros análogos con hipótesis distintas sobre $\sigma$~\cite{cybenko1989approximation,hornik1989multilayer}, se conoce en la literatura como \emph{teorema de aproximación universal}; la expresión procede de~\cite{hornik1989multilayer}, que llamaron \emph{aproximadores universales} a las redes con esta propiedad.~\cite{pinkus1999approximation} lo formula como un problema de \emph{densidad}. Aquí presentamos la versión de~\cite{leshno1993multilayer}, que caracteriza exactamente las activaciones continuas que tienen esta propiedad.
+
 \subsection{Redes neuronales convolucionales}\label{sec:cnn}
 
 Las redes neuronales convolucionales (CNN) son redes especializadas en datos
@@ -334,7 +550,6 @@ La \emph{correlación cruzada} de una imagen $I$ con un núcleo $K$ es
   \caption{Correlación cruzada bidimensional de una entrada de $3 \times 4$ con un núcleo de $2 \times 2$, sin volteo del núcleo: cada salida es la suma de los productos de una región de la entrada por el núcleo. Fuente: Goodfellow et al.~\cite[fig.~9.1]{goodfellow2016deep}.}
   \label{fig:correlacion-cruzada}
 \end{figure}
-
 \begin{observacion}
 La correlación cruzada coincide con la convolución salvo por el volteo del
 núcleo. Muchas bibliotecas de aprendizaje automático implementan en realidad
