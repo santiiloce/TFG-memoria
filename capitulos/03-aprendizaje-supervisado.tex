@@ -476,6 +476,26 @@ El \emph{pooling} hace que la representación sea aproximadamente
 desplaza ligeramente, la mayoría de las salidas agregadas no cambian
 \cite[sec.~9.3]{goodfellow2016deep}.
 
+La figura~\cref{fig:cnn-tipica} muestra cómo se combinan estos elementos en
+una arquitectura convolucional típica: varias capas convolucionales, cada
+una seguida de una no linealidad y de una etapa de \emph{pooling}, que
+reducen progresivamente la resolución espacial y aumentan el número de
+mapas de características, y unas capas totalmente conectadas finales que
+proporcionan la predicción.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{img/typical_cnn.png}
+  \caption{Arquitectura típica de una red neuronal convolucional para
+    clasificación de imágenes: capas de convolución que producen mapas de
+    características, alternadas con capas de submuestreo (\emph{pooling}),
+    y capas totalmente conectadas al final que producen la salida.
+    Fuente: Aphex34, \emph{Typical cnn.png}, Wikimedia Commons,
+    licencia CC~BY-SA~4.0
+    (\url{https://commons.wikimedia.org/w/index.php?curid=45679374}).}
+  \label{fig:cnn-tipica}
+\end{figure}
+
 \subsection{Transformers y Vision Transformer}\label{sec:transformer}
 
 % - Atención por producto escalar: Attention(Q, K, V) = softmax(QK^T / \sqrt{d}) V.
