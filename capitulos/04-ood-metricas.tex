@@ -69,17 +69,16 @@ siendo $S(\cdot)$ la función de puntuación que califica el grado de \textit{``
 
 \section{Distribución de los datos y cambios de distribución}\label{sec:cambios-distribucion}
 
-% - Factorización P(X, Y) = P(Y | X) P(X).
-% - Desplazamiento de covariables: cambia P(X), se mantiene P(Y | X).
-% - Cambio semántico: cambia el espacio de etiquetas, P(Y) \neq P'(Y) (ver \cref{sec:ea-taxonomia}).
-\pendiente{introducción: factorización $P(X,Y) = P(Y \mid X)\,P(X)$}
-
+Sea el espacio de entrada $X$(observaciones sensoriales) y sea de forma independiente el espacio de etiquetas $Y$ (categorías semánticas). La distribución
+de los datos es representada por la distribución conjunta $P(X,Y) \in X \times Y$. Un cambio en la distribución puede ocurrir tanto en la distribución marginal
+$P(X)$ o en ambas $P(X)$ y $P(Y)$.
 \begin{definicion}[Desplazamiento de covariables]\label{def:covariate-shift}
-\pendiente{definición}
+Ocurre cuando hay una alteración en la distribución marginal $P(X)$ afectando al espacio de entrada, mientras que el espacio de etiquetas $Y$ se mantiene constante.
 \end{definicion}
 
 \begin{definicion}[Cambio semántico]\label{def:semantic-shift}
-\pendiente{definición}
+    Envuelve cambios en ambos, en $P(Y)$ e indirectamente en $P(X)$. Un cambio en espacio de etiquetas $P(Y)$ implica la introducción de nuevas categorias o la alteración de las 
+    ya existentes. Esto suele cambiar el espacio de entrada $P(X)$ ya que ahora la naturaleza de los datos observados es diferente.
 \end{definicion}
 
 \begin{definicion}[Detección OOD del espectro completo]\label{def:deteccionfullspectrum}

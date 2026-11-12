@@ -44,8 +44,75 @@ detection o Open-Set Recognition (OSR).
   \caption{Subtareas de la detección OOD generalizada: (a) detección de anomalías sensoriales, (b) detección de novedades de una clase, (c) detección de novedades multiclase, (d) reconocimiento en conjunto abierto y detección OOD y (e) detección de valores atípicos. Fuente: Yang et al.~\cite{yang2024} (figura~2).}
   \label{fig:taxonomia-yang}
 \end{figure}
+La detección OOD es crucual para asegurar la confianza y seguridad de los modelos de aprendizaje. El término OOD apareció por primera vez en 2017
+y desde entonces no ha parado de crecer la atención de la comunidad investigadora en este campo. Anteriormente ya se trataban otros temas muy relaciones con detección 
+OOD en termino de motivación y metodología, pero al igual que se planteó en ~\cite{yang2024} se considerarán como casos especiales o subcategorías.
+
 En el contexto de clasificación de imágenes se define como detección OOD la capacidad de un sistema de reconocimiento inteligente para detectar y manejar imágenes desconocidas, es decir no pertenecen al conjunto de las conocidas, 
-al que denominaremos como in-distribution (ID). El estudio del progreso de este campo ha sido obstacaulizaco por tres tramps que suelen 
+al que denominaremos como in-distribution (ID) ~\cite{openood15}. 
+
+\subsection{Detección de anomalías}
+
+La detección de anomalías (\textit{Anomaly Detection}, AD) parte de un concepto de
+\textit{normalidad} definido de antemano (normalmente sin subcategorías) y tiene como objetivo identificar, durante
+la fase de test, cualquier muestra que se desvíe de dicha normalidad
+~\cite{yang2024}. Esta desviación puede producirse de dos formas, lo que
+da lugar a dos subtareas:
+
+\begin{itemize}
+    \item \textbf{AD sensorial}: la muestra presenta un \textit{covariate shift}, es
+    decir, cambia su apariencia o sus características de bajo nivel, pero no su
+    categoría. Se asume que todas las muestras normales proceden de la misma
+    distribución de covariables.
+    \item \textbf{AD semántica}: la muestra presenta un \textit{semantic shift}, es
+    decir, pertenece a una clase distinta de la considerada normal. Se asume que
+    todas las muestras normales pertenecen a una única categoría.
+\end{itemize}
+
+Formalmente, sea $P(X)$ la distribución de las muestras normales
+(\textit{in-distribution}) y $P'(X)$ la distribución de las anomalías encontradas
+en test (\textit{out-of-distribution}). En la AD sensorial se cumple
+$P(X) \neq P'(X)$ mientras que $P(Y) = P'(Y)$, por lo que únicamente existe
+desplazamiento de covariables. En la AD semántica, por el contrario, se tiene
+$P(Y) \neq P'(Y)$ y el objetivo es detectar muestras pertenecientes a clases
+nuevas ~\cite{yang2024}.
+
+\subsection{Detección de novedades}
+
+La detección de novedades (\textit{Novelty Detection}, ND) tiene como objetivo
+identificar, durante la fase de test, aquellas muestras que no pertenecen a ninguna
+de las categorías vistas durante el entrenamiento ~\cite{yang2024}. En la comunidad investifadora se suele confundir con AD, pero estrictamente hablando
+presenta una relevante diferencia, y es que a 
+diferencia de la detección de anomalías, estas muestras no se consideran
+necesariamente erróneas, sino que suelen reservarse para procesos posteriores,
+como un análisis más especializado o el aprendizaje incremental del modelo.
+
+En función del número de clases presentes en el conjunto de entrenamiento, se
+distinguen dos variantes:
+
+\begin{itemize}
+    \item \textbf{ND de una clase} (\textit{one-class ND}): el conjunto de
+    entrenamiento contiene una única clase.
+    \item \textbf{ND multiclase} (\textit{multi-class ND}): el conjunto de
+    entrenamiento contiene varias clases. Aun así, el objetivo sigue siendo
+    únicamente separar las muestras novedosas de las \textit{in-distribution}, sin
+    necesidad de clasificarlas entre las clases conocidas.
+\end{itemize}
+
+En ambos casos, la tarea se formula como un problema de clasificación binaria
+~\cite{yang2024}.
+
+Como hemos visto ND trata con la misma configuración en donde las muestras OOOD tienen varianza semántica y no existe la 
+necesisdad de clasificación ID incluso cuando es posible Por tanto, ND comparte la misma definición del problema que AD.
+
+Una característica distintiva de la AD es que trata el conjunto de datos normales
+como un todo: independientemente del número de clases presentes en los datos
+\textit{in-distribution}, no requiere diferenciar entre ellas. Este rasgo la
+distingue de otras tareas relacionadas, como el reconocimiento de conjunto abierto
+(\textit{Open Set Recognition}) o la detección \textit{out-of-distribution}
+~\cite{yang2024}.
+
+El estudio del progreso de este campo ha sido obstaculizado por tres trampas que suelen 
 ser pasadas por alto por los investigadores: 1) terminología confusa, 2) conjuntos de datos incosistentes, y 3) prácticas erroneas. En en este contexto donde aparece OpenOOD como plataforma
 y benchmark unificado cuya función es evaluar las metodologías presentes y futuras ~\cite{openood15}. Dicha plataforma provee de diferentes modelos y es compatible tanto con diversos conjuntos de datos
 con como distintos tipos de métricas, permitiendo realizar experimentos a pequeña y gran escala.
