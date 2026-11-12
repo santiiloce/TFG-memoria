@@ -10,7 +10,7 @@ Palabras de prosa del autor por capítulo (sin comentarios, marcas, tablas, figu
 |---|---|---|
 | Preliminares (agradecimientos, summary, resumen) | 0 | Esqueleto. Hecho: índice de acrónimos. |
 | 1. Introducción | 0 | Esqueleto completo: contexto, problema, motivación, preguntas e hipótesis, objetivos, fuentes, estructura, Gantt y costes. |
-| 2. Estado del arte | 600 | Con contenido: taxonomía (con la figura de Yang et al.), criterio conservador, métodos excluidos y explicabilidad. Esqueleto: histopatología, near/far-OOD, Clever Hans, CRP glocal. |
+| 2. Estado del arte | ~7300 | Redactado (15 páginas, pp. 5-19): histopatología (WSI y Gleason, conjuntos de datos y transferencia, OOD en patología), detección OOD (cambios de distribución, taxonomía con tabla, situación del trabajo y criterio conservador, familias de métodos con tabla, métodos excluidos, OpenOOD, retos), explicabilidad (conceptos, tipos, Clever Hans, LRP-CRP y Storås, PCX y STOOD-X) y síntesis. Sin marcas. |
 | 3. Aprendizaje supervisado | 0 | Esqueleto con entornos `definicion`/`proposicion`/`demostracion`. |
 | 4. Formalización OOD y métricas | 348 | Descripción informal de las métricas (de las notas). Definiciones y teoremas en esqueleto (AUROC = P(...) = U/(n₁n₂), etc.). |
 | 5. Métodos post hoc | 824 | Descripción de los grupos 1–3 y de STOOD-X (de las notas). Definiciones formales en esqueleto. |
@@ -90,15 +90,6 @@ Se generan con `python3 scripts/generar_tablas.py` a partir de `OpenOOD/results_
 - `capitulos/01-introduccion.tex:91` — estructura de la memoria
 - `capitulos/01-introduccion.tex:102` — planificación temporal y diagrama de Gantt
 - `capitulos/01-introduccion.tex:109` — planificación económica
-- `capitulos/02-estado-arte.tex:19` — estado del arte de la clasificación histopatológica
-- `capitulos/02-estado-arte.tex:27` — presentación de la taxonomía de Yang et al.~\cite{yang2024}
-- `capitulos/02-estado-arte.tex:35` — situar el trabajo en la subtarea (d) de la \cref{fig:taxonomia-yang} y justificar la inclusión de PANDA: en un contexto clínico también interesa avisar de cambios de apariencia que degradan el clasificador (la exactitud cae del 96,88\,\% en el test ID al 90,77\,\% en el control de resolución)
-- `capitulos/02-estado-arte.tex:49` — citar
-- `capitulos/02-estado-arte.tex:59` — introducción al cambio semántico y al desplazamiento de covariables
-- `capitulos/02-estado-arte.tex:67` — near-OOD y far-OOD
-- `capitulos/02-estado-arte.tex:94` — efecto Clever Hans en XAI y aprendizaje de relaciones espurias en la clasificación de imágenes
-- `capitulos/02-estado-arte.tex:99` — desarrollar y citar (Achtibat et al.~\cite{achtibat2023})
-- `capitulos/02-estado-arte.tex:107` — LRP, CRP y explicaciones glocales, usando el concepto de CRP glocal como en el artículo de CRP
 - `capitulos/03-aprendizaje-supervisado.tex:20` — definición formal
 - `capitulos/03-aprendizaje-supervisado.tex:25` — enunciado
 - `capitulos/03-aprendizaje-supervisado.tex:28` — demostración
@@ -239,15 +230,10 @@ Se generan con `python3 scripts/generar_tablas.py` a partir de `OpenOOD/results_
 - `apendices/C-material-complementario.tex:12` — presentación de las figuras
 - `apendices/C-material-complementario.tex:55` — presentación de las figuras
 
-Total: 161
+Total: 152
 
 ### \revisar
 
-- `capitulos/02-estado-arte.tex:45` — traducción casi literal; parafrasear y citar
-- `capitulos/02-estado-arte.tex:46` — «En este estudio» se refiere al survey de Yang et al., no a este TFG
-- `capitulos/02-estado-arte.tex:50` — traducción casi literal; parafrasear y citar
-- `capitulos/02-estado-arte.tex:53` — traducción casi literal; parafrasear y citar
-- `capitulos/02-estado-arte.tex:79` — añadida la cita a Zhang et al. (2021) junto a Serrà et al.
 - `capitulos/04-ood-metricas.tex:42` — traducción casi literal; parafrasear y citar
 - `capitulos/04-ood-metricas.tex:88` — las notas decían que en AUPR-Out interesa un valor «más bajo»; es incorrecto: en ambas versiones interesa un valor alto
 - `capitulos/05-metodos-posthoc.tex:24` — añadidas las citas a los artículos originales de MSP, MaxLogit y Energy
@@ -291,5 +277,5 @@ Total: 161
 - `capitulos/11-stoodx.tex:33` — tono
 - `capitulos/13-fuga-lamina.tex:28` — deducción a partir de los nombres de fichero: 95 láminas y rejilla de 224\,px, frente a las 85 WSI y el paso de 256\,px del artículo
 
-Total: 47
+Total: 42
 

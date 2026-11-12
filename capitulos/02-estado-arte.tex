@@ -4,39 +4,260 @@
 %*******************************************************
 % Capítulo 2. Estado del arte
 %*******************************************************
+%
+% Convenciones de los comentarios «% Fuente»:
+% - yang2024: versión publicada en IJCV (s11263-024-02117-4.pdf), páginas 5635-5662.
+% - lapuschkin2019: páginas de la versión de arXiv (clever_hans.pdf, arXiv:1902.10178),
+%   solo texto principal.
+% - sevillano2026, storas2025, linmans2023, howard2021, kandel2020: página dentro del artículo.
+% - sevillano2025tesis: página impresa de la tesis.
+% - openood15: página del PDF (arXiv:2306.09301v5).
 
 \chapter{Estado del arte}\label{cap:estado-arte}
 
-\section{Clasificación de histopatología con aprendizaje profundo}\label{sec:ea-histopatologia}
+Este capítulo revisa los trabajos sobre los que se apoya la memoria. La
+\cref{sec:ea-histopatologia} recoge el uso del aprendizaje profundo en la
+clasificación de imágenes histopatológicas y lo que se ha hecho en detección de
+datos fuera de distribución en este dominio. La \cref{sec:ea-ood} presenta el
+marco de la detección OOD generalizada, las familias de métodos y su evaluación,
+y la \cref{sec:ea-explicabilidad}, los conceptos de explicabilidad que se usan
+después y su aplicación a la detección OOD. La \cref{sec:ea-sintesis} resume lo
+que la literatura deja abierto y cómo encaja en ello este trabajo. Las
+definiciones formales se dejan para la \cref{part:fundamentos}.
+% Fuente: estructura del capítulo (sin fuente externa).
 
-% Puntos que debería cubrir:
-% - Imágenes de lámina completa (WSI), extracción de parches y tinción H&E.
-% - Ajuste fino de redes preentrenadas en histopatología (Kandel y Castelli, 2020: aparece en la
-%   lista de referencias de las notas como «Paper para métodos»).
-% - Graduación de Gleason y variabilidad entre observadores; conjunto de datos de próstata del
-%   grupo (Ayensa-Jiménez et al.) y PANDA (Bulten et al., 2022).
-% - Arquitecturas: CNN (ResNet, EfficientNetV2, ConvNeXt) y transformers (ViT, Swin).
-\pendiente{estado del arte de la clasificación histopatológica}
+%=======================================================================
+\section{Clasificación histopatológica con aprendizaje profundo}\label{sec:ea-histopatologia}
+%=======================================================================
 
+\subsection{Láminas completas, parches y graduación de Gleason}\label{sec:ea-wsi-gleason}
+
+El análisis histopatológico de las muestras de biopsia es la referencia clínica
+para determinar si hay tumor, de qué tipo es y cuán agresivo
+es~\cite{ayensa2026}. Las muestras se tiñen con hematoxilina y eosina (H\&E) y
+se digitalizan con escáneres de preparaciones completas, de modo que cada
+preparación se convierte en una \emph{imagen de lámina completa}
+(\emph{whole-slide image}, WSI)~\cite{ayensa2026}. Estas imágenes contienen una
+cantidad de datos muy grande, y la mayor parte de su superficie no aporta
+información: bordes de la preparación, fondo y artefactos de
+escaneo~\cite{ayensa2026}.
+% Fuente: ayensa2026, §I, p. 1264 (referencia clínica); §III-A, p. 1266 (tinción H&E y
+% digitalización); §III-B, p. 1266 (tamaño de las WSI y contenido no informativo).
+
+Por su tamaño, la mayoría de los enfoques no procesan la WSI de una vez. La
+estrategia habitual es dividirla en parches pequeños, clasificar cada parche por
+separado y agregar después las predicciones, ya sea en proporciones de cada clase
+en la lámina o en mapas de probabilidad para cada patrón~\cite{ayensa2026}. En el
+reto PANDA, la mayoría de los equipos mejor clasificados extraían una muestra de
+parches de cada WSI, los pasaban por una red convolucional y combinaban sus
+características para predecir directamente el grado de la lámina. Este
+entrenamiento \emph{débilmente supervisado}, que solo necesita la etiqueta de la
+lámina completa y no anotaciones por píxel, permitió entrenar un único modelo de
+extremo a extremo~\cite{bulten2022}. La clasificación por parches tiene también
+consecuencias para la detección de anomalías: Linmans et al.\ agregan las
+incertidumbres de los parches para obtener una puntuación por lámina y muestran
+que esta puede señalar regiones OOD que ocupan una parte pequeña de la
+WSI~\cite{linmans2023}. En este trabajo se clasifican parches de
+$224 \times 224$ píxeles extraídos de WSI anotadas (\cref{sec:conjunto-id}).
+% Fuente: ayensa2026, §II, p. 1265 (partición en parches y agregación);
+% bulten2022, «Overview of evaluated algorithms», pp. 155-156 (parches, red convolucional,
+% supervisión débil); linmans2023, resumen y §1.1, pp. 1-2 (agregación a nivel de lámina).
+
+La graduación del cáncer de próstata se basa en el sistema de Gleason. Los
+patólogos clasifican el tumor en distintos patrones de crecimiento según la
+arquitectura histológica del tejido y, a partir de la distribución de esos
+patrones, asignan cada biopsia a uno de cinco grupos, conocidos como grupos de
+grado ISUP (\emph{International Society of Urological Pathology})~\cite{bulten2022}.
+Esta valoración es subjetiva y presenta una variabilidad considerable entre
+patólogos y en un mismo patólogo, lo que lleva tanto a infragraduar como a
+sobregraduar tumores~\cite{bulten2022}. Ayensa-Jiménez et al.\ señalan además
+que la mayoría de los sistemas de inteligencia artificial se limitan a las
+categorías estándar de Gleason y no recogen la diversidad morfológica que los
+patólogos distinguen en la práctica~\cite{ayensa2026}.
+% Fuente: bulten2022, p. 154 (patrones de Gleason por arquitectura, cinco grupos ISUP,
+% variabilidad inter- e intrapatólogo, infragraduación y sobregraduación); ayensa2026, §I,
+% p. 1264 (limitación a las categorías estándar de Gleason).
+% La cifra de variabilidad del 13-33 % no aparece en bulten2022 (está en ayensa2026, p. 1264,
+% atribuida a sus refs. [4]-[6]); se ha omitido.
+
+\subsection{Conjuntos de datos y aprendizaje por transferencia}\label{sec:ea-datos-transferencia}
+
+Una dificultad recurrente en patología computacional es la escasez de conjuntos
+de datos anotados grandes y diversos, porque el etiquetado lo deben hacer
+patólogos expertos y requiere mucho tiempo~\cite{ayensa2026}. El conjunto de datos
+de este trabajo procede de Ayensa-Jiménez et al.~\cite{ayensa2026}, que
+proponen un conjunto anotado con mayor granularidad que las categorías de
+Gleason. Según sus autores, patólogos expertos segmentaron manualmente
+\num{7752} regiones en 85 imágenes de lámina completa de piezas de
+prostatectomía radical, clasificadas en 14 categorías histológicas que reflejan
+patrones morfológicos reconocidos en la práctica clínica. Con este conjunto, y
+según el mismo artículo, el mejor modelo alcanza una exactitud del 97,33\,\% a
+nivel de parche en la clasificación en 14 clases~\cite{ayensa2026}. Los propios
+autores advierten de que el estudio se basa en un único conjunto de datos,
+preparado por un mismo equipo en condiciones controladas, y de que la validación
+clínica requeriría conjuntos externos multicéntricos preparados, digitalizados y
+anotados por equipos distintos~\cite{ayensa2026}. Las características del
+conjunto se detallan en la \cref{sec:conjunto-id}.
+% Fuente: ayensa2026, §II, p. 1265 (escasez de datos anotados); §III-A, p. 1266 (7.752 regiones,
+% 85 WSI, 14 categorías); §V, p. 1267 y resumen, p. 1264 (97,33 % de exactitud a nivel de
+% parche, XCiT Medium); §VII, p. 1268 (limitaciones y validación externa).
+
+El conjunto público más grande de biopsias de próstata es el del reto PANDA
+(\emph{Prostate cANcer graDe Assessment}), organizado por Bulten et al.\ con
+\num{10616} biopsias digitalizadas para el desarrollo de algoritmos y en el que
+participaron \num{1290} desarrolladores~\cite{bulten2022}. Su diseño separaba a
+los desarrolladores de la evaluación, que se hizo de forma ciega sobre conjuntos
+de validación internos y externos de Europa y Estados Unidos, con distintos
+laboratorios, procedimientos de preparación y escáneres~\cite{bulten2022}. Según
+los autores, los algoritmos alcanzaron en la validación externa un acuerdo con
+uropatólogos expertos similar o superior al de patólogos generales; el error más
+frecuente fue sobrediagnosticar biopsias benignas como grupo 1, lo que atribuyen
+probablemente al desplazamiento de la distribución entre los datos de
+entrenamiento y los de validación externa~\cite{bulten2022}. En este trabajo se
+usan teselas de PANDA como conjunto OOD de próstata adquirido en otros centros
+(\cref{sec:panda}).
+% Fuente: bulten2022, pp. 154-155 (tamaño, participantes, diseño ciego, cohortes);
+% p. 158 (validación externa, sobrediagnóstico de GG1 y desplazamiento de distribución).
+
+Ante la escasez de datos médicos anotados, el aprendizaje por transferencia
+reutiliza los pesos de una red entrenada sobre un conjunto grande y no médico,
+como ImageNet~\cite{kandel2020}. Kandel y Castelli distinguen dos formas de
+hacerlo: el \emph{ajuste fino}, en el que los pesos originales se reentrenan para
+el nuevo conjunto, y la \emph{extracción de características}, en la que se fijan
+y la red se usa solo para extraer
+características~\cite{kandel2020}. Su estudio, con tres arquitecturas
+convolucionales y dos conjuntos de histopatología, muestra que ajustar la red
+entera no siempre da el mejor resultado: en las redes poco profundas basta con
+ajustar los bloques superiores, mientras que en las más profundas ajustar toda la
+red mejora el rendimiento, y en todos los casos recomiendan una tasa de
+aprendizaje baja para no deteriorar los pesos preentrenados~\cite{kandel2020}.
+Los propios autores advierten de que sus conclusiones se refieren a la aplicación
+estudiada~\cite{kandel2020}. Ayensa-Jiménez et al.\ siguen también este enfoque:
+parten de cinco arquitecturas preentrenadas en ImageNet, tres convolucionales
+(ResNet50, EfficientNet-B2 y EfficientNetV2-T) y dos transformers (ViT-Base y
+XCiT), y entrenan sobre ellas una cabeza de clasificación~\cite{ayensa2026}. Las arquitecturas usadas en este
+trabajo se describen en la \cref{sec:arquitecturas}.
+% Fuente: kandel2020, §1, p. 2 (ajuste fino frente a extracción de características);
+% resumen, p. 1, y §5-6, pp. 17-18 (ajuste por bloques, tasa de aprendizaje baja, alcance de las
+% conclusiones); ayensa2026, §II, p. 1265 (aprendizaje por transferencia en patología) y §IV,
+% p. 1266 (arquitecturas preentrenadas en ImageNet).
+
+\subsection{Detección OOD en patología digital}\label{sec:ea-ood-patologia}
+
+Los datos de patología digital siguen una distribución heterogénea y de cola
+larga, con muchas anomalías y artefactos, lo que hace especialmente difícil
+desplegar estos modelos en la práctica clínica~\cite{linmans2023}. Además, los
+modelos suelen entrenarse y evaluarse sobre conjuntos muy depurados que no
+reflejan esa variedad~\cite{linmans2023}. Howard et al.\ muestran, sobre el
+repositorio TCGA, que las imágenes histológicas llevan una \emph{firma propia del
+centro} que las envía, debida a diferencias en la obtención de la muestra, la
+tinción, la digitalización y la población de pacientes, y que esta firma puede
+restar capacidad de generalización a los modelos~\cite{howard2021}. Bulten et
+al.\ también señalan que los algoritmos de graduación son sensibles a sesgos en
+su desarrollo y validación, que pueden hacer que rindan peor fuera de las
+cohortes con las que se desarrollaron~\cite{bulten2022}.
+% Fuente: linmans2023, §1, pp. 1-2 (distribución heterogénea y de cola larga; conjuntos
+% depurados); howard2021, p. 2 (causas de la firma de centro y falta de generalización);
+% bulten2022, p. 154 (sesgos de desarrollo y validación).
+
+La detección OOD en este dominio está poco explorada. Linmans et al.\ indican que
+los trabajos previos sobre estimación de incertidumbre en histopatología la
+relacionaban con la exactitud de las predicciones y no evaluaban la detección de
+datos OOD, y que el trabajo que sí la evaluaba lo hacía solo con datos de un órgano
+completamente distinto~\cite{linmans2023}. Su estudio evalúa varios métodos de
+estimación de incertidumbre sobre láminas completas, distinguiendo entre un
+problema \emph{near-OOD}, la detección de linfoma en ganglios linfáticos, tejido
+muy parecido a la clase benigna de entrenamiento, y problemas \emph{far-OOD},
+como la presencia de tejido de colon en biopsias de próstata~\cite{linmans2023}.
+Según sus resultados, los conjuntos de redes (\emph{deep ensembles}) son los
+mejores en far-OOD, mientras que en el problema near-OOD los supera un conjunto
+de cabezas entrenado para favorecer la diversidad; las conclusiones obtenidas en
+los benchmarks clásicos de visión por computador no se trasladan por completo a
+la patología digital~\cite{linmans2023}. También muestran que la presencia de
+tejido OOD empeora la detección del tumor, y concluyen que el ajuste de estos
+sistemas puede requerir conocimiento experto del problema concreto~\cite{linmans2023}.
+Estos trabajos motivan la revisión de la detección OOD de la sección siguiente.
+% Fuente: linmans2023, §1, p. 2 (trabajos previos, órgano distinto, near/far-OOD); §2.1-2.2,
+% pp. 2-3 (linfoma, tejido de colon en biopsias de próstata); resumen, p. 1, y §5, p. 8
+% (deep ensembles, M-heads, no traslación de benchmarks); §6, p. 9 (impacto en la detección del
+% tumor y ajuste dependiente del problema).
+
+%=======================================================================
 \section{Detección de datos fuera de distribución}\label{sec:ea-ood}
+%=======================================================================
 
-Para que los sistemas de reconocimiento inteligente pueda operar de forma autónoma en el mundo abierto es indispensable
-que sean capaces de manejar y detectar entradas desconocidas. Este problema es denominado comunmente como Out-of-Distribution (OOD)
-detection o Open-Set Recognition (OSR). 
+Para que los sistemas de reconocimiento inteligente puedan operar de forma
+autónoma en el mundo abierto, es indispensable que sean capaces de detectar y
+manejar entradas desconocidas. Este problema se suele formular como detección
+de datos fuera de distribución (\emph{out-of-distribution}, OOD) o como
+reconocimiento en conjunto abierto (\emph{open set recognition},
+OSR)~\cite{openood15}.
+% Fuente: openood15, §1, pp. 1-2. Párrafo del autor (corregidas erratas).
+
+La mayoría de los modelos de aprendizaje automático se entrenan bajo el supuesto
+de \emph{mundo cerrado}: se asume que los datos de prueba proceden de la misma
+distribución que los de entrenamiento, la distribución \emph{en distribución}
+(\emph{in-distribution}, ID)~\cite{yang2024}. Al desplegarlos en un escenario
+abierto, pueden aparecer muestras OOD que el modelo clasifica con una confianza
+alta en alguna de las clases conocidas~\cite{yang2024}. Un sistema fiable debería
+detectar estas muestras y rechazarlas o derivarlas a una persona, como el sistema
+de conducción autónoma que avisa y cede el control al conductor ante una escena
+que no ha visto nunca~\cite{yang2024}. Sevillano-García et al.\ subrayan que,
+en escenarios críticos, sin detección OOD el modelo toma decisiones incorrectas en
+lugar de remitirlas al juicio humano~\cite{sevillano2026}. El término
+\emph{detección OOD} apareció en 2017 y desde entonces el número de métodos
+propuestos no ha dejado de crecer~\cite{yang2024}.
+% Fuente: yang2024, resumen y §1, p. 5635 (mundo cerrado, conducción autónoma, término en 2017);
+% §2.3, p. 5640 (sobreconfianza ante clases desconocidas); sevillano2026, §1, p. 1.
+
+\subsection{Cambio semántico y desplazamiento de covariables}\label{sec:ea-shift}
+
+Yang et al.\ distinguen dos tipos de cambio de distribución~\cite{yang2024}. En
+el \emph{desplazamiento de covariables} cambia la distribución de las entradas,
+pero no el espacio de etiquetas: ejemplos de ello son los cambios de dominio o de
+estilo y los ejemplos adversarios. En el \emph{cambio semántico} aparecen clases
+nuevas o se alteran las existentes, lo que modifica también, de forma indirecta,
+la distribución de las entradas. Como un cambio en las etiquetas arrastra un
+cambio en las entradas, los autores proponen distinguir ambos tipos por la
+\emph{intención} del cambio: si se pretende modificar solo la apariencia de los
+datos o su contenido semántico~\cite{yang2024}. La formalización se recoge en la
+\cref{sec:cambios-distribucion}.
+% Fuente: yang2024, §2, «Preliminary: Distribution Shift», p. 5637.
+
+Ambos cambios se estudian con objetivos distintos. El desplazamiento de
+covariables se usa sobre todo para evaluar la generalización y la robustez de los
+modelos, que deberían seguir clasificando bien las muestras afectadas; en cambio,
+el cambio semántico es el foco de las tareas de detección, porque el modelo no
+debería hacer ninguna predicción sobre clases que no conoce~\cite{yang2024}. La
+adaptación y la generalización de dominio abordan el primer problema: esperan
+desplazamiento de covariables en la prueba, sin cambio semántico, y exigen que el
+modelo siga acertando. Cuando ocurren ambos cambios a la vez, el modelo debería
+ser robusto al desplazamiento de covariables y detectar el cambio
+semántico~\cite{yang2024}. En este trabajo, PANDA corresponde a un desplazamiento
+de covariables, porque es tejido del mismo órgano adquirido en otros centros,
+mientras que DTD introduce un cambio semántico (\cref{sec:conjuntos-ood}).
+% Fuente: yang2024, §2, p. 5637 (uso de cada tipo de cambio); §2.6, p. 5642 (adaptación y
+% generalización de dominio). Última frase: diseño del TFG (capítulo 8).
 
 \subsection{Taxonomía de la detección OOD generalizada}\label{sec:ea-taxonomia}
 
-% Puntos que debería cubrir: AD, ND, OSR, OOD y detección de valores atípicos según la taxonomía
-% de Yang et al. (2024), y en qué categoría se sitúa este trabajo.
-\pendiente{presentación de la taxonomía de Yang et al.~\cite{yang2024}}
-
-% Nota de las notas: «Citar esta imagen y justificar: [...] situar tu trabajo en (d) y justificar
-% que incluyes PANDA porque, en un contexto clínico, también interesa avisar de cambios de
-% apariencia que degradan el clasificador. Tu propio control lo demuestra: la exactitud cae del
-% 96,87 % al 90,77 %.»
-% Cifras: exactitud del Swin-S en el test ID 0,9688 (results_fase1; las notas daban 96,87 %) y en
-% el control de resolución 0,9077 (faseA, columna ACC_control_res_128).
-\pendiente{situar el trabajo en la subtarea (d) de la \cref{fig:taxonomia-yang} y justificar la inclusión de PANDA: en un contexto clínico también interesa avisar de cambios de apariencia que degradan el clasificador (la exactitud cae del 96,88\,\% en el test ID al 90,77\,\% en el control de resolución)}
+Varios problemas comparten con la detección OOD la hipótesis de mundo abierto y
+el objetivo de identificar muestras que no pertenecen a la distribución de
+referencia: la \emph{detección de anomalías} (\emph{anomaly detection}, AD), la
+\emph{detección de novedades} (\emph{novelty detection}, ND), el reconocimiento
+en conjunto abierto y la \emph{detección de valores atípicos}
+(\emph{outlier detection})~\cite{yang2024}. Estos temas se han desarrollado de
+forma aislada y sus diferencias de definición confunden a menudo a
+investigadores y usuarios. Para ordenarlos, Yang et al.\ proponen el marco de la
+\emph{detección OOD generalizada}, en el que los cinco problemas son casos
+particulares que se distinguen mediante cuatro dicotomías: si se detecta
+desplazamiento de covariables o cambio semántico; si los datos ID tienen una o
+varias clases; si la tarea exige clasificar las muestras ID; y si es inductiva,
+con fases de entrenamiento y prueba, o transductiva, con todas las observaciones
+disponibles de antemano~\cite{yang2024}. La \cref{fig:taxonomia-yang} ilustra las
+subtareas y la \cref{tab:ea-taxonomia} las resume según estos criterios.
+% Fuente: yang2024, §1, p. 5635 (temas relacionados y su desarrollo aislado); fig. 1,
+% p. 5636 (cuatro bases de la taxonomía); §2, pp. 5637-5638 (cuatro dicotomías).
 
 \begin{figure}[tbp]
   \centering
@@ -44,153 +265,707 @@ detection o Open-Set Recognition (OSR).
   \caption{Subtareas de la detección OOD generalizada: (a) detección de anomalías sensoriales, (b) detección de novedades de una clase, (c) detección de novedades multiclase, (d) reconocimiento en conjunto abierto y detección OOD y (e) detección de valores atípicos. Fuente: Yang et al.~\cite{yang2024} (figura~2).}
   \label{fig:taxonomia-yang}
 \end{figure}
-La detección OOD es crucual para asegurar la confianza y seguridad de los modelos de aprendizaje. El término OOD apareció por primera vez en 2017
-y desde entonces no ha parado de crecer la atención de la comunidad investigadora en este campo. Anteriormente ya se trataban otros temas muy relaciones con detección 
-OOD en termino de motivación y metodología, pero al igual que se planteó en ~\cite{yang2024} se considerarán como casos especiales o subcategorías.
 
-En el contexto de clasificación de imágenes se define como detección OOD la capacidad de un sistema de reconocimiento inteligente para detectar y manejar imágenes desconocidas, es decir no pertenecen al conjunto de las conocidas, 
-al que denominaremos como in-distribution (ID) ~\cite{openood15}. 
+\begin{table}[tbp]
+  \centering
+  \small
+  \caption{Subtareas de la detección OOD generalizada según el tipo de cambio que
+    detectan, el número de clases ID, la necesidad de clasificar las muestras ID y
+    el esquema de aprendizaje. Elaboración propia a partir de Yang et
+    al.~\cite{yang2024}.}
+  \label{tab:ea-taxonomia}
+  \begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}p{0.2\textwidth}>{\raggedright\arraybackslash}p{0.17\textwidth}>{\raggedright\arraybackslash}p{0.12\textwidth}>{\raggedright\arraybackslash}p{0.13\textwidth}@{}}
+    \toprule
+    \textbf{Subtarea} & \textbf{Cambio que detecta} & \textbf{Clases ID} & \textbf{¿Clasificar ID?} & \textbf{Esquema} \\
+    \midrule
+    AD sensorial & Covariables & Indiferente (un todo) & No & Inductivo \\
+    AD semántica / ND de una clase & Semántico & Una & No & Inductivo \\
+    ND multiclase & Semántico & Varias & No & Inductivo \\
+    OSR & Semántico & Varias & Sí & Inductivo \\
+    Detección OOD & Semántico$^{a}$ & Varias & Sí$^{b}$ & Inductivo \\
+    Valores atípicos & Ambos & Mayoría de las observaciones & No & Transductivo \\
+    \bottomrule
+  \end{tabularx}
 
-\subsection{Detección de anomalías}
+  \smallskip
+  {\footnotesize $^{a}$Algunos trabajos consideran también el desplazamiento de
+  covariables (\cref{sec:ea-conservador}). $^{b}$Salvo los métodos basados en
+  densidad, que no la requieren.}
+\end{table}
+% Fuente: yang2024, fig. 1, p. 5636, y §2.1-2.5, pp. 5638-5642. Tabla de elaboración propia.
 
-La detección de anomalías (\textit{Anomaly Detection}, AD) parte de un concepto de
-\textit{normalidad} definido de antemano (normalmente sin subcategorías) y tiene como objetivo identificar, durante
-la fase de test, cualquier muestra que se desvíe de dicha normalidad
-~\cite{yang2024}. Esta desviación puede producirse de dos formas, lo que
-da lugar a dos subtareas:
+\paragraph{Detección de anomalías.} Parte de un concepto de \emph{normalidad}
+definido de antemano, normalmente sin subclases, y busca detectar en la prueba
+cualquier muestra que se desvíe de él~\cite{yang2024}. Según el tipo de
+desviación, se habla de AD \emph{sensorial}, que detecta desplazamiento de
+covariables en muestras de la misma categoría (por ejemplo, defectos en la
+inspección industrial), o de AD \emph{semántica}, que detecta muestras de clases
+distintas de la normal. Su rasgo distintivo es que trata los datos normales como
+un todo, sin distinguir las clases que pueda haber entre ellos~\cite{yang2024}.
+% Fuente: yang2024, §2.1, pp. 5638-5639.
 
-\begin{itemize}
-    \item \textbf{AD sensorial}: la muestra presenta un \textit{covariate shift}, es
-    decir, cambia su apariencia o sus características de bajo nivel, pero no su
-    categoría. Se asume que todas las muestras normales proceden de la misma
-    distribución de covariables.
-    \item \textbf{AD semántica}: la muestra presenta un \textit{semantic shift}, es
-    decir, pertenece a una clase distinta de la considerada normal. Se asume que
-    todas las muestras normales pertenecen a una única categoría.
-\end{itemize}
+\paragraph{Detección de novedades.} Busca muestras de prueba que no pertenecen a
+ninguna de las categorías de entrenamiento y, a diferencia de la AD, no las
+considera erróneas, sino recursos para un análisis posterior o para el
+aprendizaje incremental del modelo~\cite{yang2024}. Puede ser de una clase o
+multiclase, pero en ambos casos se plantea como una clasificación binaria entre
+lo conocido y lo nuevo, sin clasificar las muestras ID; por eso equivale a la AD
+semántica~\cite{yang2024}.
+% Fuente: yang2024, §2.2, pp. 5639-5640.
 
-Formalmente, sea $P(X)$ la distribución de las muestras normales
-(\textit{in-distribution}) y $P'(X)$ la distribución de las anomalías encontradas
-en test (\textit{out-of-distribution}). En la AD sensorial se cumple
-$P(X) \neq P'(X)$ mientras que $P(Y) = P'(Y)$, por lo que únicamente existe
-desplazamiento de covariables. En la AD semántica, por el contrario, se tiene
-$P(Y) \neq P'(Y)$ y el objetivo es detectar muestras pertenecientes a clases
-nuevas ~\cite{yang2024}.
+\paragraph{Reconocimiento en conjunto abierto.} Exige al clasificador, a la vez,
+clasificar correctamente las muestras de las clases conocidas y detectar las de
+clases desconocidas~\cite{yang2024}. Surge para corregir la tendencia de los
+modelos entrenados en un mundo cerrado a asignar con alta confianza las muestras
+desconocidas a alguna clase conocida, comportamiento al que se ha llamado
+«agnostofobia»~\cite{yang2024,dhamija2018}. Su objetivo coincide con el de la ND
+multiclase, salvo por el requisito de clasificar bien las muestras
+ID~\cite{yang2024}.
+% Fuente: yang2024, §2.3, p. 5640. La «agnostofobia» se atribuye en la fuente a Dhamija et al.
+% (2018), clave dhamija2018.
 
-\subsection{Detección de novedades}
+\paragraph{Detección OOD.} Nace de la observación de que los modelos profundos
+clasifican con exceso de confianza muestras de distribuciones semánticas
+distintas, y pide rechazar las entradas que no deberían recibir una predicción
+sin perjudicar la clasificación ID~\cite{yang2024,hendrycks2017}. En
+clasificación multiclase resuelve el mismo problema que el OSR, y las diferencias
+son de práctica: los benchmarks de OSR dividen un conjunto de datos por clases,
+mientras que los de detección OOD toman un conjunto como ID y otros como OOD; el
+OSR desaconseja usar datos adicionales en el entrenamiento; y la detección OOD
+abarca más tareas y más tipos de solución~\cite{yang2024}. La métrica conjunta
+CCR@FPR$x$, propuesta para el OSR, evalúa a la vez la detección y la
+clasificación ID~\cite{yang2024,dhamija2018}; las métricas se definen en la
+\cref{sec:metricas}.
+% Fuente: yang2024, §2.4, pp. 5640-5641 (motivación, Hendrycks y Gimpel 2017 = hendrycks2017;
+% diferencias OSR/OOD); §2.3, p. 5640 (CCR@FPRx, Dhamija et al. 2018).
 
-La detección de novedades (\textit{Novelty Detection}, ND) tiene como objetivo
-identificar, durante la fase de test, aquellas muestras que no pertenecen a ninguna
-de las categorías vistas durante el entrenamiento ~\cite{yang2024}. En la comunidad investifadora se suele confundir con AD, pero estrictamente hablando
-presenta una relevante diferencia, y es que a 
-diferencia de la detección de anomalías, estas muestras no se consideran
-necesariamente erróneas, sino que suelen reservarse para procesos posteriores,
-como un análisis más especializado o el aprendizaje incremental del modelo.
+\paragraph{Detección de valores atípicos.} Es la única subtarea que no sigue el
+esquema de entrenamiento y prueba: dispone de todas las observaciones y busca las
+que difieren notablemente del resto, por cambio semántico o de covariables, de
+modo que la «distribución ID» es la de la mayoría de los datos~\cite{yang2024}. Se
+usa, por ejemplo, para depurar conjuntos de datos antes de
+entrenar~\cite{yang2024}.
+% Fuente: yang2024, §2.5, pp. 5641-5642.
 
-En función del número de clases presentes en el conjunto de entrenamiento, se
-distinguen dos variantes:
+Yang et al.\ relacionan además la detección OOD con otros temas vecinos, entre
+ellos la \emph{predicción conforme}~\cite{yang2024}. Este marco estadístico
+proporciona medidas de confianza para las predicciones y, en lugar de una única
+estimación, produce intervalos o conjuntos de predicción con un nivel de confianza
+especificado~\cite{yang2024,shafer2008,angelopoulos2021}. En la detección OOD,
+unos conjuntos de predicción más amplios o unos niveles de confianza más bajos
+pueden servir como indicio de que la muestra es OOD; según los autores, la
+investigación en la intersección de ambos campos es todavía incipiente, pero
+merece explorarse~\cite{yang2024}. La predicción conforme se aplica en el
+\cref{cap:conforme}.
+% Fuente: yang2024, §2.6, «Conformal Prediction», p. 5642. La fuente cita a Shafer y Vovk (2008)
+% y Angelopoulos y Bates (2021), claves shafer2008 y angelopoulos2021.
 
-\begin{itemize}
-    \item \textbf{ND de una clase} (\textit{one-class ND}): el conjunto de
-    entrenamiento contiene una única clase.
-    \item \textbf{ND multiclase} (\textit{multi-class ND}): el conjunto de
-    entrenamiento contiene varias clases. Aun así, el objetivo sigue siendo
-    únicamente separar las muestras novedosas de las \textit{in-distribution}, sin
-    necesidad de clasificarlas entre las clases conocidas.
-\end{itemize}
+\subsection{Situación de este trabajo y criterio conservador}\label{sec:ea-conservador}
 
-En ambos casos, la tarea se formula como un problema de clasificación binaria
-~\cite{yang2024}.
+En la mayoría de los trabajos, «fuera de distribución» se entiende como «fuera de
+la distribución semántica o de etiquetas», y la detección del desplazamiento de
+covariables es una cuestión discutida, porque entra en conflicto con la
+generalización OOD~\cite{yang2024}. Yang et al.\ ofrecen otra definición, desde
+el punto de vista de la generalización: la detección OOD busca las muestras a las
+que el modelo no puede o no quiere generalizar. En clasificación de imágenes se
+espera que el modelo generalice al desplazamiento de covariables y solo deje de
+hacerlo ante un cambio semántico, pero hay aplicaciones en las que conviene
+rechazar también el primero~\cite{yang2024}.
+% Fuente: yang2024, §2.4, «Remark: Mainstream OOD Detection Focuses on Semantics» y «Remark: To
+% Generalize, or To Detect?», p. 5641.
 
-Como hemos visto ND trata con la misma configuración en donde las muestras OOOD tienen varianza semántica y no existe la 
-necesisdad de clasificación ID incluso cuando es posible Por tanto, ND comparte la misma definición del problema que AD.
+Aunque en clasificación general la detección OOD suele restringirse al cambio
+semántico, Yang et al.~\cite{yang2024} señalan que en tareas de alto riesgo, como
+la clasificación de imágenes médicas (Zimmerer et al.~\cite{zimmerer2022}), se
+espera que los modelos sean conservadores y rechacen cualquier muestra que se
+desvíe de la distribución de entrenamiento. Siguiendo este criterio, en este
+trabajo se considera OOD tanto el cambio semántico (DTD) como el desplazamiento
+de covariables debido al cambio de centro (PANDA).
+% Fuente: yang2024, §2.4, p. 5641. Párrafo del autor.
 
-Una característica distintiva de la AD es que trata el conjunto de datos normales
-como un todo: independientemente del número de clases presentes en los datos
-\textit{in-distribution}, no requiere diferenciar entre ellas. Este rasgo la
-distingue de otras tareas relacionadas, como el reconocimiento de conjunto abierto
-(\textit{Open Set Recognition}) o la detección \textit{out-of-distribution}
-~\cite{yang2024}.
+Con estas definiciones, este trabajo se sitúa en la subtarea~(d) de la
+\cref{fig:taxonomia-yang}: el conjunto ID tiene varias clases (las 14 categorías
+histológicas), el clasificador debe seguir clasificándolas y se trata de detectar
+las muestras que no debería procesar. La inclusión de PANDA responde al criterio
+conservador anterior: en un contexto clínico interesa también avisar de cambios
+de apariencia que degradan el clasificador. El propio control de resolución de
+este trabajo lo ilustra, ya que la exactitud del clasificador cae del 96,88\,\% en
+el test ID al 90,77\,\% en las mismas imágenes con menor resolución
+(\cref{sec:control-dtd}).
+% Fuente: diseño del TFG. Exactitud del Swin-S en el test ID 0,9688 (results_fase1) y en el
+% control de resolución 0,9077 (faseA, columna ACC_control_res_128).
 
-El estudio del progreso de este campo ha sido obstaculizado por tres trampas que suelen 
-ser pasadas por alto por los investigadores: 1) terminología confusa, 2) conjuntos de datos incosistentes, y 3) prácticas erroneas. En en este contexto donde aparece OpenOOD como plataforma
-y benchmark unificado cuya función es evaluar las metodologías presentes y futuras ~\cite{openood15}. Dicha plataforma provee de diferentes modelos y es compatible tanto con diversos conjuntos de datos
-con como distintos tipos de métricas, permitiendo realizar experimentos a pequeña y gran escala.
+\subsection{Familias de métodos}\label{sec:ea-metodos}
 
-Se puede distinguir entre dos tipos de métodos de algoritmos para detección OOD, algoritmos basados en entrenamiento y métodos post-hoc. El primer tipo
-se basan en poner restricciones durante el proceso de entremiento para que el modelo luego tenga un mejor rendimiento en la tarea de detección OOD. Alguna restricción puede ser por ejemplo añadir imágenes OOD al proceso de entrenamiento ~\cite{yu2019unsupervised}\textbf{poner ejemplo de
-método de detección OOD vs ID en entrenamiento}. Por otro lado los métodos post-hoc abarcan la capacidad de detección OOD en modelos que ya han sido entrenados. Esto 
-es de suma imporantancia en los problemas del mundo real, pues en algunos casos el coste de volver a reentrenar un modelo es desmesurado.
-\revisar{traducción casi literal; parafrasear y citar}
-\revisar{«En este estudio» se refiere al survey de Yang et al., no a este TFG}
+Yang et al.\ agrupan los métodos de detección OOD en cuatro familias: basados en
+clasificación, en densidad, en distancia y en
+reconstrucción~\cite{yang2024}. La \cref{tab:ea-familias} las resume e indica
+cuáles se evalúan en este trabajo.
+% Fuente: yang2024, §2.7, p. 5642, y §3, p. 5643.
 
-Formalmente, OSR aborda el caso en el que las muestras OOD experimentan un cambio semántico durante las pruebas, es decir, $P(Y) \neq P'(Y)$. El objetivo de OSR es similar al de la detección de conjuntos abiertos multiclase (ND); la única diferencia radica en que OSR requiere, además, una clasificación precisa de las muestras ID de $P(Y)$.
+\begin{table}[tbp]
+  \centering
+  \footnotesize
+  \caption{Familias de métodos de detección OOD, con algunos ejemplos citados por
+    Yang et al.~\cite{yang2024} y los métodos evaluados en este trabajo, con la
+    sección en la que se describen. Elaboración propia.}
+  \label{tab:ea-familias}
+  \begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{0.2\textwidth}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}p{0.2\textwidth}>{\raggedright\arraybackslash}p{0.24\textwidth}@{}}
+    \toprule
+    \textbf{Familia} & \textbf{Idea} & \textbf{Ejemplos} & \textbf{Evaluados aquí} \\
+    \midrule
+    Clasificación, post hoc sobre la salida & Puntuación a partir de la salida de un clasificador ya entrenado & MSP, ODIN, Energy, SHE & MSP, MaxLogit, Energy (\cref{sec:metodos-logits}); SHE (\cref{sec:metodos-caracteristicas}) \\
+    Clasificación, post hoc sobre activaciones o pesos & Modificar activaciones o pesos antes de calcular la puntuación & ReAct, DICE, ASH & ReAct, ASH, DICE (\cref{sec:metodos-activaciones}) \\
+    Clasificación, con entrenamiento & Regularizar el entrenamiento, a veces con datos atípicos reales o sintéticos & Rama de confianza, G-ODIN, LogitNorm, OE, MCD & --- \\
+    Clasificación, basados en gradientes & Usar la información del gradiente & ODIN, GradNorm & --- (\cref{sec:ea-excluidos}) \\
+    Densidad & Modelar la distribución ID y señalar las regiones de baja densidad & Gaussianas condicionales por clase, flujos & MDS, RMDS (\cref{sec:metodos-caracteristicas}) \\
+    Distancia & Medir la distancia a prototipos o muestras ID en el espacio de características & Mahalanobis, KNN, coseno, ViM & KNN, ViM (\cref{sec:metodos-caracteristicas}); \stoodx (\cref{sec:metodo-stoodx}) \\
+    Reconstrucción & Comparar la reconstrucción de un codificador-decodificador & Autocodificadores, MoodCat, READ & --- \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+% Fuente: yang2024, §3.1-3.4, pp. 5643-5647 (familias y ejemplos); sevillano2026, §2.1, p. 2
+% (MDS y RMDS como métodos de distancia paramétricos, KNN no paramétrico). La asignación de los
+% métodos evaluados sigue el capítulo 5; Yang et al. sitúan MDS tanto en densidad como en
+% distancia y SHE entre los métodos post hoc basados en la salida.
 
-Actualmente no existe ningún método que consistentemente supere a los demás benchmarks, y el ranking puede ser muy diferente de un dataset a otro ~\cite{openood15}. Por otro lado ha sido visto que la técnica de data augmentation es beneficial para la clasificación estandar y para la generelazión OOD, sin embargo 
-sus efectos en detección OOD aún no están del todo esclarecidos. A pesar de que estos que estos métodos no han sido diseñaods para mejorar la detección 
-OOD si que puede mejorar los ratios de deteccion en distintas ocasiones. Lo más interesante es la mejora de rendimiento es ampliada cuando son combinadas con potentes posprocesadores.
+Los \emph{métodos basados en clasificación} son los más numerosos. La
+investigación en detección OOD partió de un método de referencia sencillo, que usa
+la máxima probabilidad \emph{softmax} (MSP) como indicador de que la muestra es
+ID~\cite{yang2024,hendrycks2017}, y los primeros trabajos se centraron en obtener
+mejores puntuaciones a partir de la salida de la red. ODIN combina escalado de
+temperatura y una pequeña perturbación de la entrada para separar mejor las
+muestras ID de las OOD~\cite{yang2024,liang2018}; la puntuación de energía tiene
+una interpretación en términos de verosimilitud~\cite{yang2024,liu2020energy}; y
+SHE mide la discrepancia con patrones almacenados que representan cada
+clase~\cite{yang2024,zhang2023she}. Otra línea modifica las activaciones o los
+pesos del modelo antes de calcular la puntuación: ReAct trunca las activaciones
+anormalmente altas, que relaciona con aplicar a datos OOD estadísticas de
+normalización por lotes estimadas con datos ID~\cite{yang2024,sun2021react};
+DICE usa solo los pesos que más contribuyen a la salida~\cite{yang2024,sun2022dice};
+y ASH elimina gran parte de las activaciones de una capa tardía y ajusta las
+restantes~\cite{yang2024,djurisic2023}. Sus definiciones se dan en el
+\cref{cap:metodos}.
+% Fuente: yang2024, §3.1 y §3.1.1-a, pp. 5643-5644 (MSP, ODIN, energía, SHE, ReAct, DICE, ASH;
+% Hendrycks y Gimpel 2017, Liang et al. 2018, Liu et al. 2020, Zhang et al. 2023, Sun et al. 2021,
+% Sun y Li 2022, Djurisic et al. 2023).
 
-¿Por qué el aumento de datos mejora la detección OOD? Una posible explicación es que, al disponer de muestras de entrenamiento más variadas, el modelo aprende a apoyarse en características relacionadas con el significado de la imagen y no en \emph{características espurias}. Llamamos espurias a las características que están correlacionadas con la etiqueta, pero que no tienen relación semántica con ella. 
+Los métodos anteriores son \emph{post hoc}: se aplican a un modelo ya entrenado,
+sin modificar su entrenamiento. Yang et al.\ destacan que esta propiedad es
+importante para su adopción en entornos reales, donde el coste de reentrenar
+puede ser prohibitivo~\cite{yang2024,sevillano2026}. Los métodos \emph{con
+entrenamiento}, en cambio, imponen restricciones durante el entrenamiento para que
+el modelo resultante detecte mejor las muestras OOD~\cite{sevillano2026}. Por
+ejemplo, DeVries y Taylor entrenan una rama adicional que estima la confianza del
+modelo como un valor entre 0 y 1~\cite{sevillano2026,yang2024}; LogitNorm
+modifica la entropía cruzada para fijar la norma de los
+\emph{logits}~\cite{yang2024}; y los métodos de \emph{exposición a datos
+atípicos} (\emph{outlier exposure}) usan muestras OOD reales durante el
+entrenamiento, como MCD, que entrena dos ramas cuya discrepancia se amplía ante
+esos datos~\cite{yang2024,yu2019unsupervised}. Estos últimos pueden mejorar
+mucho el rendimiento, pero dependen de que los datos atípicos de entrenamiento se
+parezcan a los que aparecerán en la prueba~\cite{yang2024}. Por último, los
+métodos basados en gradientes, como GradNorm, obtienen la puntuación a partir del
+gradiente~\cite{yang2024,huang2021}.
+% Fuente: yang2024, §3.1.1-a, p. 5643 (ventaja de los métodos post hoc); §3.1.1-b, pp. 5644-5645
+% (rama de confianza, LogitNorm); §3.1.2, p. 5645 (exposición a datos atípicos, MCD = Yu y Aizawa
+% 2019); §3.1.3, p. 5646 (GradNorm); sevillano2026, §2.1, p. 2 (definición de métodos con
+% entrenamiento y post hoc; ejemplo de DeVries y Taylor, ref. [3]).
+% DeVries y Taylor (2018) no está en library.bib: se cita a través de las fuentes.
 
-Si un modelo depende mucho de este tipo de características, puede activarse con fuerza ante una muestra OOD que las contenga ~\cite{ming2024finetuning}. El aumento de datos actúa en sentido contrario: genera muestras de entrenamiento diversas que conservan el contenido semántico, de modo que el modelo se ve obligado a fijarse en las características que realmente caracterizan a las clases ID. En consecuencia, en la fase de inferencia, un modelo entrenado con aumento de datos tiende a responder solo a los rasgos semánticos de las muestras ID y a activarse menos ante las OOD, lo que facilita separar ambos tipos de datos.~cite{openood15}
-\pendiente{citar}
-\revisar{traducción casi literal; parafrasear y citar}
+Los \emph{métodos basados en densidad} modelan explícitamente la distribución ID
+con un modelo probabilístico y consideran OOD las muestras de regiones de baja
+densidad~\cite{yang2024}. Cuando hay varias clases, la distribución puede
+modelarse con gaussianas condicionales por clase~\cite{yang2024,lee2018}; también
+se usan modelos basados en flujos. Sin embargo, los modelos probabilísticos a
+veces asignan más verosimilitud a muestras OOD que a las ID, su verosimilitud
+presenta un sesgo hacia la complejidad de la entrada~\cite{yang2024,serra2020}, y
+en general son difíciles de entrenar y quedan por detrás de los métodos basados en
+clasificación~\cite{yang2024}.
+% Fuente: yang2024, §3.2, p. 5647 (Lee et al. 2018 = lee2018; Serrà et al. 2020 = serra2020).
 
-\emph{Evaluación OSR.} Al igual que en AD y ND, las métricas para OSR incluyen puntuaciones F (\emph{F-scores}), AUROC y AUPR. Asimismo, el rendimiento de la clasificación se evalúa mediante la precisión estándar para ID. Si bien las métricas mencionadas evalúan de forma independiente las capacidades de detección de novedades y de clasificación ID, algunos trabajos proponen criterios para una evaluación conjunta, como CCR@FPR$x$ (Dhamija et al.~\cite{dhamija2018}), que calcula la tasa de recuperación (\emph{recall}) por clase cuando se alcanza una determinada tasa de falsos positivos (FPR) igual a $x$ (por ejemplo, $10^{-1}$).
-\revisar{traducción casi literal; parafrasear y citar}
+Los \emph{métodos basados en distancia} parten de que las muestras OOD deberían
+estar lejos de los centroides o prototipos de las clases ID~\cite{yang2024}. El
+espacio de características que aprende el modelo separa las clases ID, mientras
+que una muestra OOD puede compartir solo algunas características con ellas, sin
+llegar a parecerse a ninguna~\cite{sevillano2026}. Entre estos métodos hay
+enfoques paramétricos, como la distancia de Mahalanobis mínima a los centroides
+de clase (MDS) o su variante relativa (RMDS), que suponen características
+gaussianas, y no paramétricos, como la distancia al $k$-ésimo vecino más cercano
+(KNN), que no hace ninguna hipótesis sobre su
+distribución~\cite{sevillano2026,yang2024,lee2018,ren2021,sun2022knn}. También
+se han usado la similitud coseno y la norma de la componente de las
+características fuera de su subespacio principal, en la que se basa
+ViM~\cite{yang2024,wang2022vim}. Sevillano-García et al.\ señalan que estos
+métodos fijan empíricamente el umbral de decisión, sin una justificación teórica
+que lo respalde~\cite{sevillano2026}. \stoodx, también basado en distancias en
+el espacio de características y no paramétrico como KNN, sustituye la distancia
+al vecino por un contraste de hipótesis: compara las distancias de la muestra a
+sus vecinos de la clase predicha con las distancias entre esos vecinos, y usa el
+$p$-valor del test de Wilcoxon-Mann-Whitney como puntuación, sin suponer una
+distribución concreta de las características, a diferencia de
+MDS~\cite{sevillano2026}. Se describe en la \cref{sec:metodo-stoodx}.
+% Fuente: yang2024, §3.3, p. 5647 (idea, Mahalanobis, KNN, coseno, subespacio principal = Wang et al.
+% 2022a = wang2022vim); sevillano2026, §2.1, p. 2 (intuición del espacio de características, MDS,
+% RMDS, KNN, umbral empírico); §3.2, pp. 4-6 (clase predicha, test de Wilcoxon-Mann-Whitney,
+% p-valor como puntuación, sin hipótesis de distribución).
 
-\subsection{Cambio semántico y desplazamiento de covariables}\label{sec:ea-shift}
-
-% Puntos que debería cubrir: definición informal de ambos tipos de cambio (formalización en
-% \cref{sec:cambios-distribucion}) y su relación con los conjuntos de este trabajo.
-\pendiente{introducción al cambio semántico y al desplazamiento de covariables}
-
-Ambos conjuntos producen un cambio de distribución respecto al conjunto ID, pero de naturaleza distinta: PANDA corresponde a un desplazamiento de covariables, mientras que DTD introduce un cambio semántico.
-
-\subsection{Near-OOD y far-OOD}\label{sec:ea-near-far}
-
-% Puntos que debería cubrir: definición de near-OOD y far-OOD; ubicación de los conjuntos de este
-% trabajo (NCT-CRC como near-OOD, DTD como far-OOD).
-\pendiente{near-OOD y far-OOD}
-
-\subsection{Criterio conservador en medicina}\label{sec:ea-conservador}
-
-Aunque en clasificación general la detección OOD suele restringirse al cambio semántico, Yang et al.~\cite{yang2024} señalan que en tareas de alto riesgo, como la clasificación de imágenes médicas (Zimmerer et al.~\cite{zimmerer2022}), se espera que los modelos sean conservadores y rechacen cualquier muestra que se desvíe de la distribución de entrenamiento. Siguiendo este criterio, en este trabajo se considera OOD tanto el cambio semántico (DTD) como el desplazamiento de covariables debido al cambio de centro (PANDA).
+Por último, los \emph{métodos basados en reconstrucción} usan un esquema de
+codificador y decodificador entrenado con datos ID, que reconstruye peor las
+muestras OOD; reconstruir píxeles tiene un coste de entrenamiento alto, por lo
+que trabajos más recientes reconstruyen características ocultas o partes
+enmascaradas de la imagen~\cite{yang2024}.
+% Fuente: yang2024, §3.4, p. 5647.
 
 \subsection{Métodos excluidos}\label{sec:ea-excluidos}
 
-No se han incluido métodos basados en gradientes, como ODIN (Liang et al.~\cite{liang2018}) o GradNorm (Huang et al.~\cite{huang2021}), por dos motivos. En primer lugar, requieren una pasada hacia atrás por cada imagen, lo que incrementa notablemente el coste de inferencia y dificulta su despliegue en un entorno clínico. En segundo lugar, Igoe et al.~\cite{igoe2022} indican que la eficacia de estos métodos no se debe tanto a la información del gradiente como a la magnitud de las características y a la distribución de salida, aspectos que ya quedan cubiertos por los métodos basados en características y en logits evaluados en este trabajo.
+No se han incluido métodos basados en gradientes, como ODIN (Liang et
+al.~\cite{liang2018}) o GradNorm (Huang et al.~\cite{huang2021}), por dos motivos.
+En primer lugar, requieren una pasada hacia atrás por cada imagen, lo que
+incrementa notablemente el coste de inferencia y dificulta su despliegue en un
+entorno clínico. En segundo lugar, Igoe et al.~\cite{igoe2022} indican que la
+eficacia de estos métodos no se debe tanto a la información del gradiente como a
+la magnitud de las características y a la distribución de salida~\cite{yang2024},
+aspectos que ya quedan cubiertos por los métodos basados en características y en
+logits evaluados en este trabajo.
+% Fuente: yang2024, §3.1.3, p. 5646 (Igoe et al. = igoe2022). Párrafo del autor.
 
-Dentro de los métodos basados en densidad se distinguen dos enfoques. El modelado mediante gaussianas condicionales por clase en el espacio de características (Lee et al.~\cite{lee2018}) se ha incluido en la evaluación a través de MDS y RMDS. En cambio, no se han considerado los modelos generativos sobre el espacio de entrada, como los basados en flujos, por tres motivos: su entrenamiento resulta costoso y difícil de optimizar sobre imágenes de alta resolución; su verosimilitud presenta un fuerte sesgo hacia la complejidad de la entrada (Serrà et al.~\cite{serra2020}; Zhang et al.~\cite{zhang2021}), lo que en histopatología podría favorecer parches de baja complejidad, como regiones de fondo o estroma; y su rendimiento suele quedar por detrás de los enfoques basados en clasificación (Yang et al.~\cite{yang2024}).
+Dentro de los métodos basados en densidad se distinguen dos enfoques. El
+modelado mediante gaussianas condicionales por clase en el espacio de
+características (Lee et al.~\cite{lee2018}) se ha incluido en la evaluación a
+través de MDS y RMDS. En cambio, no se han considerado los modelos generativos
+sobre el espacio de entrada, como los basados en flujos, por tres motivos: su
+entrenamiento resulta costoso y difícil de optimizar sobre imágenes de alta
+resolución; su verosimilitud presenta un fuerte sesgo hacia la complejidad de la
+entrada (Serrà et al.~\cite{serra2020}), lo que en histopatología podría favorecer
+parches de baja complejidad, como regiones de fondo o estroma; y su rendimiento
+suele quedar por detrás de los enfoques basados en clasificación (Yang et
+al.~\cite{yang2024}). OpenOOD tampoco incluye métodos generativos, que según sus
+autores no han demostrado escalar a datos del tamaño de ImageNet~\cite{openood15}.
+% Fuente: yang2024, §3.2, p. 5647; openood15, §7, «Limitation», p. 18. Párrafo del autor; se ha
+% quitado la cita a zhang2021 y se ha añadido la última frase.
 
-\revisar{añadida la cita a Zhang et al. (2021) junto a Serrà et al.}
+\subsection{Evaluación: OpenOOD, near-OOD y far-OOD}\label{sec:ea-near-far}
 
+Zhang et al.\ señalan que el progreso en detección OOD ha sido difícil de seguir
+por tres problemas de evaluación: una terminología confusa, conjuntos de datos
+inconsistentes y prácticas erróneas~\cite{openood15}. OpenOOD nació como
+plataforma y benchmark unificado para evaluar con el mismo protocolo los métodos
+existentes y futuros~\cite{openood,openood15}; su versión~1.5 amplía la
+evaluación a ImageNet, a modelos fundacionales y a la detección del espectro
+completo, e incluye alrededor de 40 métodos~\cite{openood15}. Yang et al.\
+recogen en su revisión una comparación de métodos hecha con esta
+plataforma~\cite{yang2024}. Los métodos post hoc de este trabajo se han evaluado
+con la implementación de OpenOOD (\cref{cap:metodos}).
+% Fuente: openood15, §1, pp. 1-2 (tres trampas, OpenOOD v1 y v1.5); §4, p. 9 (40 métodos);
+% yang2024, §5, p. 5651.
+
+El protocolo de OpenOOD toma como ID el conjunto que define la tarea de
+clasificación y como OOD varios conjuntos públicos cuyas categorías no se solapan
+con las ID, en lugar de uno solo~\cite{openood15}. Los conjuntos OOD se agrupan en
+\emph{near-OOD}, más difíciles, y \emph{far-OOD}, más fáciles, con un criterio
+semántico o empírico: en los benchmarks de CIFAR, las imágenes near-OOD contienen
+objetos parecidos a los ID, mientras que las far-OOD (dígitos, texturas o escenas)
+se alejan de ellas tanto en significado como en estadísticas de bajo nivel; en
+ImageNet, donde es difícil definir la cercanía semántica, se agrupan según el
+rendimiento empírico de los detectores~\cite{openood15}. En la revisión de Yang
+et al., los conjuntos near-OOD solo presentan cambio semántico respecto a los ID,
+mientras que los far-OOD añaden un desplazamiento de dominio
+evidente~\cite{yang2024}. Además, OpenOOD reserva conjuntos de validación ID y OOD
+para ajustar los hiperparámetros, en lugar de hacerlo con los datos de prueba,
+para no obtener resultados demasiado optimistas~\cite{openood15}. En este trabajo,
+NCT-CRC desempeña el papel de near-OOD y DTD el de far-OOD
+(\cref{tab:diseno-ood}); en patología digital, Linmans et al.\ aplican la misma
+distinción con el linfoma y el tejido de colon (\cref{sec:ea-ood-patologia}).
+% Fuente: openood15, §3, pp. 5-6 (protocolo, near/far, validación); §4, p. 7 (criterio semántico en
+% CIFAR y empírico en ImageNet); yang2024, §5.1, p. 5651 (near-OOD solo semántico, far-OOD con
+% desplazamiento de dominio). Ubicación de NCT-CRC y DTD: diseño del TFG (capítulo 8).
+
+La evaluación es binaria, con las muestras OOD como clase positiva, y usa
+métricas independientes del umbral, como el \AUROC y el AUPR, y el \FPRn{95},
+que fija un punto de operación~\cite{openood15}; se definen en la
+\cref{sec:metricas}. OpenOOD v1.5 evalúa también la \emph{detección del espectro
+completo}, que añade a las muestras ID de prueba otras con desplazamiento de
+covariables (csID) y las sigue considerando ID, porque su etiqueta pertenece a las
+clases conocidas~\cite{openood15}. En este escenario, el \AUROC near-OOD de la
+mayoría de los métodos cae más de un 10\,\% en ImageNet-1K, lo que indica que
+los detectores actuales son sensibles al desplazamiento de covariables y tienden
+a marcar como OOD muestras ID con ese
+desplazamiento~\cite{openood15,yang2024}. Este trabajo adopta el criterio
+contrario, pues considera OOD el desplazamiento de covariables de PANDA
+(\cref{sec:ea-conservador}); la definición se da en la
+\cref{def:deteccionfullspectrum}.
+% Fuente: openood15, §2, pp. 4-5 (clase positiva OOD, métricas, espectro completo y csID); §6.2,
+% p. 15 (caída de más del 10 % y sensibilidad al desplazamiento de covariables); yang2024, §5.4,
+% p. 5652.
+
+De los resultados de OpenOOD v1.5, varios afectan directamente a este
+trabajo~\cite{openood15}:
+\begin{itemize}
+  \item \emph{No hay un método ganador.} Ningún método supera a los demás en todos
+  los benchmarks, y la clasificación puede cambiar mucho de un conjunto de datos a
+  otro. Por eso se comparan aquí varios métodos de distintas familias, y no uno
+  solo.
+  \item \emph{El near-OOD es más difícil.} En ImageNet-1K, el \AUROC near-OOD crece
+  aproximadamente en proporción al far-OOD, pero más despacio; los autores lo
+  atribuyen a la mayor dificultad del problema y a que los trabajos previos se
+  centraron en conjuntos far-OOD.
+  \item \emph{El aumento de datos ayuda.} Varias técnicas de aumento de datos,
+  aunque no se diseñaron para la detección OOD, la mejoran en muchos casos, y la
+  mejora es mayor al combinarlas con métodos post hoc. Los autores proponen como
+  posible explicación que unas muestras de entrenamiento más variadas llevan al
+  modelo a apoyarse en características relacionadas con el significado de las
+  clases y no en \emph{características espurias}, correlacionadas con la etiqueta
+  pero sin relación semántica con ella. Un modelo que depende de estas últimas
+  puede activarse con fuerza ante una muestra OOD que las contenga, mientras que
+  uno entrenado con aumento de datos responde sobre todo a los rasgos semánticos de
+  las clases ID y separa mejor ambos tipos de datos.
+  \item \emph{Los transformers no superan a las ResNet.} Con ResNet-50, ViT-B/16 y
+  Swin-T preentrenados en ImageNet-1K, los transformers no mejoran de forma
+  apreciable la detección OOD. Además, cada método favorece una arquitectura: ASH
+  y ReAct, los dos mejores con ResNet-50, empeoran notablemente con transformers,
+  mientras que RMDS se adapta mucho mejor a ellos que a las ResNet. Los autores
+  sugieren que la mayoría de los métodos post hoc están diseñados para redes
+  convolucionales. Este resultado es relevante aquí, porque el clasificador
+  principal es un Swin-S.
+\end{itemize}
+Entre el resto de observaciones, los métodos post hoc aplicados a un modelo
+entrenado con la entropía cruzada estándar son los mejores en ImageNet-1K; los
+datos atípicos de entrenamiento solo ayudan cuando se parecen a los de prueba; y
+algunos métodos, como MDS o KNN, tienen un coste de memoria alto porque necesitan
+las características de los datos ID~\cite{openood15}. La revisión de Yang et al.\
+llega a conclusiones parecidas sobre CIFAR: los métodos solo de inferencia superan
+en general a los que requieren entrenamiento, y los datos adicionales no parecen
+imprescindibles~\cite{yang2024}.
+% Fuente: openood15, §6.1, pp. 10-13 (sin ganador, p. 10; aumento de datos y características
+% espurias, pp. 11-12; near-OOD, p. 12; transformers frente a ResNet, ASH, ReAct y RMDS,
+% pp. 12-13; post hoc a gran escala y datos atípicos, p. 13; coste de memoria, p. 15);
+% yang2024, §5.3, p. 5652. La explicación de las características espurias se atribuye en
+% openood15 a Ming, Yin y Li (2022), que no está en library.bib.
+
+\subsection{Retos abiertos}\label{sec:ea-retos}
+
+Yang et al.\ cierran su revisión con varios retos~\cite{yang2024}: especificar
+con claridad qué tipo de cambio de distribución se quiere detectar y por qué,
+sobre todo cuando se trata de desplazamiento de covariables; construir con
+cuidado los benchmarks, evitando que los conjuntos OOD contengan imágenes de
+clases ID; desarrollar métodos que no dependan de datos atípicos de
+entrenamiento; equilibrar la clasificación ID y la detección OOD cuando ambas
+comparten la red; y evaluar en conjuntos grandes y realistas, porque las
+estrategias que funcionan en CIFAR no siempre lo hacen en ImageNet. Entre las
+líneas futuras destacan la relación entre detección y generalización OOD, en la
+que señalan que las características espurias del entorno presentes en los datos de
+entrenamiento pueden afectar mucho a la detección, y la extensión de la detección
+OOD a más tareas~\cite{yang2024}. Zhang et al.\ añaden que la detección del
+espectro completo sigue siendo un problema abierto y que arquitecturas como los
+vision transformers pueden necesitar detectores
+específicos~\cite{openood15}.
+% Fuente: yang2024, §6.1, pp. 5653-5654 (retos); §6.2, p. 5654 (detección y generalización;
+% características espurias del entorno, Ming et al. 2022). openood15, §7, p. 18.
+
+%=======================================================================
 \section{Explicabilidad}\label{sec:ea-explicabilidad}
+%=======================================================================
 
-Yang et al.~\cite{yang2024} identifican la explicabilidad como uno de los retos abiertos en la detección OOD. Este trabajo aborda dicho aspecto desde dos perspectivas complementarias: mediante STOOD-X, que proporciona explicaciones de las decisiones de detección, y mediante técnicas de relevancia por conceptos (CRP), que permiten identificar y eliminar características sesgadas del clasificador y analizar su efecto sobre la fiabilidad del sistema.
+Yang et al.~\cite{yang2024} identifican la explicabilidad como uno de los retos
+abiertos en la detección OOD. Este trabajo aborda dicho aspecto desde dos
+perspectivas complementarias: mediante \stoodx, que proporciona explicaciones de
+las decisiones de detección, y mediante técnicas de relevancia por conceptos
+(CRP), que permiten identificar y eliminar características sesgadas del
+clasificador y analizar su efecto sobre la fiabilidad del sistema.
+% Fuente: yang2024, §3.5, p. 5648. Párrafo del autor.
 
-\subsection{El efecto Clever Hans}\label{sec:ea-clever-hans}
+\subsection{Conceptos básicos y transparencia}\label{sec:ea-xai-conceptos}
 
-% Nota de las notas: «Hablar del efecto Clever Hans en XAI, y de cómo los modelos aprenden
-% relaciones espurias para la clasificación de imágenes».
-% Puntos que debería cubrir:
-% - Origen del término y su uso en XAI.
-% - Ejemplos de correlaciones espurias en clasificación de imágenes (y en histopatología: tinción,
-%   centro, artefactos).
-% - Relación con los resultados del capítulo 10 (los detectores responden al centro).
-\pendiente{efecto Clever Hans en XAI y aprendizaje de relaciones espurias en la clasificación de imágenes}
+La adopción de sistemas de inteligencia artificial en ámbitos de alto impacto,
+como la salud, ha impulsado el campo de la \emph{inteligencia artificial
+explicable} (\emph{explainable artificial intelligence},
+XAI)~\cite{sevillano2025tesis}. Barredo Arrieta et al.\ señalan que la
+imposibilidad de explicar el funcionamiento de los modelos es una de las
+principales barreras para su implantación, sobre todo en sectores muy regulados y
+reacios a técnicas que puedan poner en riesgo sus activos, como la banca, la
+seguridad o la salud~\cite{barredo2020}.
+% Fuente: sevillano2025tesis, cap. 2, p. 16; barredo2020, §2.3, p. 86.
 
-\subsection{Explicaciones locales y conceptuales}\label{sec:ea-locales-conceptuales}
+En la literatura se usan a menudo como sinónimos términos con matices
+distintos~\cite{barredo2020}. La \emph{interpretabilidad} es una característica
+pasiva del modelo, el grado en que tiene sentido para un observador humano, y se
+expresa también como \emph{transparencia}: un modelo es transparente si es
+comprensible por sí mismo. La \emph{explicabilidad}, en cambio, es una
+característica activa: cualquier acción o procedimiento del modelo para aclarar
+su funcionamiento interno. La \emph{inteligibilidad} es la capacidad del modelo de
+hacer entender a una persona cómo funciona sin explicar su estructura interna, y
+la \emph{comprensibilidad}, la capacidad de un algoritmo de aprendizaje de
+representar lo aprendido de forma comprensible~\cite{barredo2020}. Como todas
+dependen de quién recibe la explicación, Barredo Arrieta et al.\ definen la XAI
+en función de la audiencia: dada una audiencia, una inteligencia artificial
+explicable es la que produce detalles o razones que hacen claro o fácil de
+entender su funcionamiento~\cite{barredo2020}. Esta es la definición que adopta
+el artículo de \stoodx~\cite{sevillano2026}. Distintas audiencias persiguen
+objetivos distintos: para los expertos del dominio, por ejemplo, la confianza o
+la causalidad; para los usuarios afectados por las decisiones, la equidad; y para
+los organismos reguladores, entre otros, la equidad o la
+privacidad~\cite{barredo2020}.
+% Fuente: barredo2020, §2.1, p. 84 (terminología); §2.2, p. 85 (definición basada en la audiencia);
+% tabla 1 y §2.4, pp. 85-86 (objetivos y audiencias); sevillano2026, §1, p. 2.
 
-La diferencia que tiene CRP frente a los métodos de explicabilidad local es que estos otros reflejan las zonas en las que se ha fijado el modelo, pero no son capaces de determinar la importancia de estas características para la decisión final.
-\pendiente{desarrollar y citar (Achtibat et al.~\cite{achtibat2023})}
+Los primeros sistemas de inteligencia artificial, como las regresiones lineales,
+los árboles de decisión o los sistemas de reglas, eran \emph{cajas blancas}:
+transparentes para una persona, aunque incapaces de capturar toda la complejidad
+de los datos~\cite{sevillano2025tesis}. Las redes neuronales profundas mejoraron
+las predicciones a costa de la transparencia y se consideran \emph{cajas negras},
+porque es muy difícil seguir paso a paso su razonamiento~\cite{sevillano2025tesis}.
+La frontera entre ambas no es binaria, y entre los dos extremos puede hablarse de
+\emph{cajas grises}~\cite{sevillano2025tesis}. Barredo Arrieta et al.\ distinguen
+tres niveles de transparencia, de modo que un modelo simulable es también
+descomponible y algorítmicamente transparente: la
+\emph{transparencia algorítmica}, que permite entender cómo el modelo produce cada
+salida a partir de la entrada; la \emph{descomponibilidad}, que permite explicar
+cada una de sus partes; y la \emph{simulabilidad}, que permite a una persona
+razonar sobre el modelo completo~\cite{barredo2020}. Las redes profundas no son algorítmicamente transparentes, porque su
+superficie de pérdida no puede observarse por
+completo y su solución se aproxima mediante optimización
+heurística~\cite{barredo2020}. Los autores matizan la idea de que la
+interpretabilidad se pierde necesariamente al ganar rendimiento: los modelos más
+complejos son más flexibles, pero no siempre más precisos, y el compromiso entre
+interpretabilidad y rendimiento solo aparece cuando la función que se aproxima es
+compleja y hay datos suficientes y variados; las técnicas de XAI buscan
+reducirlo~\cite{barredo2020}.
+% Fuente: sevillano2025tesis, §2.1.1, pp. 17-18 (cajas blancas y negras, cajas grises);
+% barredo2020, §2.5.1, pp. 87-88 (niveles de transparencia); §5.1, p. 100 (compromiso entre
+% interpretabilidad y rendimiento).
 
-\subsection{LRP, CRP y explicaciones glocales}\label{sec:ea-crp}
+\subsection{Tipos de métodos y de explicaciones}\label{sec:ea-xai-tipos}
 
-% Nota de las notas: «Utilizar el concepto de glocal CRP al igual que se usa en el paper que
-% describe CRP».
-% Puntos que debería cubrir: LRP como base; CRP (Achtibat et al., 2023); explicaciones glocales
-% (combinación de explicación local y global); Storås et al. (2025). Formalización en el capítulo 7.
-\pendiente{LRP, CRP y explicaciones glocales, usando el concepto de CRP glocal como en el artículo de CRP}
+Según el momento en que se introduce la explicabilidad, los métodos se dividen en
+\emph{ante hoc}, cuyos modelos son interpretables desde su construcción, y
+\emph{post hoc}, que explican un modelo ya construido, sea cual sea su
+complejidad~\cite{sevillano2025tesis}. Barredo Arrieta et al.\ hablan,
+respectivamente, de modelos transparentes y de explicabilidad post hoc, y
+clasifican las técnicas post hoc en explicaciones textuales, visuales, locales,
+por ejemplos, por simplificación y por relevancia de
+características~\cite{barredo2020}. Los métodos post hoc permiten explicar redes
+profundas con buen rendimiento, aunque al simplificar su funcionamiento pueden
+perder información~\cite{sevillano2025tesis}.
+% Fuente: sevillano2025tesis, §2.1.2, p. 18; barredo2020, §2.5 y §2.5.2, pp. 87-88.
+
+Según la información del modelo que usan, los métodos son \emph{dependientes del
+modelo}, que aprovechan su estructura interna, como las capas o las funciones de
+activación, o \emph{agnósticos}, que solo necesitan las entradas y las
+predicciones~\cite{sevillano2025tesis,barredo2020}. Los primeros pueden dar
+explicaciones más precisas, pero no se trasladan directamente a otros modelos;
+los segundos sirven para cualquier modelo, pero necesitan evaluarlo en muchos
+puntos de su espacio de entrada, lo que resulta
+costoso~\cite{sevillano2025tesis}. Sevillano-García et al.\ describen esta
+diferencia como explicaciones de caja negra y de caja blanca: las de caja negra no
+usan la estructura interna y no quedan condicionadas por ella, pero necesitan
+muchas evaluaciones del modelo; las de caja blanca, como la propagación de la
+relevancia por capas (LRP), conservan la importancia de la decisión a lo largo de
+las capas del modelo y se obtienen con un coste
+razonable~\cite{sevillano2026}.
+% Fuente: sevillano2025tesis, §2.1.3, p. 19; barredo2020, §4, p. 92; sevillano2026, §2.2, p. 3.
+
+Biecek y Samek distinguen dos enfoques de la XAI, recogidos en el artículo de
+\stoodx~\cite{sevillano2026}. La \emph{RED XAI} (\emph{Research, Explore, Debug})
+se orienta a investigar y mejorar los modelos y está dirigida a desarrolladores
+con conocimientos técnicos, que pueden usar explicaciones complejas para
+encontrar fallos o auditar el modelo. La \emph{BLUE XAI} (\emph{responsiBle, Legal,
+trUst, Ethics}) se orienta a explicar las decisiones al usuario final, con
+explicaciones sencillas que le permitan decidir si confía en el
+modelo~\cite{sevillano2026,sevillano2025tesis}. La tesis de Sevillano García
+recoge además varias ideas que Biecek y Samek ponen en cuestión, como
+que la interpretabilidad sea binaria, que deba existir un único método de
+explicación válido para todo o que el único objetivo de las explicaciones sea
+aumentar la confianza del usuario~\cite{sevillano2025tesis}. En el ámbito
+clínico, Ayensa-Jiménez et al.\ consideran prioritario el enfoque BLUE XAI,
+porque los clínicos adoptan con más facilidad las decisiones asistidas cuyo
+razonamiento entienden~\cite{ayensa2026}.
+% Fuente: sevillano2026, §1, p. 2, y §2.2, pp. 2-3 (RED y BLUE XAI, ref. [13] = Biecek y Samek,
+% 2024, no está en library.bib); sevillano2025tesis, §2.1.4, pp. 19-21 (falacias y audiencias);
+% ayensa2026, §II, p. 1265.
+
+En cuanto a la forma de la explicación, el artículo de \stoodx distingue entre
+explicaciones \emph{por importancia de características} y explicaciones
+\emph{por ejemplos}~\cite{sevillano2026}. Las primeras asignan a cada parte de la
+entrada un grado de influencia en la decisión y se muestran como mapas de calor.
+Las segundas muestran muestras parecidas a la que se explica, ya sea para
+respaldar la decisión, con \emph{prototipos}, o para indicar qué tendría que
+cambiar para que la decisión fuera otra, con
+\emph{contrafactuales}~\cite{sevillano2026}. Las explicaciones prototípicas tienen
+un carácter descriptivo, porque muestran lo que la muestra comparte con ejemplos
+ya validados, mientras que las contrafactuales son prescriptivas, porque señalan
+qué la separa de otra decisión~\cite{sevillano2025tesis}.
+% Fuente: sevillano2026, §2.2, p. 3; sevillano2025tesis, §2.2.1, pp. 21-22.
+
+\subsection{El efecto Clever Hans y las correlaciones espurias}\label{sec:ea-clever-hans}
+
+En psicología se llama fenómeno \emph{Clever Hans} a resolver un problema
+apoyándose en una correlación espuria, en lugar de en el
+problema~\cite{lapuschkin2019}. Lapuschkin et al.\ muestran que los modelos de
+aprendizaje automático pueden comportarse así y que las métricas habituales, como
+el error en el conjunto de prueba, no lo detectan~\cite{lapuschkin2019}. Con
+mapas de relevancia obtenidos mediante LRP encuentran varios casos: un
+clasificador de PASCAL VOC que reconocía los caballos por una etiqueta de
+procedencia presente en una parte de sus imágenes, de modo que añadirla a la foto de
+un coche la convertía en «caballo»; un agente de Atari Pinball que puntuaba
+moviendo la mesa en lugar de usar las palancas; y una red que reconocía los aviones
+por el relleno añadido en los bordes de la imagen~\cite{lapuschkin2019}. Para
+analizar conjuntos de datos completos proponen SpRAy (\emph{Spectral Relevance
+Analysis}), que agrupa los mapas de relevancia para identificar de forma
+semiautomática las distintas estrategias de predicción del
+modelo~\cite{lapuschkin2019}.
+% Fuente: lapuschkin2019 (arXiv), §1, pp. 2-3 (fenómeno Clever Hans, atribuido a Pfungst 1911);
+% resumen, p. 1, y §3, p. 7 (las métricas no lo detectan); §2.1, pp. 3-4 (etiqueta de procedencia,
+% Pinball); §2.2, pp. 5-6 (SpRAy, relleno en aviones).
+
+Achtibat et al.\ identifican con CRP un caso análogo en ImageNet: un modelo VGG-16
+usaba filtros que detectan una marca de agua para reconocer la clase «caja
+fuerte», y la misma marca contaminaba otras clases~\cite{achtibat2023}. Al anular
+esos filtros, la clasificación de la muestra seguía siendo correcta, y como el
+mismo filtro se usaba de forma legítima en otras clases, los autores proponen
+corregir el comportamiento por clase en lugar de eliminar el
+filtro~\cite{achtibat2023}. En el ámbito médico, Storås et al.\ recuerdan que los
+modelos pueden aprender correlaciones espurias, y en un modelo de endoscopia
+gastrointestinal encuentran que el instrumental se asociaba a la clase «normal»:
+al insertar instrumentos en imágenes que no los tenían, la exactitud en la clase
+«anormal» bajaba de 0,943 a 0,783~\cite{storas2025}.
+% Fuente: achtibat2023, pp. 1009-1012 (marca de agua, clase «safe», corrección por clase);
+% storas2025, pp. 1 y 6 (correlaciones espurias en medicina; instrumentos, 0,943 a 0,783).
+
+En histopatología, Howard et al.\ muestran que una red profunda identifica con
+gran exactitud el centro que envió una lámina de TCGA, que esa capacidad persiste
+tras la normalización del color y el aumento de datos habituales, y que la firma
+del centro sesga la predicción de características como la supervivencia, las
+mutaciones o el estadio tumoral cuando está correlacionada con
+ellas~\cite{howard2021}. Lo comparan con el ejemplo del husky y el lobo, en el que
+un modelo distingue a ambos animales por la nieve del fondo, y advierten de que
+estas firmas pueden dar estimaciones del rendimiento demasiado
+optimistas~\cite{howard2021}. El \cref{cap:explicabilidad} retoma el problema de
+las correlaciones espurias, y en la \cref{sec:ood-control-interno} se analiza si
+los detectores responden al tipo de tejido o a las condiciones de adquisición.
+% Fuente: howard2021, resumen, p. 1, y pp. 2-4 (detección del centro, persistencia tras
+% normalización y aumento, sesgo; husky frente a lobo, p. 4; estimaciones optimistas, p. 1).
+
+\subsection{Explicaciones locales, globales y glocales: de LRP a CRP}\label{sec:ea-crp}
+
+Achtibat et al.\ dividen los métodos de XAI en locales y
+globales~\cite{achtibat2023}. Los \emph{locales} explican predicciones
+individuales mediante mapas de atribución que indican \emph{dónde} están las
+características importantes, pero no \emph{qué} representan; además, cada mapa
+superpone muchos subprocesos de decisión internos del modelo. Los \emph{globales}
+muestran qué conceptos ha aprendido el modelo en general, pero no cuáles usa en
+una predicción concreta. Ambos tipos dejan al usuario la tarea de interpretar el
+razonamiento del modelo~\cite{achtibat2023}. La diferencia que tiene CRP frente a
+los métodos de explicabilidad local es que estos otros reflejan las zonas en las
+que se ha fijado el modelo, pero no son capaces de determinar la importancia de
+estas características para la decisión final.
+% Fuente: achtibat2023, pp. 1006-1007. La última frase es del autor.
+
+LRP explica la predicción de una red propagando la relevancia hacia atrás, desde
+la salida hasta la entrada, y asigna así un valor de relevancia a cada píxel y a
+cada elemento intermedio del modelo~\cite{achtibat2023,bach2015}; Barredo Arrieta
+et al.\ la sitúan entre las técnicas de visualización de redes
+convolucionales~\cite{barredo2020}. La \emph{Concept Relevance Propagation} (CRP)
+extiende LRP condicionando la propagación a conceptos codificados en canales de
+capas intermedias: así obtiene mapas de relevancia por concepto, que indican
+dónde aparece cada concepto en la imagen y cuánto contribuye a la
+predicción~\cite{achtibat2023}. Para dar significado a cada concepto, los autores
+proponen la \emph{maximización de la relevancia} (RelMax), que selecciona como
+ejemplos de referencia las muestras en las que el concepto fue más relevante para
+la predicción, y no aquellas en las que más se activó, porque la activación no
+siempre refleja su utilidad para el modelo~\cite{achtibat2023}. La combinación de
+ambas perspectivas da lugar a explicaciones \emph{glocales}, término que
+introducen Achtibat et al.~\cite{achtibat2023,sevillano2025tesis}: responden a la
+vez dónde mira el modelo y qué reconoce, con un coste del orden de una pasada
+hacia atrás, y en un estudio con usuarios resultaron más útiles que los mapas de
+atribución tradicionales~\cite{achtibat2023}. LRP y CRP se formalizan en las
+\cref{sec:lrp,sec:crp}.
+% Fuente: achtibat2023, p. 1008 (LRP, CRP, RelMax; LRP = ref. 15, Bach et al. 2015); p. 1009
+% (activación frente a utilidad); p. 1007, fig. 1 (glocal XAI); p. 1013 (eficiencia y estudio de
+% usuarios); sevillano2025tesis, §2.4.3, p. 36 (el término glocal se introduce en Achtibat et
+% al.); barredo2020, §4.3.2, p. 96 (LRP, Bach et al. = ref. [72]).
+
+Storås et al.\ estudiaron el valor clínico de este tipo de explicaciones en un
+modelo de detección de anomalías en endoscopia gastrointestinal, no en
+histopatología~\cite{storas2025}. Mostraron a cinco gastroenterólogos
+explicaciones de GradCAM, TCAV, CRP y PCX: los mapas de GradCAM resultaron fáciles
+de interpretar, mientras que los de CRP contenían más información y, por eso,
+parecían más difíciles de usar durante un procedimiento; los mapas de prototipos
+de PCX no resultaron intuitivos. La mayoría prefería recibir un solo tipo de
+explicación, sin acuerdo sobre cuál~\cite{storas2025}. Los autores concluyen que
+estos métodos aún no cumplen los requisitos para el uso clínico, pero que aportan
+información valiosa a investigadores y desarrolladores, por ejemplo para detectar
+correlaciones espurias~\cite{storas2025}.
+% Fuente: storas2025, resumen, p. 1; resultados y discusión, pp. 4 y 6.
+
+\subsection{Explicabilidad en la detección OOD: PCX y STOOD-X}\label{sec:ea-xai-ood}
+
+Un detector OOD indica que una muestra no debe procesarse, pero para que el
+usuario confíe en esa decisión hace falta explicarle por qué se ha
+rechazado~\cite{sevillano2026}. Las \emph{explicaciones prototípicas basadas en
+conceptos} (PCX), de Dreyer et al., se apoyan en CRP y en prototipos extraídos del
+conjunto de entrenamiento: muestran ejemplos prototípicos que ha identificado el
+modelo, resaltando las características que comparten con la muestra y dónde
+aparecen~\cite{sevillano2026,sevillano2025tesis}. Como detector OOD, PCX es un
+método paramétrico basado en la distancia a prototipos de clase, y su umbral se
+busca empíricamente~\cite{sevillano2026,sevillano2025tesis}. Sevillano-García et
+al.\ observan que esa forma de explicar está ligada al uso de prototipos y que un
+detector que no los usa necesita adaptar la explicación a su propio
+funcionamiento~\cite{sevillano2026}.
+% Fuente: sevillano2026, §2.2, pp. 2-3 (PCX, ref. [14] = Dreyer et al. 2024, no está en
+% library.bib); sevillano2025tesis, §2.5.2, pp. 43-44.
+
+\stoodx, propuesto por Sevillano-García, Luengo y Herrera, es una metodología post
+hoc en dos etapas~\cite{sevillano2026}. Parte de tres limitaciones que los autores
+señalan en los métodos existentes: hipótesis fuertes sobre la distribución de los
+datos, como la normalidad; falta de explicabilidad; y puntuaciones sin un
+significado teórico, como el de un test estadístico~\cite{sevillano2026}. En la
+primera etapa, la decisión se toma con un test no paramétrico sobre distancias en
+el espacio de características, restringido a la clase predicha por el modelo, y
+el $p$-valor se usa como puntuación. En la segunda, siguiendo el enfoque BLUE XAI,
+la metodología muestra al usuario los vecinos más cercanos de la muestra en el
+conjunto de entrenamiento y la localización de las características más presentes
+en ellos y en la muestra, de modo que pueda comprobar si el modelo se apoya en
+rasgos válidos o en sesgos~\cite{sevillano2026}. Los autores destacan que esta
+explicación es útil también cuando la muestra se acepta como ID, y que en el caso
+OOD convierte la incertidumbre del modelo en una pregunta al usuario: si debe
+procesarse una muestra para la que no hay ejemplos parecidos
+validados~\cite{sevillano2026}. La metodología se describe en la
+\cref{sec:metodo-stoodx} y su aplicación a este trabajo, en el
+\cref{cap:stoodx}.
+% Fuente: sevillano2026, resumen y §1, pp. 1-2 (dos etapas, limitaciones); §3.1, pp. 3-4 (flujo,
+% explicación en los casos ID y OOD, pregunta al usuario); §3.2, pp. 4-6 (test sobre la clase
+% predicha, p-valor); §3.3, pp. 7-8 (vecinos y visualización de características, BLUE XAI).
+
+%=======================================================================
+\section{Síntesis}\label{sec:ea-sintesis}
+%=======================================================================
+
+La literatura revisada deja varias cuestiones abiertas que enmarcan este trabajo.
+En patología digital, la detección OOD está poco explorada, sobre todo en el caso
+near-OOD, y las conclusiones de los benchmarks de visión por computador no se
+trasladan directamente~\cite{linmans2023}. Los propios autores del conjunto de
+datos ID y del reto PANDA señalan la necesidad de validar los modelos fuera de las
+condiciones en que se desarrollaron~\cite{ayensa2026,bulten2022}, y las firmas de
+centro muestran que esas condiciones pueden influir en lo que aprende un
+modelo~\cite{howard2021}. En detección OOD no hay un método que gane en todos los
+escenarios, los métodos post hoc pueden comportarse de forma distinta con
+transformers y la detección del desplazamiento de covariables sigue siendo una
+cuestión discutida, salvo en aplicaciones de alto riesgo como la
+medicina~\cite{openood15,yang2024}. Por último, la explicabilidad de las
+decisiones de detección y la identificación de correlaciones espurias siguen
+siendo retos abiertos~\cite{yang2024,sevillano2026,achtibat2023}.
+% Fuente: síntesis de las secciones anteriores.
+
+Este trabajo se sitúa en ese contexto. Sobre el conjunto de datos de próstata de
+Ayensa-Jiménez et al., compara varios clasificadores (\cref{cap:clasificacion-id})
+y evalúa sobre el elegido métodos de detección OOD post hoc de distintas familias,
+con conjuntos near-OOD, far-OOD y de cambio de centro y resolución
+(\cref{cap:deteccion-ood}). Aplica \stoodx como detector explicable
+(\cref{cap:stoodx}), estudia la predicción conforme como forma complementaria de
+expresar la incertidumbre (\cref{cap:conforme}), estudia la fuga por lámina
+(\cref{cap:fuga}) y usa explicaciones conceptuales para identificar y
+corregir sesgos del clasificador (\cref{cap:xai-sesgos}).
+% Fuente: estructura del TFG (capítulos 9-14). Sin cifras nuevas.
 
 \endinput
