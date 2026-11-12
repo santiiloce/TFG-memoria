@@ -274,41 +274,223 @@ Este resultado, junto con otros análogos con hipótesis distintas sobre $\sigma
 
 \section{Función de pérdida: entropía cruzada y \emph{label smoothing}}\label{sec:perdida}
 
-\begin{definicion}[Función softmax]\label{def:softmax}
-% \softmax(z)_k = e^{z_k} / \sum_j e^{z_j}.
-\pendiente{definición}
+% [agente] Texto redactado a partir de Prince, sec. 5.5 (ecs. 5.21-5.23).
+En la clasificación multiclase, la etiqueta toma valores en $\{1,\dots,K\}$ y se
+modeliza con una distribución categórica, de parámetros
+$\lambda_1,\dots,\lambda_K$, que determinan la probabilidad de cada clase:
+$\Prob(y = k) = \lambda_k$. Estos parámetros deben estar entre cero y uno y sumar
+uno. Una red $f(x;\phi)$ con $K$ salidas no cumple estas restricciones, así que
+sus salidas se transforman con una función que sí las
+cumple~\cite[sec.~5.5]{prince2023understanding}.
+
+\begin{definicion}[{Función softmax~\cite[sec.~5.5]{prince2023understanding}}]\label{def:softmax}
+La \emph{función softmax},
+$\softmax\colon\R^{K}\to\R^{K}$, es la función cuya componente $k$-ésima es
+\[
+  \softmax_k(z) = \frac{\exp(z_k)}{\sum_{k'=1}^{K}\exp(z_{k'})},
+  \qquad k = 1,\dots,K.
+\]
 \end{definicion}
 
-\begin{definicion}[Entropía cruzada]\label{def:entropia-cruzada}
-\pendiente{definición}
+Las exponenciales garantizan que todas las componentes son positivas, y el
+denominador, que suman uno. Así, para cada entrada $x$, el modelo asigna a cada
+clase la probabilidad
+\[
+  \Prob(y = k \mid x) = \softmax_k\bigl(f(x;\phi)\bigr),
+\]
+y, si se necesita una única predicción, se toma la clase más probable,
+$\widehat{y} = \argmax_k \Prob(y = k \mid x)$
+\cite[sec.~5.5]{prince2023understanding}. Las componentes de $f(x;\phi)$ se
+llaman \emph{logits}.
+\revisar{Prince no usa el término \emph{logits} en la sec.~5.5; se ha añadido
+porque se usa en el resto de la memoria (por ejemplo, en los métodos de detección
+basados en logits)}
+
+% [agente] Definición redactada a partir de Prince, sec. 5.5 (ec. 5.24) y sec. 5.7.
+\begin{definicion}[{Entropía cruzada~\cite[sec.~5.5]{prince2023understanding}}]\label{def:entropia-cruzada}
+Sea $\{(x_i, y_i)\}_{i=1}^{I}$ un conjunto de entrenamiento con
+$y_i\in\{1,\dots,K\}$ y sea $f(x;\phi)$ una red con $K$ salidas. La
+\emph{pérdida de entropía cruzada multiclase} es la log-verosimilitud negativa de
+los datos de entrenamiento bajo el modelo de la \cref{def:softmax}:
+\[
+  L(\phi) = -\sum_{i=1}^{I} \log\Bigl(\softmax_{y_i}\bigl(f(x_i;\phi)\bigr)\Bigr)
+          = -\sum_{i=1}^{I} \Biggl( f_{y_i}(x_i;\phi) - \log\Biggl(\sum_{k'=1}^{K}\exp\bigl(f_{k'}(x_i;\phi)\bigr)\Biggr)\Biggr),
+\]
+donde $f_k(x;\phi)$ es la $k$-ésima salida de la red.
 \end{definicion}
 
-% - Interpretación como estimación de máxima verosimilitud.
-\begin{proposicion}\label{prop:ce-mv}
-% Minimizar la entropía cruzada empírica equivale a maximizar la log-verosimilitud del modelo
-% categórico.
-\pendiente{enunciado}
+El nombre de entropía cruzada se explica porque minimizar esta pérdida equivale a
+minimizar la divergencia de Kullback-Leibler entre la distribución empírica de
+los datos observados y la distribución del modelo
+\cite[sec.~5.7]{prince2023understanding}.
+
+% [agente] Proposición y demostración redactadas a partir de Prince, sec. 5.7 (ecs. 5.27-5.30),
+% adaptadas al caso discreto y condicionado a cada entrada x_i (Prince lo plantea para una
+% distribución continua sin condicionar, con deltas de Dirac).
+Para dos distribuciones $q$ y $p$ sobre $\{1,\dots,K\}$ con $p_k > 0$ para todo
+$k$, la \emph{divergencia de Kullback-Leibler} es
+\[
+  D_{\mathrm{KL}}(q \,\|\, p) = \sum_{k=1}^{K} q_k \log q_k - \sum_{k=1}^{K} q_k \log p_k,
+\]
+con el convenio $0\log 0 = 0$. Mide la distancia entre las dos distribuciones. El
+segundo sumando, cambiado de signo, $H(q,p) = -\sum_k q_k\log p_k$, es la
+\emph{entropía cruzada} entre $q$ y $p$~\cite[sec.~5.7]{prince2023understanding}.
+
+\begin{proposicion}[{Entropía cruzada y divergencia KL~\cite[sec.~5.7]{prince2023understanding}}]\label{prop:ce-mv}
+En las condiciones de la \cref{def:entropia-cruzada}, sean, para cada
+$i = 1,\dots,I$, $q_i$ la distribución empírica de la etiqueta del ejemplo $i$,
+$q_{i,k} = 1$ si $k = y_i$ y $q_{i,k} = 0$ en otro caso, y
+$p_i(\phi) = \softmax\bigl(f(x_i;\phi)\bigr)$ la distribución del modelo. Entonces,
+para todo $\phi$,
+\[
+  \sum_{i=1}^{I} D_{\mathrm{KL}}\bigl(q_i \,\|\, p_i(\phi)\bigr)
+  = \sum_{i=1}^{I} H\bigl(q_i, p_i(\phi)\bigr)
+  = L(\phi).
+\]
+En consecuencia, minimizar la divergencia KL entre la distribución empírica y la
+del modelo, minimizar la entropía cruzada y maximizar la log-verosimilitud de los
+datos de entrenamiento son el mismo problema.
 \end{proposicion}
 \begin{demostracion}
-\pendiente{demostración}
+Las componentes de $p_i(\phi)$ son positivas por la \cref{def:softmax}, así que
+los logaritmos están definidos. El primer sumando de
+$D_{\mathrm{KL}}(q_i \,\|\, p_i(\phi))$ es nulo, porque cada $q_{i,k}$ vale $0$ o
+$1$ y $0\log 0 = 1\log 1 = 0$; en particular, no depende de $\phi$. Queda la
+entropía cruzada, en la que solo sobrevive el sumando $k = y_i$:
+\[
+  H\bigl(q_i, p_i(\phi)\bigr) = -\sum_{k=1}^{K} q_{i,k}\log p_{i,k}(\phi)
+  = -\log\Bigl(\softmax_{y_i}\bigl(f(x_i;\phi)\bigr)\Bigr).
+\]
+Sumando sobre $i$ se obtiene $L(\phi)$ por la \cref{def:entropia-cruzada}, que es
+la log-verosimilitud negativa de los datos.
 \end{demostracion}
 
-\begin{definicion}[\emph{Label smoothing}~\cite{szegedy2016,muller2019}]\label{def:label-smoothing}
-% Pérdida (1-\varepsilon) NLL + (\varepsilon/K) \sum_j -\log \pi_j, con \varepsilon = 0,1 (valor por
-% defecto de LabelSmoothingCrossEntropy de fastai, usado en el entrenamiento).
-\pendiente{definición}
+Prince razona de forma más general: para cualquier distribución empírica, el
+primer sumando de la divergencia no depende de los parámetros y desaparece del
+problema de minimización, de modo que minimizar la divergencia KL equivale a
+minimizar la entropía cruzada~\cite[sec.~5.7]{prince2023understanding}.
+
+% [agente] Definición redactada a partir de Müller et al. (2019), resumen y sec. 1
+% («Preliminaries»). El artículo llama \alpha al parámetro; aquí se usa \varepsilon porque \alpha
+% es la tasa de aprendizaje de Adam (\cref{sec:adam}).
+Müller et al.\ describen el \emph{label smoothing} como el uso de objetivos
+\emph{suavizados}, que son una media ponderada de los objetivos exactos y de la
+distribución uniforme sobre las clases. Suavizar así las etiquetas evita que la
+red se vuelva demasiado confiada~\cite{muller2019}.
+
+\begin{definicion}[{\emph{Label smoothing}~\cite[sec.~1]{muller2019}}]\label{def:label-smoothing}
+Sea $x$ una entrada con etiqueta $y$ y sea $p = (p_1,\dots,p_K)$ la
+distribución que le asigna la red,
+\[
+  p_k = \softmax_k\bigl(f(x;\phi)\bigr), \qquad k = 1,\dots,K.
+\]
+Sean
+$y_k = 1$ si $k = y$ e $y_k = 0$ en otro caso los \emph{objetivos exactos}. La
+entropía cruzada entre los objetivos y la predicción es
+\[
+  H(y, p) = \sum_{k=1}^{K} -y_k \log p_k .
+\]
+Con \emph{label smoothing} de parámetro $\varepsilon\in[0,1]$, se minimiza en su
+lugar la entropía cruzada $H(y^{LS}, p)$ entre la predicción y los objetivos
+modificados
+\[
+  y^{LS}_k = y_k\,(1-\varepsilon) + \frac{\varepsilon}{K}, \qquad k = 1,\dots,K.
+\]
 \end{definicion}
+
+Con objetivos exactos, $H(y,p) = -\log p_y$ es el sumando correspondiente a
+$(x, y)$ en la \cref{def:entropia-cruzada}, de modo que $\varepsilon = 0$ recupera
+la pérdida habitual. Con $\varepsilon > 0$, el objetivo de la clase verdadera es
+$1 - \varepsilon + \varepsilon/K$ y el de cada una de las demás, $\varepsilon/K$.
+Desarrollando la suma,
+\[
+  H(y^{LS}, p) = (1-\varepsilon)\,\bigl(-\log p_y\bigr)
+               + \frac{\varepsilon}{K}\sum_{k=1}^{K} \bigl(-\log p_k\bigr).
+\]
+% En el entrenamiento se usó LabelSmoothingCrossEntropy de fastai con \varepsilon = 0,1 (valor por
+% defecto), que corresponde a esta expresión: con K = 14, objetivos 0,907 y 0,00714.
+
+% [agente] Lema, proposición y demostraciones redactados por el agente. La desigualdad
+% -log y >= 1 - y y su uso para probar D_KL >= 0 son de Prince, ap. C.5.1; que D_KL = 0 solo si
+% las distribuciones coinciden lo afirman Goodfellow et al., sec. 3.13 (aquí se demuestra).
+Para obtener el mínimo de la pérdida con \emph{label smoothing} basta una
+propiedad de la divergencia de Kullback-Leibler.
+
+\begin{lema}[{No negatividad de la divergencia KL~\cite[ap.~C.5.1]{prince2023understanding}, \cite[sec.~3.13]{goodfellow2016deep}}]\label{lem:kl-no-negativa}
+Sean $q$ y $p$ dos distribuciones sobre $\{1,\dots,K\}$ con $p_k > 0$ para todo
+$k$. Entonces $D_{\mathrm{KL}}(q\,\|\,p) \ge 0$. Si además $q_k > 0$ para todo $k$,
+la igualdad se da si y solo si $p = q$.
+\end{lema}
+\begin{demostracion}
+Sea $g(t) = -\log t - (1 - t)$ para $t > 0$. Como $g'(t) = 1 - 1/t$ es negativa en
+$(0,1)$ y positiva en $(1,\infty)$, $g$ alcanza su mínimo únicamente en $t = 1$,
+donde $g(1) = 0$. Por tanto, $-\log t \ge 1 - t$, con igualdad si y solo si
+$t = 1$~\cite[ap.~C.5.1]{prince2023understanding}. Sea
+$S = \{k : q_k > 0\}$. Aplicando la desigualdad con $t = p_k/q_k$,
+\[
+  D_{\mathrm{KL}}(q\,\|\,p) = \sum_{k\in S} q_k\Bigl(-\log\frac{p_k}{q_k}\Bigr)
+  \ge \sum_{k\in S} q_k\Bigl(1 - \frac{p_k}{q_k}\Bigr)
+  = \sum_{k\in S} q_k - \sum_{k\in S} p_k
+  = 1 - \sum_{k\in S} p_k \ge 0.
+\]
+Si $q_k > 0$ para todo $k$, entonces $S = \{1,\dots,K\}$, la última desigualdad
+es una igualdad y la primera lo es si y solo si $p_k/q_k = 1$ para todo $k$, es
+decir, si y solo si $p = q$.
+\end{demostracion}
 
 \begin{proposicion}[Óptimo de la pérdida con \emph{label smoothing}]\label{prop:ls-optimo}
-% El óptimo asigna \pi = \varepsilon/K a las clases no verdaderas y 1 - \varepsilon + \varepsilon/K a la
-% verdadera (0,00714 y 0,907 con \varepsilon = 0,1 y K = 14). Se usa en el capítulo 12 para explicar
-% el «suelo» del softmax (results_conforme/mondrian/label_smoothing.json).
-\pendiente{enunciado}
+Sean $\varepsilon\in(0,1]$, $y\in\{1,\dots,K\}$ la etiqueta de una entrada e
+$y^{LS}$ los objetivos suavizados de la \cref{def:label-smoothing}. Entre todas las
+distribuciones $p$ sobre $\{1,\dots,K\}$ con componentes positivas, la pérdida
+$H(y^{LS}, p)$ alcanza su mínimo en un único punto, $p = y^{LS}$:
+\[
+  p_y = 1 - \varepsilon + \frac{\varepsilon}{K}, \qquad
+  p_k = \frac{\varepsilon}{K} \quad (k \ne y).
+\]
+Además, este mínimo lo alcanza la red: es la softmax de cualquier vector de logits
+$z$ con $z_k = \log y^{LS}_k + c$, $c\in\R$, y en él la diferencia entre el logit de
+la clase verdadera y el de cualquier otra clase es
+\[
+  z_y - z_k = \log\Bigl(1 + \frac{K(1-\varepsilon)}{\varepsilon}\Bigr), \qquad k \ne y.
+\]
 \end{proposicion}
 \begin{demostracion}
-% Minimización con multiplicadores de Lagrange sobre el símplex.
-\pendiente{demostración}
+Como $\varepsilon > 0$, todas las componentes de $y^{LS}$ son positivas. Sumando y
+restando $\sum_k y^{LS}_k \log y^{LS}_k$,
+\[
+  H(y^{LS}, p) = -\sum_{k=1}^{K} y^{LS}_k \log y^{LS}_k
+               + \sum_{k=1}^{K} y^{LS}_k \log\frac{y^{LS}_k}{p_k}
+             = H(y^{LS}, y^{LS}) + D_{\mathrm{KL}}\bigl(y^{LS}\,\|\,p\bigr).
+\]
+El primer sumando no depende de $p$, y por el \cref{lem:kl-no-negativa} el segundo
+es no negativo y se anula si y solo si $p = y^{LS}$. Luego el mínimo es único y se
+alcanza en $p = y^{LS}$.
+
+Si $z_k = \log y^{LS}_k + c$, entonces
+$\softmax_k(z) = e^{c}y^{LS}_k / \bigl(e^{c}\sum_{k'} y^{LS}_{k'}\bigr) = y^{LS}_k$,
+porque los objetivos suman uno. Por último, para $k \ne y$,
+\[
+  z_y - z_k = \log\frac{1 - \varepsilon + \varepsilon/K}{\varepsilon/K}
+            = \log\Bigl(1 + \frac{K(1-\varepsilon)}{\varepsilon}\Bigr). \qedhere
+\]
 \end{demostracion}
+
+\begin{observacion}\label{obs:ls-suelo}
+Con $\varepsilon = 0$ (objetivos exactos), $H(y,p) = -\log p_y$ no tiene mínimo
+sobre las distribuciones con componentes positivas: tiende a cero cuando $p_y \to 1$,
+lo que exige que la diferencia entre logits crezca sin límite. Con
+$\varepsilon > 0$, en cambio, el óptimo es una distribución con un «suelo»
+$\varepsilon/K$ en todas las clases y una diferencia de logits finita, que solo
+depende de $\varepsilon$ y $K$. Esto concuerda con la observación de Müller et
+al.\ de que el \emph{label smoothing} lleva a que la diferencia entre el logit de
+la clase correcta y los de las incorrectas sea una constante que depende del
+parámetro~\cite[sec.~2]{muller2019}. En el entrenamiento de este trabajo,
+con $\varepsilon = 0{,}1$ y $K = 14$, el óptimo asigna $0{,}907$ a la clase
+verdadera y $\varepsilon/K \approx 0{,}00714$ a cada una de las demás, con una
+diferencia de logits de $\log 127 \approx 4{,}84$. Este suelo se usa en el
+\cref{cap:conforme}.
+\end{observacion}
+% Uso en el capítulo 12: results_conforme/mondrian/label_smoothing.json.
 
 \section{Optimización: Adam y AdamW}\label{sec:adamw}
 
