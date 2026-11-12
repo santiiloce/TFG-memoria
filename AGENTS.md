@@ -60,4 +60,5 @@ Ficheros: `capitulos/NN-nombre.tex`, `apendices/X-nombre.tex`, figuras en `img/<
 - Notas del autor: `notas/memoria2-pandoc.tex` (conversión de `tfg-referencias/Memoria-2.docx`); `notas/` no se compila.
 - Curvas y matrices de confusión: `tfg/executions/def1/param0..4` (0 ViT-B/16, 1 ResNet-50, 2 ConvNeXt-S, 3 EfficientNetV2-S, 4 Swin-S).
 - Resultados: `OpenOOD/results_fase1`, `results_agrupaciones`, `results_ood` (fase C y `memoria/figuras.md` para captions), `results_ood_laminas`, `results_integridad`, `results_conforme` (y `mondrian/`).
-- Artículos de referencia en `OpenOOD/docs/` (Yang et al. 2024, STOOD-X, artículo del dataset).
+- **Fuentes bibliográficas:** solo `tfg-referencias/papers/` (artículos) y `tfg-referencias/libros/` (libros). Toda información teórica o bibliográfica de la memoria sale de estos documentos. Si hace falta una fuente que no está ahí (un artículo, un libro, los datos de una referencia), **se le pide al autor**, que la descarga y la añade; no se busca en internet ni se completa de memoria. El autor irá actualizando ambas carpetas.
+- Varias referencias de `library.bib` aún no tienen documento en esas carpetas: lo que se diga de ellas debe comprobarse cuando el autor las añada.

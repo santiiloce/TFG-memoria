@@ -28,6 +28,250 @@
 \pendiente{demostración}
 \end{demostracion}
 
+\section{Redes neuronales}\label{sec:redes}
+
+\subsection{Neuronas y funciones de activación}\label{sec:activaciones}
+
+% Puntos que debería cubrir:
+% - Neurona: preactivación z = \sum_j a_j w_j + b y activación a = \sigma(z); sin no linealidad, la
+%   composición de capas sigue siendo lineal.
+% - ReLU: \max(0, z); activaciones no negativas, gradiente 0 o 1. ResNet-50 y la cabeza de fastai
+%   de ViT-B/16, ConvNeXt-S y EfficientNetV2-S. La usa la etapa de detección de las CNN
+%   (\cref{sec:cnn}) y la suponen LRP (\cref{sec:lrp}) y ReAct, ASH y DICE
+%   (\cref{sec:metodos-activaciones}).
+% - GELU: z \Phi(z), con \Phi la función de distribución de la normal estándar; suave y con
+%   valores negativos pequeños. ViT-B/16, ConvNeXt-S y Swin-S.
+% - SiLU (Swish): z \sigma(z), con \sigma la sigmoide; comparación con la GELU. EfficientNetV2-S,
+%   con la sigmoide también en sus bloques de excitación.
+% - Consecuencia: con GELU y SiLU las activaciones tienen signo (relevante para ASH en el
+%   capítulo 10 y para la regla z+ con signo del capítulo 7).
+% - La softmax ya está definida en la \cref{def:softmax}.
+% Fuente de los modelos: resumen de capas de tfg/executions/def1/param0..4/resultados.txt.
+% Referencias originales de ReLU, GELU y SiLU: añadir a library.bib tras verificarlas.
+
+Según la Enciclopedia Británica ~\cite{copeland_connectionism} se define el conexionismo como una aproximación hacia la IA que surgió
+en el desarrollo de tratar de entender como funcionaba el cerebro a nivel neurológico. En 1943, el neurofisiólogo Warren McCulloch, de la Universidad de Illinois, y el matemático Walter Pitts, de la Universidad de Chicago,
+publicaron un tratado sobre redes neuronales y autómatas, en el que definían cada neurona del cerebro como un simple
+procesador digital y  el cerebro en su conjunto es una especie de máquina de cálculo. De aquí nace el concepto de 
+neurona artificial, en similitud con el concepto de neurona biológica. Este concepto consta de un conjunto de datos de entrada,
+lo que equivaldría a las dendritas biológicas. Cada entrada se multiplica por un factor de peso
+que determina su importancia. Estos pesos son los que el modelo ajusta en el proceso de entrenamiento. Finalmente, se suman las entradas
+multiplicadas por sus pesos (normalmente también se suele añadir un término de sesgo) y una función matemática no lineal decide, en base
+al valor final, si la neurona se activa y qué valor transmite a la siguiente capa (\cref{fig:neurona}).
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=0.85\textwidth]{img/neurona_artificial.png}
+  \caption[Neurona biológica y neurona artificial]{%
+    (a) Neurona biológica. (b) Neurona artificial: las entradas $x_j$ se ponderan
+    con los pesos $w_{ij}$, se suman y el resultado $u_i$ pasa por una función no
+    lineal $f$. Fuente: \cite[fig.~2.1]{terleth2019ann}, a partir de \cite{reed1999neural}.}
+  \label{fig:neurona}
+\end{figure}
+
+% [agente] Definición formal en la notación de Prince (cap. 3 y sec. 4.4.1), con \sigma en lugar de a[·].
+\begin{definicion}[Neurona artificial]\label{def:neurona}
+Sea $\sigma\colon\R\to\R$ una función, llamada \emph{función de activación}. Una
+\emph{neurona} con entrada $x\in\R^{D}$ calcula
+\[
+  h = \sigma\bigl(\beta + \omega^{\top}x\bigr),
+\]
+donde $\omega\in\R^{D}$ son los \emph{pesos} y $\beta\in\R$ es el \emph{sesgo}. La
+cantidad $\beta + \omega^{\top}x$ se llama \emph{preactivación} y $h$,
+\emph{activación}~\cite[cap.~3]{prince2023understanding}.
+\end{definicion}
+
+\begin{definicion}[ReLU]\label{def:relu}
+Sea $x\in\R$. La función de activación \emph{rectificada lineal} (ReLU) se define como $\operatorname{ReLU}(x) = \max\{0,x\}$.
+\end{definicion}
+
+La función GELU (\emph{Gaussian Error Linear Unit}) fue propuesta por Hendrycks y Gimpel~\cite{hendrycks2016gelu}. Su idea de partida es combinar dos mecanismos que, hasta entonces, se trataban por separado: la función de activación y la regularización estocástica (como el \emph{dropout}). En una ReLU, la entrada $x$ se multiplica por $0$ o por $1$ según su signo, de forma determinista; en el \emph{dropout}, se multiplica por $0$ o por $1$ al azar, sin tener en cuenta su valor. La GELU une ambas ideas: la entrada se multiplica por una máscara aleatoria $m \sim \operatorname{Bernoulli}(\Phi(x))$, de modo que la probabilidad de anularla es mayor cuanto menor es $x$. Como en la práctica se busca una salida determinista, la activación se define como el valor esperado de esta transformación:
+\[
+  \mathbb{E}[m\,x] = \Phi(x)\cdot x + \bigl(1-\Phi(x)\bigr)\cdot 0 = x\,\Phi(x).
+\]
+Se elige la distribución normal estándar porque las entradas de las neuronas suelen tener una distribución aproximadamente normal, sobre todo cuando se usa normalización por lotes.
+
+\begin{definicion}[GELU]\label{def:gelu}
+Sea $\Phi$ la función de distribución de una variable aleatoria $X \sim \mathcal{N}(0,1)$. La \emph{unidad lineal de error gaussiano} (GELU) es la función $\operatorname{GELU}\colon \mathbb{R} \to \mathbb{R}$ dada por
+\[
+  \operatorname{GELU}(x) = x\,\mathbb{P}(X \le x) = x\,\Phi(x)
+  = \frac{x}{2}\left[1 + \erf\!\left(\frac{x}{\sqrt{2}}\right)\right],
+\]
+donde $\erf(t) = \frac{2}{\sqrt{\pi}} \int_0^t e^{-s^2}\,ds$ es la función error.
+\end{definicion}
+
+Dicho de otro modo, la GELU pondera cada entrada por la probabilidad de que una normal estándar no la supere: escala $x$ según lo grande que es en comparación con el resto de entradas. Así, mientras que la ReLU, $\operatorname{ReLU}(x) = x\,\mathbf{1}_{\{x>0\}}$, \emph{filtra} las entradas por su signo, la GELU las \emph{pondera} por su valor.
+
+\begin{observacion}
+\begin{enumerate}
+  \item La GELU es una versión suavizada de la ReLU: basta sustituir la función indicadora $\mathbf{1}_{\{x>0\}}$ por $\Phi(x)$. Si en lugar de $\mathcal{N}(0,1)$ se toma $\mathcal{N}(0,s^2)$, la GELU tiende a la ReLU cuando $s \to 0$. Además, ambas funciones son asintóticamente iguales cuando $|x| \to \infty$.
+  \item A diferencia de la ReLU, la GELU no es monótona ni convexa, y toma valores negativos (pequeños) para $x<0$.
+  \item Cuando se prioriza la velocidad sobre la exactitud, se puede aproximar por
+  \[
+    \operatorname{GELU}(x) \approx \tfrac{1}{2}\,x\left(1 + \tanh\!\left[\sqrt{2/\pi}\,\bigl(x + 0{,}044715\,x^3\bigr)\right]\right)
+  \]
+  o
+  \[
+    \operatorname{GELU}(x) \approx x\,\sigm(1{,}702\,x),
+  \]
+  donde $\sigm(x) = 1/(1+e^{-x})$ es la función sigmoide.
+\end{enumerate}
+\end{observacion}
+
+\begin{definicion}[SiLU]\label{def:silu}
+  La SiLU, $\operatorname{SiLU}(x) = x\,\sigm(x)$, se obtiene al sustituir $\Phi$ por la función de distribución logística, $\sigm$, en la definición de la GELU~\cite{hendrycks2016gelu}.
+\end{definicion}
+
+Estas funciones de activación han sido definidas en concreto pues son las que han sido usadas en los modelos de la fase de experimentación. En concreto ResNet-50 usó ReLU,
+ViT-B/16, ConvNeXt-S y Swin-S usaron GELU, y únicamente EfficientNetV2-S empleó SiLU.
+
+\subsection{Redes neuronales profundas}\label{sec:mlp}
+
+% [agente] Texto redactado a partir de Prince, sec. 4.4.1 (ec. 4.15), con \sigma en lugar de a[·].
+Las neuronas de la \cref{def:neurona} se agrupan en \emph{capas}: todas las neuronas
+de una capa reciben la misma entrada, y la salida de una capa es la entrada de la
+siguiente. Si cada neurona de una capa está conectada a todas las salidas de la
+capa anterior, la red se llama \emph{totalmente conectada}. Seguimos la notación
+de Prince~\cite[sec.~4.4.1]{prince2023understanding}.
+
+\begin{definicion}[{Red neuronal profunda~\cite[sec.~4.4.1]{prince2023understanding}}]\label{def:mlp}
+Sea $\sigma$ una función de activación, que se aplica componente a componente a
+los vectores. Una \emph{red neuronal profunda} con entrada $x\in\R^{D_i}$, salida
+$y\in\R^{D_o}$ y $K$ capas ocultas con $D_1,\dots,D_K$ neuronas es la función
+$y = f(x;\phi)$ dada por
+\begin{align*}
+  h_1 &= \sigma\bigl(\beta_0 + \Omega_0 x\bigr),\\
+  h_k &= \sigma\bigl(\beta_{k-1} + \Omega_{k-1} h_{k-1}\bigr), \qquad k = 2,\dots,K,\\
+  y   &= \beta_K + \Omega_K h_K,
+\end{align*}
+donde $h_k\in\R^{D_k}$ es el vector de \emph{unidades ocultas} de la capa $k$,
+$\beta_k$ son los vectores de sesgos y $\Omega_k$ las matrices de pesos, con
+$\Omega_0\in\R^{D_1\times D_i}$, $\Omega_k\in\R^{D_{k+1}\times D_k}$ para
+$k = 1,\dots,K-1$ y $\Omega_K\in\R^{D_o\times D_K}$. Los parámetros de la red son
+$\phi = \{\beta_k, \Omega_k\}_{k=0}^{K}$.
+\end{definicion}
+
+Cada componente de $h_k$ es una neurona en el sentido de la \cref{def:neurona},
+cuyos pesos son una fila de $\Omega_{k-1}$. Equivalentemente, la red es la
+composición
+\[
+  y = \beta_K + \Omega_K\,\sigma\Bigl(\beta_{K-1} + \Omega_{K-1}\,\sigma\bigl(\cdots
+      \sigma(\beta_0 + \Omega_0 x)\cdots\bigr)\Bigr).
+\]
+Estas redes también se denominan \emph{redes prealimentadas} (\emph{feedforward})
+o \emph{perceptrones multicapa} (\emph{multilayer perceptron},
+MLP)~\cite[cap.~6]{goodfellow2016deep}.
+
+Para la pregunta de por qué la no linealidad es necesaria se justifica con la siguiente proposición:
+
+\begin{proposicion}\label{prop:sin-activacion}
+Sean $f_\ell(x) = \beta_\ell + \Omega_\ell x$, con $\Omega_\ell \in \mathbb{R}^{D_\ell \times D_{\ell-1}}$ y $\beta_\ell \in \mathbb{R}^{D_\ell}$, para $\ell = 1, \dots, L$. Entonces la composición $f = f_L \circ \cdots \circ f_1$ es también afín: existen $\Omega \in \mathbb{R}^{D_L \times D_0}$ y $\beta \in \mathbb{R}^{D_L}$ tales que $f(x) = \beta + \Omega x$ para todo $x \in \mathbb{R}^{D_0}$.
+\end{proposicion}
+
+\begin{demostracion}
+Por inducción sobre $L$. Para $L = 1$ no hay nada que probar. Supongamos que $g = f_{L-1} \circ \cdots \circ f_1$ cumple $g(x) = \widetilde{\beta} + \widetilde{\Omega}x$. Entonces
+\[
+  f(x) = \beta_L + \Omega_L\bigl(\widetilde{\beta} + \widetilde{\Omega}x\bigr)
+       = \bigl(\beta_L + \Omega_L\widetilde{\beta}\bigr) + \bigl(\Omega_L\widetilde{\Omega}\bigr)x,
+\]
+que es afín con $\Omega = \Omega_L\widetilde{\Omega}$ y $\beta = \beta_L + \Omega_L\widetilde{\beta}$.
+\end{demostracion}
+
+\begin{observacion}
+Por tanto, una red sin funciones de activación, por muchas capas que tenga, solo puede representar funciones afines; en clasificación, sus fronteras de decisión están formadas por hiperplanos~\cite[cap.~6]{goodfellow2016deep}. Las funciones de activación no lineales son las que permiten que la red aproxime funciones más complejas.
+\end{observacion}
+
+\subsection{Teorema de aproximación universal}\label{sec:aprox-universal}
+
+La \cref{prop:sin-activacion} muestra que la no linealidad de $\sigma$ es necesaria para que la red pueda representar algo más que funciones afines. Cabe preguntarse si también es suficiente, es decir, qué condición debe cumplir $\sigma$
+para que una red pueda aproximar cualquier función continua. Para redes con una capa oculta, la respuesta la da el siguiente teorema: la condición exacta no es que $\sigma$ sea no lineal, sino que no sea un polinomio.
+
+Dada una función de activación $\sigma\colon\mathbb{R}\to\mathbb{R}$, una red neuronal con una capa oculta de $r$ neuronas y una salida escalar calcula funciones de la forma
+\[
+  N(x) = \sum_{i=1}^{r} c_i\,\sigma(w_i\cdot x + b_i), \qquad w_i\in\mathbb{R}^n,\ b_i, c_i\in\mathbb{R}.
+\]
+Denotamos por $\mathcal{M}(\sigma) = \spn\{\sigma(w\cdot x + b) : w\in\mathbb{R}^n,\ b\in\mathbb{R}\}$ el conjunto de todas ellas. En $C(\mathbb{R}^n)$ consideramos la topología de la convergencia uniforme sobre compactos: decimos que $\mathcal{M}(\sigma)$ es \emph{denso} en $C(\mathbb{R}^n)$ si para toda $f\in C(\mathbb{R}^n)$, todo compacto $K\subset\mathbb{R}^n$ y todo $\varepsilon>0$ existe $N\in\mathcal{M}(\sigma)$ con $\sup_{x\in K}|f(x)-N(x)|<\varepsilon$. Escribimos $\overline{\mathcal{M}(\sigma)}$ para su clausura, que es un subespacio vectorial cerrado.
+\begin{teorema}[{Aproximación universal, Leshno et al.~\cite{leshno1993multilayer}}]\label{teo:aprox-universal}
+Sea $\sigma\in C(\mathbb{R})$. Entonces $\mathcal{M}(\sigma)$ es denso en $C(\mathbb{R}^n)$ si y solo si $\sigma$ no es un polinomio.
+\end{teorema}
+
+Seguimos la demostración de Pinkus~\cite[teorema~3.1]{pinkus1999approximation}, que se divide en tres pasos: primero se reduce el problema a dimensión $n=1$ (\cref{lem:reduccion}); después se prueba para activaciones de clase $C^\infty$ (\cref{lem:suave}); y, por último, se extiende a activaciones continuas mediante convolución.
+
+\begin{lema}\label{lem:homogeneos}
+Sea $H_k$ el espacio de los polinomios homogéneos de grado $k$ en $n$ variables. Entonces $H_k = \spn\{(a\cdot x)^k : a\in\mathbb{R}^n\}$.
+\end{lema}
+
+\begin{proof}
+Los monomios $x^\alpha = x_1^{\alpha_1}\cdots x_n^{\alpha_n}$ con $|\alpha|=k$ forman una base de $H_k$. Para $p=\sum_\alpha p_\alpha x^\alpha$ y $q=\sum_\alpha q_\alpha x^\alpha$ definimos el producto escalar $\langle p,q\rangle = \sum_{|\alpha|=k}\alpha!\,p_\alpha q_\alpha$, donde $\alpha! = \alpha_1!\cdots\alpha_n!$. Por la fórmula multinomial,
+\[
+  (a\cdot x)^k = \sum_{|\alpha|=k}\frac{k!}{\alpha!}\,a^\alpha x^\alpha,
+  \qquad\text{luego}\qquad
+  \bigl\langle (a\cdot x)^k, q\bigr\rangle = \sum_{|\alpha|=k} k!\,a^\alpha q_\alpha = k!\,q(a).
+\]
+Si $q\in H_k$ es ortogonal a todos los $(a\cdot x)^k$, entonces $q(a)=0$ para todo $a\in\mathbb{R}^n$, y por tanto $q=0$. Como $H_k$ tiene dimensión finita, el complemento ortogonal del subespacio generado es trivial y se tiene la igualdad.
+\end{proof}
+
+\begin{lema}[Reducción a dimensión uno]\label{lem:reduccion}
+Si $\mathcal{M}(\sigma)$ es denso en $C(\mathbb{R})$, entonces es denso en $C(\mathbb{R}^n)$ para todo $n\ge 1$.
+\end{lema}
+
+\begin{proof}
+Sean $g\in C(\mathbb{R})$, $a\in\mathbb{R}^n$, $K\subset\mathbb{R}^n$ compacto y $\varepsilon>0$. Existe $R>0$ con $a\cdot K\subset[-R,R]$. Por hipótesis hay $c_i, w_i, b_i\in\mathbb{R}$ tales que $|g(t)-\sum_i c_i\sigma(w_i t+b_i)|<\varepsilon$ para $t\in[-R,R]$. Tomando $t=a\cdot x$,
+\[
+  \sup_{x\in K}\Bigl|g(a\cdot x)-\sum_i c_i\,\sigma\bigl((w_i a)\cdot x+b_i\bigr)\Bigr|<\varepsilon,
+\]
+luego $g(a\cdot x)\in\overline{\mathcal{M}(\sigma)}$. En particular, $(a\cdot x)^k\in\overline{\mathcal{M}(\sigma)}$ para todo $a$ y todo $k$, y por el \cref{lem:homogeneos} la clausura contiene todos los polinomios en $n$ variables. Por el teorema de Stone--Weierstrass, los polinomios son densos en $C(K)$ para todo compacto $K$, así que $\overline{\mathcal{M}(\sigma)}=C(\mathbb{R}^n)$.
+\end{proof}
+
+\begin{lema}[{Caso suave~\cite[prop.~3.4]{pinkus1999approximation}}]\label{lem:suave}
+Sea $\sigma\in C^\infty(\mathbb{R})$. Entonces:
+\begin{enumerate}
+  \item[(a)] $x^k\sigma^{(k)}(b)\in\overline{\mathcal{M}(\sigma)}$ para todo $k\ge 0$ y todo $b\in\mathbb{R}$;
+  \item[(b)] si $\sigma$ no es un polinomio, $\mathcal{M}(\sigma)$ es denso en $C(\mathbb{R})$.
+\end{enumerate}
+\end{lema}
+
+\begin{demostracion}
+(a) Para $k=0$ basta tomar $w=0$. Sea $k\ge 1$ y, fijado $b$, sea $f(w)=\sigma(wx+b)$, con $f^{(k)}(w) = x^k\sigma^{(k)}(wx+b)$. La diferencia finita de orden $k$,
+\[
+  D_h(x) = \frac{1}{h^k}\sum_{j=0}^{k}(-1)^{k-j}\binom{k}{j}\,\sigma\bigl((w+jh)x+b\bigr),
+\]
+pertenece a $\mathcal{M}(\sigma)$ y, por el teorema del valor medio para diferencias finitas, $D_h(x) = x^k\sigma^{(k)}(\xi x+b)$ para algún $\xi\in(w,w+kh)$ que depende de $x$. Así, para $|x|\le R$,
+\[
+  \bigl|D_h(x)-x^k\sigma^{(k)}(wx+b)\bigr| \le R^k \sup_{|\xi-w|\le kh,\ |x|\le R}\bigl|\sigma^{(k)}(\xi x+b)-\sigma^{(k)}(wx+b)\bigr|,
+\]
+que tiende a $0$ cuando $h\to 0$ por la continuidad uniforme de $\sigma^{(k)}$ en compactos. Luego $x^k\sigma^{(k)}(wx+b)\in\overline{\mathcal{M}(\sigma)}$, y basta tomar $w=0$.
+
+(b) Si $\sigma$ no es un polinomio, ninguna $\sigma^{(k)}$ es idénticamente nula, así que para cada $k$ existe $b_k$ con $\sigma^{(k)}(b_k)\ne 0$. Por (a), $x^k\in\overline{\mathcal{M}(\sigma)}$ para todo $k$. La clausura contiene todos los polinomios y, por el teorema de Weierstrass, es todo $C(\mathbb{R})$.
+\end{demostracion}
+
+\begin{demostracion}[Demostración del \cref{teo:aprox-universal}]
+\emph{Necesidad.} Si $\sigma$ es un polinomio de grado $m$, cada $\sigma(w\cdot x+b)$ es un polinomio de grado a lo sumo $m$, de modo que $\mathcal{M}(\sigma)$ está contenido en el espacio $\mathcal{P}_m$ de los polinomios de grado $\le m$. Este espacio tiene dimensión finita, luego es cerrado, y no coincide con $C(\mathbb{R}^n)$. Por tanto, $\mathcal{M}(\sigma)$ no es denso.
+
+\emph{Suficiencia}~\cite[prop.~3.7]{pinkus1999approximation}. Por el \cref{lem:reduccion} basta el caso $n=1$. Para $\varphi\in C_c^\infty(\mathbb{R})$ con soporte en $[-\alpha,\alpha]$, la convolución $\sigma_\varphi = \sigma*\varphi$ es de clase $C^\infty$, y
+\[
+  \sigma_\varphi(wx+b) = \int_{-\alpha}^{\alpha}\sigma(wx+b-y)\,\varphi(y)\,dy.
+\]
+Las sumas de Riemann $\sum_j \sigma(wx+b-y_j)\varphi(y_j)\Delta y$ pertenecen a $\mathcal{M}(\sigma)$ y, por la continuidad uniforme de $(t,y)\mapsto\sigma(t-y)\varphi(y)$ en compactos, convergen a $\sigma_\varphi(wx+b)$ uniformemente para $x$ en compactos. Luego $\mathcal{M}(\sigma_\varphi)\subset\overline{\mathcal{M}(\sigma)}$ y, como la clausura es cerrada, también $\overline{\mathcal{M}(\sigma_\varphi)}\subset\overline{\mathcal{M}(\sigma)}$.
+
+Supongamos, por reducción al absurdo, que $\mathcal{M}(\sigma)$ no es denso en $C(\mathbb{R})$. Por el teorema de Weierstrass, existe $k$ tal que $x^k\notin\overline{\mathcal{M}(\sigma)}$. Por el \cref{lem:suave}(a), $x^k\sigma_\varphi^{(k)}(b)\in\overline{\mathcal{M}(\sigma_\varphi)}\subset\overline{\mathcal{M}(\sigma)}$ para todo $b\in\mathbb{R}$, así que necesariamente $\sigma_\varphi^{(k)}(b)=0$ para todo $b$. Es decir, $\sigma_\varphi\in\mathcal{P}_{k-1}$ para toda $\varphi\in C_c^\infty(\mathbb{R})$, con el mismo $k$.
+
+Tomemos ahora una aproximación de la identidad (\emph{mollifiers}): $\varphi_m\in C_c^\infty(\mathbb{R})$, $\varphi_m\ge 0$, $\int\varphi_m=1$ y soporte en $[-1/m,1/m]$. Por la continuidad uniforme de $\sigma$ en compactos, $\sigma*\varphi_m\to\sigma$ uniformemente en compactos. Como $\sigma*\varphi_m\in\mathcal{P}_{k-1}$ y este subespacio es cerrado por tener dimensión finita, $\sigma\in\mathcal{P}_{k-1}$, lo que contradice que $\sigma$ no es un polinomio.
+\end{demostracion}
+
+\begin{observacion}
+\begin{enumerate}
+  \item Las activaciones ReLU, GELU y SiLU son continuas y no son polinomios, así que el \cref{teo:aprox-universal} se aplica a todas ellas. La identidad es un polinomio de grado~1, lo que es coherente con la \cref{prop:sin-activacion}.
+  \item El resultado es de existencia: garantiza que \emph{existe} una red con una capa oculta suficientemente ancha que aproxima $f$, pero no dice cuántas neuronas hacen falta ni cómo encontrar los pesos mediante el entrenamiento.
+\end{enumerate}
+\end{observacion}
+
+\begin{observacion}
+Los dos resultados anteriores se complementan. Una activación afín no aporta nada (\cref{prop:sin-activacion}), y una activación polinómica, aunque sea no lineal, tampoco basta con una capa oculta: si $\sigma$ es un polinomio de grado $m$, la red solo genera polinomios de grado a lo sumo $m$. Las activaciones que usamos en este trabajo (ReLU, GELU y SiLU) son continuas y no polinómicas, de modo que el \cref{teo:aprox-universal} garantiza que las redes con una capa oculta suficientemente ancha pueden aproximar cualquier función continua sobre un compacto.
+\end{observacion}
+
+Este resultado, junto con otros análogos con hipótesis distintas sobre $\sigma$~\cite{cybenko1989approximation,hornik1989multilayer}, se conoce en la literatura como \emph{teorema de aproximación universal}; la expresión procede de Hornik et al.~\cite{hornik1989multilayer}, que llamaron \emph{aproximadores universales} a las redes con esta propiedad. Pinkus~\cite{pinkus1999approximation} lo formula como un problema de \emph{densidad}. Aquí presentamos la versión de Leshno et al.~\cite{leshno1993multilayer}, que caracteriza exactamente las activaciones continuas que tienen esta propiedad.
+
 \section{Función de pérdida: entropía cruzada y \emph{label smoothing}}\label{sec:perdida}
 
 \begin{definicion}[Función softmax]\label{def:softmax}
@@ -169,7 +413,6 @@ $\varepsilon = 0$), tiene dos propiedades que explican su uso extendido:
 
 \subsection{Regularización \texorpdfstring{$L_2$}{L2} y decaimiento de pesos}\label{sec:l2-wd}
 
-
 Para reducir el sobreajuste es habitual penalizar los pesos grandes. Hay dos
 formas de hacerlo que suelen confundirse:
 \begin{itemize}
@@ -277,230 +520,14 @@ que la corrección de la \cref{prop:adam-sesgo}, que supone $\beta_1$ fijo, es
 solo aproximada. La configuración completa se detalla en el \cref{cap:materiales}.
 \end{observacion}
 
-\section{Arquitecturas}\label{sec:arquitecturas}
-
-\subsection{Neuronas y funciones de activación}\label{sec:activaciones}
-
-% Puntos que debería cubrir:
-% - Neurona: preactivación z = \sum_j a_j w_j + b y activación a = \sigma(z); sin no linealidad, la
-%   composición de capas sigue siendo lineal.
-% - ReLU: \max(0, z); activaciones no negativas, gradiente 0 o 1. ResNet-50 y la cabeza de fastai
-%   de ViT-B/16, ConvNeXt-S y EfficientNetV2-S. La usa la etapa de detección de las CNN
-%   (\cref{sec:cnn}) y la suponen LRP (\cref{sec:lrp}) y ReAct, ASH y DICE
-%   (\cref{sec:metodos-activaciones}).
-% - GELU: z \Phi(z), con \Phi la función de distribución de la normal estándar; suave y con
-%   valores negativos pequeños. ViT-B/16, ConvNeXt-S y Swin-S.
-% - SiLU (Swish): z \sigma(z), con \sigma la sigmoide; comparación con la GELU. EfficientNetV2-S,
-%   con la sigmoide también en sus bloques de excitación.
-% - Consecuencia: con GELU y SiLU las activaciones tienen signo (relevante para ASH en el
-%   capítulo 10 y para la regla z+ con signo del capítulo 7).
-% - La softmax ya está definida en la \cref{def:softmax}.
-% Fuente de los modelos: resumen de capas de tfg/executions/def1/param0..4/resultados.txt.
-% Referencias originales de ReLU, GELU y SiLU: añadir a library.bib tras verificarlas.
-
-\begin{definicion}[Neurona artificial]\label{def:neurona}
-Según la Enciclopedia Británica esta se define como un programa informático que funciona basándode en las redes del cerebro
-para realizar funciones cognitivas como la resolución de problemas y el aprendizaje. Este proceso consta de un conjunto de datos de entrada
-lo que equilvadrían a las dendritas biológicas. Cada entrada se multiplica por un factor de peso 
-que determina su importancia. Estos pesos son los que el modelo ajusta en el proceso de entrenamiento.Finalmente se suman el resultado de entradas
-multiplicadas por sus pesos (normalmente también se le suele añadir un término de sesgo) y es una función matemática no lineal que en base 
-al valor final decide si la neurona se activa y qué valor transmite a la siguiente capa.
-
-% En el preámbulo, si no lo tienes ya:
-% \usepackage{graphicx}
-
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[width=0.85\textwidth]{img/neurona_artificial.png}
-  \caption[Neurona biológica y neurona artificial]{%
-    (a) Neurona biológica. (b) Neurona artificial: las entradas $x_j$ se ponderan
-    con los pesos $w_{j}$, se suman junto con el sesgo $b$ y el resultado pasa por
-    una función de activación $\sigma$. Fuente:\cite[fig.~2.1]{terleth2019ann}, a partir de \cite{reed1999neural}.}
-  \label{fig:neurona}
-\end{figure}
-\end{definicion}
-
-\begin{definicion}[ReLU]\label{def:relu}
-Sea $y$ un valor número la función de activación se define como $h(y) = \max(0,y)$
-\end{definicion}
-
-% En el preámbulo, si no lo tienes ya:
-% \usepackage{amsmath,amssymb}
-% \DeclareMathOperator{\erf}{erf}
-
-La función GELU (\emph{Gaussian Error Linear Unit}) fue propuesta por ~\cite{hendrycks2016gelu}. Su idea de partida es combinar dos mecanismos que, hasta entonces, se trataban por separado: la función de activación y la regularización estocástica (como el \emph{dropout}). En una ReLU, la entrada $x$ se multiplica por $0$ o por $1$ según su signo, de forma determinista; en el \emph{dropout}, se multiplica por $0$ o por $1$ al azar, sin tener en cuenta su valor. La GELU une ambas ideas: la entrada se multiplica por una máscara aleatoria $m \sim \operatorname{Bernoulli}(\Phi(x))$, de modo que la probabilidad de anularla es mayor cuanto menor es $x$. Como en la práctica se busca una salida determinista, la activación se define como el valor esperado de esta transformación:
-\[
-  \mathbb{E}[m\,x] = \Phi(x)\cdot x + \bigl(1-\Phi(x)\bigr)\cdot 0 = x\,\Phi(x).
-\]
-Se elige la distribución normal estándar porque las entradas de las neuronas suelen tener una distribución aproximadamente normal, sobre todo cuando se usa normalización por lotes.
-
-\begin{definicion}[GELU]\label{def:gelu}
-Sea $\Phi$ la función de distribución de una variable aleatoria $X \sim \mathcal{N}(0,1)$. La \emph{unidad lineal de error gaussiano} (GELU) es la función $\operatorname{GELU}\colon \mathbb{R} \to \mathbb{R}$ dada por
-\[
-  \operatorname{GELU}(x) = x\,\mathbb{P}(X \le x) = x\,\Phi(x)
-  = \frac{x}{2}\left[1 + \erf\!\left(\frac{x}{\sqrt{2}}\right)\right],
-\]
-donde $\erf(t) = \frac{2}{\sqrt{\pi}} \int_0^t e^{-s^2}\,ds$ es la función error.
-\end{definicion}
-
-Dicho de otro modo, la GELU pondera cada entrada por la probabilidad de que una normal estándar no la supere: escala $x$ según lo grande que es en comparación con el resto de entradas. Así, mientras que la ReLU, $\operatorname{ReLU}(x) = x\,\mathbf{1}_{\{x>0\}}$, \emph{filtra} las entradas por su signo, la GELU las \emph{pondera} por su valor.
-
-\begin{observacion}
-\begin{enumerate}
-  \item La GELU es una versión suavizada de la ReLU: basta sustituir la función indicadora $\mathbf{1}_{\{x>0\}}$ por $\Phi(x)$. Si en lugar de $\mathcal{N}(0,1)$ se toma $\mathcal{N}(0,\sigma^2)$, la GELU tiende a la ReLU cuando $\sigma \to 0$. Además, ambas funciones son asintóticamente iguales cuando $|x| \to \infty$.
-  \item A diferencia de la ReLU, la GELU no es monótona ni convexa, y toma valores negativos (pequeños) para $x<0$.
-  \item Cuando se prioriza la velocidad sobre la exactitud, se puede aproximar por
-  \[
-    \operatorname{GELU}(x) \approx \tfrac{1}{2}\,x\left(1 + \tanh\!\left[\sqrt{2/\pi}\,\bigl(x + 0.044715\,x^3\bigr)\right]\right)
-    \quad\text{o}\quad
-    \operatorname{GELU}(x) \approx x\,\sigma(1.702\,x),
-  \]
-  donde $\sigma$ es la función sigmoide.
-\end{enumerate}
-\end{observacion}
-
-Para la pregunta de por qué la no linealidad no es necesaria se justifica con la siguietne proposición:
-
-\begin{definicion}[SiLU]\label{def:silu}
-  La SiLU, $SiLU(x) = x \sigma(x)$, se obtiene al sustituir $\phi$ por la función de distribución logística en la definición de la GELU \cite{hendrycks2016gelu}.
-\end{definicion}
-
-\begin{proposicion}\label{prop:sin-activacion}
-Sean $f_\ell(x) = W^{(\ell)}x + b^{(\ell)}$, con $W^{(\ell)} \in \mathbb{R}^{n_\ell \times n_{\ell-1}}$ y $b^{(\ell)} \in \mathbb{R}^{n_\ell}$, para $\ell = 1, \dots, L$. Entonces la composición $f = f_L \circ \cdots \circ f_1$ es también afín: existen $W \in \mathbb{R}^{n_L \times n_0}$ y $b \in \mathbb{R}^{n_L}$ tales que $f(x) = Wx + b$ para todo $x \in \mathbb{R}^{n_0}$.
-\end{proposicion}
-
-\begin{demostracion}
-Por inducción sobre $L$. Para $L = 1$ no hay nada que probar. Supongamos que $g = f_{L-1} \circ \cdots \circ f_1$ cumple $g(x) = \widetilde{W}x + \widetilde{b}$. Entonces
-\[
-  f(x) = W^{(L)}\bigl(\widetilde{W}x + \widetilde{b}\bigr) + b^{(L)}
-       = \bigl(W^{(L)}\widetilde{W}\bigr)x + \bigl(W^{(L)}\widetilde{b} + b^{(L)}\bigr),
-\]
-que es afín con $W = W^{(L)}\widetilde{W}$ y $b = W^{(L)}\widetilde{b} + b^{(L)}$.
-\end{demostracion}
-
-\begin{observacion}
-Por tanto, una red sin funciones de activación, por muchas capas que tenga, solo puede representar funciones afines; en clasificación, sus fronteras de decisión están formadas por hiperplanos~\cite[cap.~6]{goodfellow2016deep}. Las funciones de activación no lineales son las que permiten que la red aproxime funciones más complejas.
-\end{observacion}
-
-Estas funciones de activación han sido definidas en concreto pues son las que han sido usadas en los modelos de la fase de experimentación. En concreto ResNet-50 usó ReLU,
-ViT-B/16, ConvNeXt-S y Swin-S usaron GELU, y unicamente EfficientNetV2-S empleó SiLU.
-
-% Preámbulo: \usepackage{amsmath,amssymb,amsthm}
-% \DeclareMathOperator{\spn}{span}
-
-\subsection{Teorema de aproximación universal}
-
-La Proposición~\ref{prop:sin-activacion} muestra que la no linealidad de $\sigma$ es necesaria para que la red pueda representar algo más que funciones afines. Cabe preguntarse si también es suficiente, es decir, qué condición debe cumplir $\sigma$ 
-para que una red pueda aproximar cualquier función continua. Para redes con una capa oculta, la respuesta la da el siguiente teorema: la condición exacta no es que $\sigma$ sea no lineal, sino que no sea un polinomio.
-
-Dada una función de activación $\sigma\colon\mathbb{R}\to\mathbb{R}$, una red neuronal con una capa oculta de $r$ neuronas y una salida escalar calcula funciones de la forma
-\[
-  N(x) = \sum_{i=1}^{r} c_i\,\sigma(w_i\cdot x + b_i), \qquad w_i\in\mathbb{R}^n,\ b_i, c_i\in\mathbb{R}.
-\]
-Denotamos por $\mathcal{M}(\sigma) = \spn\{\sigma(w\cdot x + b) : w\in\mathbb{R}^n,\ b\in\mathbb{R}\}$ el conjunto de todas ellas. En $C(\mathbb{R}^n)$ consideramos la topología de la convergencia uniforme sobre compactos: decimos que $\mathcal{M}(\sigma)$ es \emph{denso} en $C(\mathbb{R}^n)$ si para toda $f\in C(\mathbb{R}^n)$, todo compacto $K\subset\mathbb{R}^n$ y todo $\varepsilon>0$ existe $N\in\mathcal{M}(\sigma)$ con $\sup_{x\in K}|f(x)-N(x)|<\varepsilon$. Escribimos $\overline{\mathcal{M}(\sigma)}$ para su clausura, que es un subespacio vectorial cerrado.
-\begin{teorema}[Aproximación universal~{\cite[Teorema 3.1]{pinkus1999approximation}}]\label{teo:aprox-universal}
-Sea $\sigma\in C(\mathbb{R})$. Entonces $\mathcal{M}(\sigma)$ es denso en $C(\mathbb{R}^n)$ si y solo si $\sigma$ no es un polinomio.
-\end{teorema}
-
-La demostración se divide en tres pasos: primero se reduce el problema a dimensión $n=1$ (Lema~\ref{lem:reduccion}); después se prueba para activaciones de clase $C^\infty$ (Lema~\ref{lem:suave}); y, por último, se extiende a activaciones continuas mediante convolución.
-
-\begin{lema}\label{lem:homogeneos}
-Sea $H_k$ el espacio de los polinomios homogéneos de grado $k$ en $n$ variables. Entonces $H_k = \spn\{(a\cdot x)^k : a\in\mathbb{R}^n\}$.
-\end{lema}
-
-\begin{proof}
-Los monomios $x^\alpha = x_1^{\alpha_1}\cdots x_n^{\alpha_n}$ con $|\alpha|=k$ forman una base de $H_k$. Para $p=\sum_\alpha p_\alpha x^\alpha$ y $q=\sum_\alpha q_\alpha x^\alpha$ definimos el producto escalar $\langle p,q\rangle = \sum_{|\alpha|=k}\alpha!\,p_\alpha q_\alpha$, donde $\alpha! = \alpha_1!\cdots\alpha_n!$. Por la fórmula multinomial,
-\[
-  (a\cdot x)^k = \sum_{|\alpha|=k}\frac{k!}{\alpha!}\,a^\alpha x^\alpha,
-  \qquad\text{luego}\qquad
-  \bigl\langle (a\cdot x)^k, q\bigr\rangle = \sum_{|\alpha|=k} k!\,a^\alpha q_\alpha = k!\,q(a).
-\]
-Si $q\in H_k$ es ortogonal a todos los $(a\cdot x)^k$, entonces $q(a)=0$ para todo $a\in\mathbb{R}^n$, y por tanto $q=0$. Como $H_k$ tiene dimensión finita, el complemento ortogonal del subespacio generado es trivial y se tiene la igualdad.
-\end{proof}
-
-\begin{lema}[Reducción a dimensión uno]\label{lem:reduccion}
-Si $\mathcal{M}(\sigma)$ es denso en $C(\mathbb{R})$, entonces es denso en $C(\mathbb{R}^n)$ para todo $n\ge 1$.
-\end{lema}
-
-\begin{proof}
-Sean $g\in C(\mathbb{R})$, $a\in\mathbb{R}^n$, $K\subset\mathbb{R}^n$ compacto y $\varepsilon>0$. Existe $R>0$ con $a\cdot K\subset[-R,R]$. Por hipótesis hay $c_i, w_i, b_i\in\mathbb{R}$ tales que $|g(t)-\sum_i c_i\sigma(w_i t+b_i)|<\varepsilon$ para $t\in[-R,R]$. Tomando $t=a\cdot x$,
-\[
-  \sup_{x\in K}\Bigl|g(a\cdot x)-\sum_i c_i\,\sigma\bigl((w_i a)\cdot x+b_i\bigr)\Bigr|<\varepsilon,
-\]
-luego $g(a\cdot x)\in\overline{\mathcal{M}(\sigma)}$. En particular, $(a\cdot x)^k\in\overline{\mathcal{M}(\sigma)}$ para todo $a$ y todo $k$, y por el Lema~\ref{lem:homogeneos} la clausura contiene todos los polinomios en $n$ variables. Por el teorema de Stone--Weierstrass, los polinomios son densos en $C(K)$ para todo compacto $K$, así que $\overline{\mathcal{M}(\sigma)}=C(\mathbb{R}^n)$.
-\end{proof}
-
-\begin{lema}[Caso suave, ~\cite{pinkus1999approximation}, Prop.~3.4]\label{lem:suave}
-Sea $\sigma\in C^\infty(\mathbb{R})$. Entonces:
-\begin{enumerate}
-  \item[(a)] $x^k\sigma^{(k)}(b)\in\overline{\mathcal{M}(\sigma)}$ para todo $k\ge 0$ y todo $b\in\mathbb{R}$;
-  \item[(b)] si $\sigma$ no es un polinomio, $\mathcal{M}(\sigma)$ es denso en $C(\mathbb{R})$.
-\end{enumerate}
-\end{lema}
-
-\begin{demostracion}
-(a) Para $k=0$ basta tomar $w=0$. Sea $k\ge 1$ y, fijado $b$, sea $f(w)=\sigma(wx+b)$, con $f^{(k)}(w) = x^k\sigma^{(k)}(wx+b)$. La diferencia finita de orden $k$,
-\[
-  D_h(x) = \frac{1}{h^k}\sum_{j=0}^{k}(-1)^{k-j}\binom{k}{j}\,\sigma\bigl((w+jh)x+b\bigr),
-\]
-pertenece a $\mathcal{M}(\sigma)$ y, por el teorema del valor medio para diferencias finitas, $D_h(x) = x^k\sigma^{(k)}(\xi x+b)$ para algún $\xi\in(w,w+kh)$ que depende de $x$. Así, para $|x|\le R$,
-\[
-  \bigl|D_h(x)-x^k\sigma^{(k)}(wx+b)\bigr| \le R^k \sup_{|\xi-w|\le kh,\ |x|\le R}\bigl|\sigma^{(k)}(\xi x+b)-\sigma^{(k)}(wx+b)\bigr|,
-\]
-que tiende a $0$ cuando $h\to 0$ por la continuidad uniforme de $\sigma^{(k)}$ en compactos. Luego $x^k\sigma^{(k)}(wx+b)\in\overline{\mathcal{M}(\sigma)}$, y basta tomar $w=0$.
-
-(b) Si $\sigma$ no es un polinomio, ninguna $\sigma^{(k)}$ es idénticamente nula, así que para cada $k$ existe $b_k$ con $\sigma^{(k)}(b_k)\ne 0$. Por (a), $x^k\in\overline{\mathcal{M}(\sigma)}$ para todo $k$. La clausura contiene todos los polinomios y, por el teorema de Weierstrass, es todo $C(\mathbb{R})$.
-\end{demostracion}
-
-\begin{demostracion}[Demostración del Teorema~\ref{teo:aprox-universal}]
-\emph{Necesidad.} Si $\sigma$ es un polinomio de grado $m$, cada $\sigma(w\cdot x+b)$ es un polinomio de grado a lo sumo $m$, de modo que $\mathcal{M}(\sigma)$ está contenido en el espacio $\mathcal{P}_m$ de los polinomios de grado $\le m$. Este espacio tiene dimensión finita, luego es cerrado, y no coincide con $C(\mathbb{R}^n)$. Por tanto, $\mathcal{M}(\sigma)$ no es denso.
-
-\emph{Suficiencia} ~\cite[Prop.~3.7]{pinkus1999approximation}. Por el Lema~\ref{lem:reduccion} basta el caso $n=1$. Para $\varphi\in C_c^\infty(\mathbb{R})$ con soporte en $[-\alpha,\alpha]$, la convolución $\sigma_\varphi = \sigma*\varphi$ es de clase $C^\infty$, y
-\[
-  \sigma_\varphi(wx+b) = \int_{-\alpha}^{\alpha}\sigma(wx+b-y)\,\varphi(y)\,dy.
-\]
-Las sumas de Riemann $\sum_j \sigma(wx+b-y_j)\varphi(y_j)\Delta y$ pertenecen a $\mathcal{M}(\sigma)$ y, por la continuidad uniforme de $(t,y)\mapsto\sigma(t-y)\varphi(y)$ en compactos, convergen a $\sigma_\varphi(wx+b)$ uniformemente para $x$ en compactos. Luego $\mathcal{M}(\sigma_\varphi)\subset\overline{\mathcal{M}(\sigma)}$ y, como la clausura es cerrada, también $\overline{\mathcal{M}(\sigma_\varphi)}\subset\overline{\mathcal{M}(\sigma)}$.
-
-Supongamos, por reducción al absurdo, que $\mathcal{M}(\sigma)$ no es denso en $C(\mathbb{R})$. Por el teorema de Weierstrass, existe $k$ tal que $x^k\notin\overline{\mathcal{M}(\sigma)}$. Por el Lema~\ref{lem:suave}(a), $x^k\sigma_\varphi^{(k)}(b)\in\overline{\mathcal{M}(\sigma_\varphi)}\subset\overline{\mathcal{M}(\sigma)}$ para todo $b\in\mathbb{R}$, así que necesariamente $\sigma_\varphi^{(k)}(b)=0$ para todo $b$. Es decir, $\sigma_\varphi\in\mathcal{P}_{k-1}$ para toda $\varphi\in C_c^\infty(\mathbb{R})$, con el mismo $k$.
-
-Tomemos ahora una aproximación de la identidad (\emph{mollifiers}): $\varphi_m\in C_c^\infty(\mathbb{R})$, $\varphi_m\ge 0$, $\int\varphi_m=1$ y soporte en $[-1/m,1/m]$. Por la continuidad uniforme de $\sigma$ en compactos, $\sigma*\varphi_m\to\sigma$ uniformemente en compactos. Como $\sigma*\varphi_m\in\mathcal{P}_{k-1}$ y este subespacio es cerrado por tener dimensión finita, $\sigma\in\mathcal{P}_{k-1}$, lo que contradice que $\sigma$ no es un polinomio.
-\end{demostracion}
-
-\begin{demostracion}[Demostración del Teorema~\ref{teo:aprox-universal}]
-\emph{Necesidad.} Si $\sigma$ es un polinomio de grado $m$, cada $\sigma(w\cdot x+b)$ es un polinomio de grado a lo sumo $m$, de modo que $\mathcal{M}(\sigma)$ está contenido en el espacio $\mathcal{P}_m$ de los polinomios de grado $\le m$. Este espacio tiene dimensión finita, luego es cerrado, y no coincide con $C(\mathbb{R}^n)$. Por tanto, $\mathcal{M}(\sigma)$ no es denso.
-
-\emph{Suficiencia.} Por el Lema~\ref{lem:reduccion} basta el caso $n=1$. Para $\varphi\in C_c^\infty(\mathbb{R})$ con soporte en $[-\alpha,\alpha]$, la convolución $\sigma_\varphi = \sigma*\varphi$ es de clase $C^\infty$, y
-\[
-  \sigma_\varphi(wx+b) = \int_{-\alpha}^{\alpha}\sigma(wx+b-y)\,\varphi(y)\,dy.
-\]
-Las sumas de Riemann $\sum_j \sigma(wx+b-y_j)\varphi(y_j)\Delta y$ pertenecen a $\mathcal{M}(\sigma)$ y, por la continuidad uniforme de $(t,y)\mapsto\sigma(t-y)\varphi(y)$ en compactos, convergen a $\sigma_\varphi(wx+b)$ uniformemente para $x$ en compactos. Luego $\mathcal{M}(\sigma_\varphi)\subset\overline{\mathcal{M}(\sigma)}$. Si algún $\sigma_\varphi$ no es un polinomio, el Lema~\ref{lem:suave} concluye.
-
-Supongamos, por reducción al absurdo, que $\sigma_\varphi$ es un polinomio para toda $\varphi\in C_c^\infty([-\alpha,\alpha])$. Este espacio, con su topología usual, es un espacio de Fréchet, y los conjuntos $F_k = \{\varphi : \sigma_\varphi\in\mathcal{P}_k\}$ son cerrados (si $\varphi_m\to\varphi$, entonces $\sigma_{\varphi_m}\to\sigma_\varphi$ uniformemente en compactos, y $\mathcal{P}_k$ es cerrado). Como su unión es todo el espacio, por el teorema de Baire algún $F_k$ contiene una bola $B(\varphi_0,\delta)$. Dada cualquier $\varphi$, para $t>0$ pequeño se tiene $\varphi_0+t\varphi\in B(\varphi_0,\delta)$ y, por linealidad,
-\[
-  \sigma_\varphi = \tfrac{1}{t}\bigl(\sigma_{\varphi_0+t\varphi}-\sigma_{\varphi_0}\bigr)\in\mathcal{P}_k.
-\]
-Tomemos ahora una aproximación de la identidad $\varphi_m\ge 0$, con $\int\varphi_m=1$ y soporte en $[-1/m,1/m]$. Entonces $\sigma*\varphi_m\to\sigma$ uniformemente en compactos y $\sigma*\varphi_m\in\mathcal{P}_k$, que es cerrado, luego $\sigma\in\mathcal{P}_k$: contradicción.
-\end{demostracion}
-
-\begin{observacion}
-\begin{enumerate}
-  \item Las activaciones ReLU, GELU y SiLU son continuas y no son polinomios, así que el Teorema~\ref{teo:aprox-universal} se aplica a todas ellas. La identidad es un polinomio de grado~1, lo que es coherente con la Proposición~\ref{prop:sin-activacion}.
-  \item El resultado es de existencia: garantiza que \emph{existe} una red con una capa oculta suficientemente ancha que aproxima $f$, pero no dice cuántas neuronas hacen falta ni cómo encontrar los pesos mediante el entrenamiento.
-\end{enumerate}
-\end{observacion}
-
-\begin{observacion}
-Los dos resultados anteriores se complementan. Una activación afín no aporta nada (Proposición~\ref{prop:sin-activacion}), y una activación polinómica, aunque sea no lineal, tampoco basta con una capa oculta: si $\sigma$ es un polinomio de grado $m$, la red solo genera polinomios de grado a lo sumo $m$. Las activaciones que usamos en este trabajo (ReLU, GELU y SiLU) son continuas y no polinómicas, de modo que el Teorema~\ref{teo:aprox-universal} garantiza que las redes con una capa oculta suficientemente ancha pueden aproximar cualquier función continua sobre un compacto.
-\end{observacion}
-
-Este resultado, junto con otros análogos con hipótesis distintas sobre $\sigma$~\cite{cybenko1989approximation,hornik1989multilayer}, se conoce en la literatura como \emph{teorema de aproximación universal}; la expresión procede de~\cite{hornik1989multilayer}, que llamaron \emph{aproximadores universales} a las redes con esta propiedad.~\cite{pinkus1999approximation} lo formula como un problema de \emph{densidad}. Aquí presentamos la versión de~\cite{leshno1993multilayer}, que caracteriza exactamente las activaciones continuas que tienen esta propiedad.
+\section{Arquitecturas para clasificación de imágenes}\label{sec:arquitecturas}
 
 \subsection{Redes neuronales convolucionales}\label{sec:cnn}
 
 Las redes neuronales convolucionales (CNN) son redes especializadas en datos
 con estructura de rejilla, como las imágenes, que pueden verse como rejillas
 bidimensionales de píxeles. Seguimos la presentación de
-~\cite[cap.~9]{goodfellow2016deep}.
+Goodfellow et al.~\cite[cap.~9]{goodfellow2016deep}.
 
 \subsubsection{La operación de convolución}
 
@@ -522,7 +549,7 @@ En el contexto de las redes convolucionales, $x$ recibe el nombre de
 
 En la práctica, la entrada y el núcleo son tensores de valores finitos y se
 suponen nulos fuera de las posiciones almacenadas, de modo que la suma
-infinita de \cref{eq:conv-discreta} se reduce a una suma finita, siempre y cuando la entrada o 
+infinita de \cref{eq:conv-discreta} se reduce a una suma finita, siempre y cuando la entrada o
 el núcleo tengan soporte finito. Para una
 imagen bidimensional $I$ y un núcleo bidimensional $K$, la convolución es
 \begin{equation}\label{eq:conv-2d}
@@ -531,7 +558,7 @@ imagen bidimensional $I$ y un núcleo bidimensional $K$, la convolución es
 y, por ser conmutativa,
 \begin{equation}\label{eq:conv-2d-conmutativa}
   S(i,j) = (K * I)(i,j) = \sum_{m}\sum_{n} I(i-m,\, j-n)\, K(m,n).
-\end{equation}  
+\end{equation}
 La conmutatividad se debe a que el núcleo aparece \emph{volteado (flipped)} respecto de
 la entrada: al crecer $m$, el índice de la entrada crece y el del núcleo
 decrece. Esta propiedad es útil en las demostraciones, pero no es relevante
@@ -554,7 +581,7 @@ La \emph{correlación cruzada} de una imagen $I$ con un núcleo $K$ es
 La correlación cruzada coincide con la convolución salvo por el volteo del
 núcleo. Muchas bibliotecas de aprendizaje automático implementan en realidad
 \cref{eq:correlacion-cruzada} pero la llaman convolución, y
-\cite[sec.~9.1]{goodfellow2016deep} adopta ese mismo convenio. Como el núcleo
+Goodfellow et al.~\cite[sec.~9.1]{goodfellow2016deep} adoptan ese mismo convenio. Como el núcleo
 se aprende, ambas operaciones son equivalentes a efectos del modelo: la red
 aprendería simplemente el núcleo volteado. En lo que sigue llamaremos
 convolución a \cref{eq:correlacion-cruzada}, como es habitual.
@@ -643,12 +670,12 @@ traslación $(T_\tau I)(m,n) = I(m-\tau_1,\, n-\tau_2)$. Entonces
 \begin{demostracion}
 Para todo $(i,j) \in \mathbb{Z}^2$, por la definición
 \cref{eq:correlacion-cruzada},
-\[
+\begin{align*}
   \bigl(K \star T_\tau I\bigr)(i,j)
-  = \sum_{m}\sum_{n} I\bigl(i+m-\tau_1,\, j+n-\tau_2\bigr)\, K(m,n)
-  = (K \star I)(i-\tau_1,\, j-\tau_2)
+  &= \sum_{m}\sum_{n} I\bigl(i+m-\tau_1,\, j+n-\tau_2\bigr)\, K(m,n)\\
+  &= (K \star I)(i-\tau_1,\, j-\tau_2)
   = \bigl(T_\tau(K \star I)\bigr)(i,j).
-\]
+\end{align*}
 Las sumas son finitas porque $K$ tiene soporte finito.
 \end{demostracion}
 
@@ -691,14 +718,14 @@ El \emph{pooling} hace que la representación sea aproximadamente
 desplaza ligeramente, la mayoría de las salidas agregadas no cambian
 \cite[sec.~9.3]{goodfellow2016deep}.
 
-La figura~\cref{fig:cnn-tipica} muestra cómo se combinan estos elementos en
+La \cref{fig:cnn-tipica} muestra cómo se combinan estos elementos en
 una arquitectura convolucional típica: varias capas convolucionales, cada
 una seguida de una no linealidad y de una etapa de \emph{pooling}, que
 reducen progresivamente la resolución espacial y aumentan el número de
 mapas de características, y unas capas totalmente conectadas finales que
 proporcionan la predicción.
 
-\begin{figure}[htbp]
+\begin{figure}[tbp]
   \centering
   \includegraphics[width=\textwidth]{img/typical_cnn.png}
   \caption{Arquitectura típica de una red neuronal convolucional para
@@ -711,27 +738,818 @@ proporcionan la predicción.
   \label{fig:cnn-tipica}
 \end{figure}
 
-\subsection{Transformers y Vision Transformer}\label{sec:transformer}
+\subsection{Redes residuales y normalización}\label{sec:residuales}
+
+% [agente] Texto redactado a partir de Prince, secs. 11.1, 11.2, 11.4 y 11.5.1, y de He et al. (2016).
+% La estructura de ResNet-50 se ha comprobado en el resumen de capas de
+% tfg/executions/def1/param1_*/resultados.txt (bloques 3, 4, 6 y 3; 53 capas BatchNorm2d).
+ResNet-50, los transformers, Swin y ConvNeXt, que se estudian en el resto de
+esta sección, comparten dos componentes que no aparecen en la red de la
+\cref{def:mlp}: las conexiones residuales y las capas de normalización. Al
+aumentar el número de capas, entrenar una red se vuelve más difícil; una de las
+causas que señala Prince~\cite[sec.~11.1]{prince2023understanding} es que los
+cambios en las primeras capas modifican la salida de forma cada vez más compleja
+a medida que la red es más profunda, de modo que el gradiente cambia mucho de un
+ejemplo a otro (\emph{shattered gradients}).
+
+\begin{definicion}[{Conexión residual~\cite[sec.~11.2]{prince2023understanding}}]\label{def:residual}
+Sean $f_1,\dots,f_K$ funciones con parámetros $\phi_1,\dots,\phi_K$ cuya salida
+tiene el mismo tamaño que su entrada. La \emph{red residual} asociada es
+\begin{align*}
+  h_1 &= x + f_1(x;\phi_1),\\
+  h_k &= h_{k-1} + f_k(h_{k-1};\phi_k), \qquad k = 2,\dots,K-1,\\
+  y   &= h_{K-1} + f_K(h_{K-1};\phi_K).
+\end{align*}
+El primer sumando de cada igualdad es la \emph{conexión residual}
+(\emph{residual} o \emph{skip connection}), y cada combinación aditiva de la
+entrada y de su transformación se llama \emph{bloque residual}.
+\end{definicion}
+
+Cada $f_k$ aprende, por tanto, un cambio aditivo sobre la representación
+actual. Sustituyendo las expresiones intermedias, la salida es la suma de la
+entrada y de varias redes más pequeñas; con $K$ bloques, la red puede verse como
+la combinación de $2^K$ caminos distintos desde la entrada hasta la salida
+\cite[sec.~11.2, fig.~11.4]{prince2023understanding}.
+
+\begin{definicion}[{Normalización por lotes~\cite[sec.~11.4]{prince2023understanding}}]\label{def:batchnorm}
+Sea $h$ una activación y sean $h_i$, $i\in\mathcal{B}$, sus valores en los
+ejemplos de un lote $\mathcal{B}$. La \emph{normalización por lotes}
+(\emph{batch normalization}, BatchNorm) calcula la media y la desviación típica
+empíricas
+\[
+  m_h = \frac{1}{|\mathcal{B}|}\sum_{i\in\mathcal{B}} h_i, \qquad
+  s_h = \sqrt{\frac{1}{|\mathcal{B}|}\sum_{i\in\mathcal{B}} (h_i - m_h)^2},
+\]
+estandariza los valores y después los escala y desplaza:
+\[
+  h_i \leftarrow \frac{h_i - m_h}{s_h + \varepsilon}, \qquad
+  h_i \leftarrow \gamma\, h_i + \delta, \qquad i\in\mathcal{B},
+\]
+donde $\varepsilon > 0$ evita la división por cero y $\gamma$ y $\delta$ son
+parámetros que se aprenden durante el entrenamiento.
+\end{definicion}
+
+Tras esta operación, las activaciones tienen, en el lote, media $\delta$ y
+desviación típica $\gamma$. La normalización se aplica a cada unidad oculta por
+separado; en una red convolucional, los estadísticos se calculan sobre el lote y
+sobre todas las posiciones espaciales, con un par $(\gamma,\delta)$ por canal. En
+la fase de prueba no se dispone de un lote, así que $m_h$ y $s_h$ se calculan
+sobre el conjunto de entrenamiento y se congelan
+\cite[sec.~11.4]{prince2023understanding}. Entre sus ventajas, Prince señala que
+estabiliza la propagación hacia delante, permite usar tasas de aprendizaje más
+altas y actúa como regularizador~\cite[sec.~11.4.1]{prince2023understanding}.
+
+\begin{definicion}[{Normalización por capa~\cite[sec.~11.4]{prince2023understanding}}]\label{def:layernorm}
+La \emph{normalización por capa} (\emph{layer normalization}, LayerNorm) no usa
+estadísticos del lote: normaliza cada ejemplo por separado. Para un vector
+$x\in\R^{D}$,
+\[
+  \operatorname{LN}(x)_d = \gamma_d\,\frac{x_d - m}{s + \varepsilon} + \delta_d,
+  \qquad
+  m = \frac{1}{D}\sum_{d=1}^{D} x_d, \quad
+  s = \sqrt{\frac{1}{D}\sum_{d=1}^{D} (x_d - m)^2},
+\]
+con parámetros aprendidos $\gamma,\delta\in\R^{D}$, uno por canal.
+\end{definicion}
+\revisar{Prince describe la LayerNorm con estadísticos sobre los canales y las
+posiciones espaciales (sec.~11.4) y, en los transformers, sobre los tokens de la
+secuencia (sec.~12.4). En las implementaciones de ViT, Swin y ConvNeXt usadas
+(\texttt{timm}) se normaliza cada token, o cada posición espacial, sobre sus $D$
+canales, que es lo que recoge la definición; comprobar cuál se prefiere citar.}
+
+A diferencia de BatchNorm, la salida de LayerNorm para un ejemplo no depende del
+resto del lote. Vaswani et al.\ la usaron en el transformer original porque los
+estadísticos del lenguaje varían mucho de un lote a otro
+\cite[cap.~12, notas]{prince2023understanding}.
+
+\subsubsection{ResNet-50}\label{sec:resnet}
+
+Las conexiones residuales se usaron por primera vez en redes convolucionales para
+clasificación de imágenes, en las llamadas \emph{redes residuales} o
+ResNet~\cite{he2016}. Para redes muy profundas, Prince
+\cite[sec.~11.5.1]{prince2023understanding} describe el \emph{bloque residual con
+cuello de botella} (\emph{bottleneck}), que usa tres convoluciones: la primera,
+de $1\times1$, reduce el número de canales; la segunda es una convolución
+habitual de $3\times3$; y la tercera, de nuevo de $1\times1$, recupera el número
+de canales original para poder sumar la entrada. Así se integra la información
+de una región de $3\times3$ píxeles con menos parámetros. Como en otras
+arquitecturas convolucionales, la resolución espacial se reduce periódicamente
+mientras aumenta el número de canales.
+
+La ResNet-50 usada en este trabajo tiene esta estructura: una convolución
+inicial de $7\times7$ con paso 2 seguida de \emph{max pooling}, cuatro etapas de
+$3$, $4$, $6$ y $3$ bloques con cuello de botella cuyas salidas tienen $256$,
+$512$, $1024$ y $2048$ canales, y BatchNorm y ReLU en cada bloque.
+
+\begin{observacion}
+Prince indica que, en cada bloque, el orden de las operaciones es
+BatchNorm, ReLU y convolución \cite[sec.~11.5.1, fig.~11.7]{prince2023understanding}.
+En la ResNet-50 usada en este trabajo, cada convolución va seguida de BatchNorm
+y ReLU, y la última ReLU del bloque se aplica después de sumar la conexión
+residual, según el resumen de capas del entrenamiento.
+\revisar{comprobar el orden del bloque en He et al.~(2016); el orden de Prince
+corresponde a otra variante de ResNet}
+\end{observacion}
+
+\subsection{Transformers}\label{sec:transformer}
+
+Los transformers presentan su origen en los NLP, en donde es fundamental el contexto
+de las palabras para poder entender su significado. Por ejemplo, sea la siguiente frase, similar a la
+ofrecida por Prince~\cite[sec.~12.1]{prince2023understanding}:
+
+\textit{El restaurante se negó a servirme un sándwich de jamón porque ellos solo ofrecían platos veganos. Al final, ellos
+solo me dieron dos rebanadas de pan. Su ambiente fue igual de bueno que la comida y el servicio.}
+
+En el procesamiento de lenguajes naturales se trabaja para ofrecer una representación adaptable del texto para diversos objetivos,
+que puede ser por ejemplo calificar esta reseña como positiva o negativa. En este contexto existen diversas dificultades. La primera
+es que las entradas pueden ser inmensamente largas de forma que las redes neuronales totalmente conectadas son imprácticas. Segundo, cada entrada
+es de una longitud distinta de forma que no sería obvio cómo aplicar una red totalmente conectada. Finalmente, el lenguaje es ambiguo,
+por ejemplo la palabra «ellos» se refiere al restaurante y no al sándwich de jamón. Para entender el texto, la palabra
+debería estar relacionada de alguna manera con la palabra «restaurante». En la jerga de los transformadores,
+la primera palabra debería tener en cuenta a la segunda. Esto implica que debe haber
+conexiones entre las palabras y que la fuerza de estas conexiones dependerá
+de las propias palabras. Además, estas conexiones deben extenderse a lo largo de amplios
+fragmentos de texto. Por ejemplo, la palabra «su» de la última frase también se refiere al restaurante.
+
+Las dificultades anteriores sugieren dos requisitos para un modelo que procese texto. Por un lado, debe \emph{compartir parámetros} entre las distintas posiciones
+de la entrada, de forma análoga a como las redes convolucionales comparten los pesos de sus filtros entre las distintas posiciones de una imagen; así, el número de
+parámetros no crece con la longitud del texto y el mismo modelo puede aplicarse a entradas de cualquier tamaño. Por otro lado, debe establecer \emph{conexiones entre las representaciones de las palabras}
+cuya intensidad dependa de las propias palabras, y no de unos pesos fijos. Una capa totalmente conectada no cumple ninguno de los dos: calcula $f(x) = \operatorname{ReLU}(\beta + \Omega x)$ para una entrada
+$x$ de tamaño fijo, y la influencia de cada componente de $x$ sobre la salida queda determinada por los pesos $\Omega$, sea cual sea el texto. Los transformers satisfacen ambos requisitos gracias al mecanismo de
+\emph{autoatención por producto escalar}~\cite[sec.~12.2]{prince2023understanding}, que describimos a continuación.
 
 % - Atención por producto escalar: Attention(Q, K, V) = softmax(QK^T / \sqrt{d}) V.
 % - Atención multicabeza, LayerNorm, MLP; ViT (Dosovitskiy et al., 2021): parches de 16 px.
-\begin{definicion}[Atención por producto escalar]\label{def:atencion}
-\pendiente{definición}
+
+Un bloque de autoatención recibe $N$ vectores de entrada $x_1,\dots,x_N\in\mathbb{R}^D$ y devuelve $N$ vectores de salida de la misma dimensión. En procesamiento del lenguaje, cada entrada representa una palabra o un fragmento de palabra; en visión, un fragmento (\emph{patch}) de la imagen. La idea es que cada salida sea una combinación de todas las entradas, en la que el peso de cada una dependa de su parecido con la entrada correspondiente a esa salida.
+
+\begin{definicion}[{Autoatención por producto escalar~\cite[sec.~12.2]{prince2023understanding}}]\label{def:autoatencion}
+Sean $x_1,\dots,x_N\in\mathbb{R}^D$. Para cada $n = 1,\dots,N$ se calculan, mediante tres transformaciones afines con parámetros compartidos por todas las entradas, los vectores
+\[
+  v_n = \beta_v + \Omega_v x_n, \qquad
+  q_n = \beta_q + \Omega_q x_n, \qquad
+  k_n = \beta_k + \Omega_k x_n,
+\]
+llamados respectivamente \emph{valor}, \emph{consulta} (\emph{query}) y \emph{clave} (\emph{key}), donde $\Omega_v\in\mathbb{R}^{D\times D}$, $\beta_v\in\mathbb{R}^D$, $\Omega_q,\Omega_k\in\mathbb{R}^{D_q\times D}$ y $\beta_q,\beta_k\in\mathbb{R}^{D_q}$.
+Brevemente explicado $q_n$ representa lo que busca cada parche en un momento dado, $k_n$  actúa como un identificativo
+de cada parche y $v_n$ contiene la información real que será transmitida si el parche resulta ser relevante. Los \emph{pesos de atención} de la salida $n$-ésima sobre cada entrada $x_m$ se definen como
+\[
+  a(x_m,x_n) = \softmax_m\bigl(k_\bullet^{\top} q_n\bigr)
+  = \frac{\exp\bigl(k_m^{\top} q_n\bigr)}{\sum_{m'=1}^{N}\exp\bigl(k_{m'}^{\top} q_n\bigr)},
+  \qquad m = 1,\dots,N,
+\]
+y la salida $n$-ésima del bloque es la media ponderada de los valores:
+\[
+  \operatorname{sa}_n(x_1,\dots,x_N) = \sum_{m=1}^{N} a(x_m,x_n)\,v_m.
+\]
 \end{definicion}
+
+Para cada $n$, los pesos $a(x_1,x_n),\dots,a(x_N,x_n)$ son positivos y suman $1$, de modo que cada salida es una combinación convexa de los valores.
+El producto escalar $k_m^{\top} q_n$ mide la compatibilidad entre la consulta de la entrada $n$-ésima y la clave de la entrada $m$-ésima. Como las consultas y las claves se obtienen con proyecciones distintas y aprendidas, $\Omega_q$ y $\Omega_k$, esta compatibilidad no es un simple parecido entre $x_n$ y $x_m$:
+el modelo aprende durante el entrenamiento qué entradas son relevantes para cada una. Así, cada salida da más peso a las entradas más relevantes para ella. Además, como la función \emph{softmax} normaliza los pesos para que sumen uno, las claves \emph{compiten} entre sí: aumentar el peso de una entrada reduce necesariamente el de las demás.
+Los nombres de consulta y clave proceden del campo de la recuperación de información. Las consultas y las claves deben tener la misma dimensión $D_q$, que puede ser distinta de la de los valores; estos suelen tener la dimensión $D$ de la entrada, para que la representación no cambie de tamaño.
+
+\begin{observacion}[Forma matricial]
+Si se colocan las entradas como columnas de una matriz $X\in\mathbb{R}^{D\times N}$ donde $N$ es el número total de tokens y $D$ es la dimensión del espacio latente, los valores, las consultas y las claves se calculan a la vez como
+\[
+  V = \beta_v\mathbf{1}^{\top} + \Omega_v X, \qquad
+  Q = \beta_q\mathbf{1}^{\top} + \Omega_q X, \qquad
+  K = \beta_k\mathbf{1}^{\top} + \Omega_k X,
+\]
+donde $\mathbf{1}\in\mathbb{R}^{N}$ es el vector de unos, y la salida del bloque es
+\[
+  \operatorname{Sa}(X) = V\,\Softmax\bigl(K^{\top}Q\bigr),
+\]
+donde $\Softmax$ aplica la función \emph{softmax} a cada columna de la matriz por separado~\cite[sec.~12.2.4]{prince2023understanding}.
+\end{observacion}
+
+\begin{observacion}
+\begin{enumerate}
+  \item El número de parámetros, $\{\beta_v,\Omega_v,\beta_q,\Omega_q,\beta_k,\Omega_k\}$, no depende de $N$, de modo que el mismo bloque puede aplicarse a secuencias de cualquier longitud. En cambio, el número de pesos de atención es $N^2$.
+  \item Aunque el bloque no tiene función de activación, no es lineal en la entrada. Los valores $v_m$ son funciones afines de $x_m$, y si los pesos de atención fueran constantes la salida sería también afín. Sin embargo, los pesos $a(x_m,x_n)$
+  dependen de la propia entrada: el producto escalar $k_m^{\top}q_n$ es cuadrático en $X$ y la función \emph{softmax} introduce exponenciales. Por tanto, la salida es el producto de una función no lineal de $X$ por una función afín de $X$. En términos de
+  Prince~\cite[sec.~12.2.2]{prince2023understanding}, se trata de una \emph{hiperred}: una rama de la red calcula los pesos que utiliza la otra. En un perceptrón multicapa la no linealidad la aporta la función de activación; en la autoatención, los pesos de atención.
+  \item En la práctica, los productos escalares se dividen por $\sqrt{D_q}$, lo que se conoce como \emph{autoatención por producto escalar escalado}~\cite[sec.~12.3.2]{prince2023understanding}:
+  \[
+    \operatorname{Sa}(X) = V\,\Softmax\!\left(\frac{K^{\top}Q}{\sqrt{D_q}}\right).
+  \]
+  Así se evita que los productos escalares sean tan grandes que el mayor de ellos domine la función \emph{softmax}; en esa situación, los gradientes son muy pequeños y el modelo es difícil de entrenar.
+  Por otro lado, al multiplicar la matriz resultante por los valores ($V$) se obtiene una nueva representación de los parches donde cada uno se ha actualizado incorporando el contexto global ponderado de toda la imagen.
+\end{enumerate}
+\end{observacion}
+
+\subsubsection{Atención multicabeza}
+
+En la práctica, no se usa un único mecanismo de autoatención, sino varios en paralelo; esto se conoce como \emph{autoatención multicabeza} (\emph{multi-head self-attention}). Cada uno de estos mecanismos, llamado \emph{cabeza}, tiene sus propios parámetros y calcula sus propios valores, consultas y claves.
+
+\begin{definicion}[{Autoatención multicabeza~\cite[sec.~12.3.3]{prince2023understanding}}]\label{def:multicabeza}
+Sea $X\in\mathbb{R}^{D\times N}$ la matriz de entradas y sea $H\ge 1$ el número de cabezas. Para cada $h = 1,\dots,H$ se calculan
+\[
+  V_h = \beta_{v_h}\mathbf{1}^{\top} + \Omega_{v_h} X, \qquad
+  Q_h = \beta_{q_h}\mathbf{1}^{\top} + \Omega_{q_h} X, \qquad
+  K_h = \beta_{k_h}\mathbf{1}^{\top} + \Omega_{k_h} X,
+\]
+con parámetros $\{\beta_{v_h},\Omega_{v_h}\}$, $\{\beta_{q_h},\Omega_{q_h}\}$ y $\{\beta_{k_h},\Omega_{k_h}\}$ distintos para cada cabeza, y la salida de la cabeza $h$-ésima es
+\[
+  \operatorname{Sa}_h(X) = V_h\,\Softmax\!\left(\frac{K_h^{\top}Q_h}{\sqrt{D_q}}\right),
+\]
+donde $D_q$ es la dimensión de las consultas y las claves. La salida del bloque se obtiene concatenando verticalmente las salidas de todas las cabezas y combinándolas mediante una transformación lineal $\Omega_c$:
+\[
+  \operatorname{MhSa}(X) = \Omega_c
+  \begin{bmatrix}
+    \operatorname{Sa}_1(X)\\
+    \vdots\\
+    \operatorname{Sa}_H(X)
+  \end{bmatrix}.
+\]
+\end{definicion}
+
+Habitualmente, si las entradas tienen dimensión $D$, los valores, las consultas y las claves de cada cabeza tienen dimensión $D/H$, lo que permite una implementación eficiente: el coste total es similar al de una única cabeza de dimensión $D$. Según Prince~\cite[sec.~12.3.3]{prince2023understanding}, el uso de varias cabezas parece necesario para que el transformer funcione bien, y se ha conjeturado que hace la red más robusta frente a malas inicializaciones.
+
+\subsubsection{Codificación posicional}\label{sec:codificacion-posicional}
+
+% [agente] Texto redactado a partir de Prince, sec. 12.3.1 y problema 12.3. La demostración es propia.
+El mecanismo de autoatención descarta una información importante: el cálculo es
+el mismo sea cual sea el orden de las entradas $x_n$. Más precisamente, es
+equivariante respecto de las permutaciones de las entradas
+\cite[sec.~12.3.1]{prince2023understanding}.
+
+\begin{proposicion}[{Equivarianza a permutaciones~\cite[problema~12.3]{prince2023understanding}}]\label{prop:sa-permutaciones}
+Sean $X\in\R^{D\times N}$, $\pi$ una permutación de $\{1,\dots,N\}$ y
+$P = [\,e_{\pi(1)}\ \cdots\ e_{\pi(N)}\,]\in\R^{N\times N}$ su matriz de
+permutación, de modo que $XP$ tiene por columnas $x_{\pi(1)},\dots,x_{\pi(N)}$.
+Entonces
+\[
+  \operatorname{Sa}(XP) = \operatorname{Sa}(X)\,P,
+\]
+y lo mismo ocurre con la autoatención escalada y con la autoatención multicabeza.
+\end{proposicion}
+
+\begin{demostracion}
+Cada columna de $P$ tiene un único uno, así que $\mathbf{1}^{\top}P = \mathbf{1}^{\top}$.
+Por tanto, los valores calculados a partir de $XP$ son
+\[
+  \beta_v\mathbf{1}^{\top} + \Omega_v XP = \bigl(\beta_v\mathbf{1}^{\top} + \Omega_v X\bigr)P = VP,
+\]
+y del mismo modo las consultas y las claves son $QP$ y $KP$. La matriz de
+compatibilidades pasa a ser $(KP)^{\top}QP = P^{\top}AP$, con $A = K^{\top}Q$.
+
+Veamos que $\Softmax(P^{\top}AP) = P^{\top}\Softmax(A)P$. Para un vector
+$z\in\R^{N}$ se tiene
+\[
+  (P^{\top}z)_m = e_{\pi(m)}^{\top}z = z_{\pi(m)}, \qquad m = 1,\dots,N,
+\]
+es decir,
+$P^{\top}z$ reordena las componentes de $z$. Como el denominador de la función
+\emph{softmax} no depende del orden,
+\[
+  \sum_{m=1}^{N}\exp(z_{\pi(m)}) = \sum_{m=1}^{N}\exp(z_m),
+  \qquad\text{luego}\qquad
+  \softmax(P^{\top}z) = P^{\top}\softmax(z).
+\]
+La columna $n$-ésima de $AP$ es la columna $\pi(n)$-ésima de $A$, que denotamos
+$a_{\pi(n)}$, así que la columna $n$-ésima de $\Softmax(P^{\top}AP)$ es
+\[
+  \softmax\bigl(P^{\top}a_{\pi(n)}\bigr) = P^{\top}\softmax\bigl(a_{\pi(n)}\bigr),
+\]
+que es la columna $n$-ésima de $P^{\top}\Softmax(A)P$.
+
+Finalmente, como $PP^{\top} = I$,
+\[
+  \operatorname{Sa}(XP) = VP\,P^{\top}\Softmax(A)\,P = V\Softmax(A)\,P = \operatorname{Sa}(X)\,P.
+\]
+Dividir $A$ entre $\sqrt{D_q}$ no afecta al argumento. En la autoatención
+multicabeza, cada cabeza cumple $\operatorname{Sa}_h(XP) = \operatorname{Sa}_h(X)P$,
+de modo que la concatenación vertical de las cabezas queda multiplicada por $P$
+por la derecha, y también su producto por $\Omega_c$.
+\end{demostracion}
+
+Es decir, si se reordenan las entradas, las salidas se reordenan de la misma
+manera: el bloque no sabe en qué posición está cada entrada. Sin embargo, el
+orden importa: en una frase, cambiar el orden de las palabras cambia su
+significado y, en una imagen, cada parche ocupa una posición concreta. Prince
+\cite[sec.~12.3.1]{prince2023understanding} distingue dos formas principales de
+incorporar la posición:
+\begin{itemize}
+  \item \emph{Codificaciones posicionales absolutas}. Se suma a la entrada $X$ una
+  matriz $\Pi$ que codifica la posición. Cada columna de $\Pi$ es distinta, así que
+  contiene información sobre la posición absoluta en la secuencia. La matriz puede
+  elegirse a mano o aprenderse, y sumarse a la entrada de la red o en cada capa.
+  \item \emph{Codificaciones posicionales relativas}. Lo relevante suele ser la
+  posición relativa entre dos entradas, más que la absoluta. Cada elemento de la
+  matriz de atención corresponde a un desplazamiento concreto entre la posición
+  $a$ de la consulta y la posición $b$ de la clave; se aprende un parámetro
+  $\pi_{a,b}$ para cada desplazamiento, que modifica la matriz de atención, por
+  ejemplo sumándose a ella.
+\end{itemize}
+ViT usa una codificación absoluta aprendida (\cref{sec:vit}) y Swin, una relativa
+(\cref{sec:swin}).
+
+\subsubsection{La capa transformer}\label{sec:capa-transformer}
+
+% [agente] Texto redactado a partir de Prince, sec. 12.4 (ec. 12.13) y notas del cap. 12.
+La autoatención es solo una parte de una capa transformer, que consta de una
+unidad de autoatención multicabeza, que permite que las representaciones de las
+entradas interactúen entre sí, seguida de una red totalmente conectada
+$\operatorname{mlp}$ que actúa por separado sobre cada entrada. Ambas unidades
+son bloques residuales (\cref{def:residual}) y van seguidas de una LayerNorm
+(\cref{def:layernorm}).
+
+\begin{definicion}[{Capa transformer~\cite[sec.~12.4]{prince2023understanding}}]\label{def:capa-transformer}
+Dada $X\in\R^{D\times N}$ con columnas $x_1,\dots,x_N$, una \emph{capa
+transformer} realiza las operaciones
+\begin{align*}
+  X   &\leftarrow X + \operatorname{MhSa}(X),\\
+  X   &\leftarrow \operatorname{LN}(X),\\
+  x_n &\leftarrow x_n + \operatorname{mlp}(x_n), \qquad n = 1,\dots,N,\\
+  X   &\leftarrow \operatorname{LN}(X),
+\end{align*}
+donde $\operatorname{LN}$ se aplica a cada columna y $\operatorname{mlp}$ es la
+misma red totalmente conectada para todas las columnas.
+\end{definicion}
+
+Una red transformer aplica varias de estas capas consecutivas. La salida de cada
+capa tiene el mismo tamaño $D\times N$ que su entrada, y el número de parámetros
+no depende de $N$.
+
+\begin{observacion}\label{obs:prenorm}
+En la \cref{def:capa-transformer} la LayerNorm se aplica después de cada suma
+residual. ViT y Swin, en cambio, aplican la LayerNorm \emph{antes} de cada
+unidad y la conexión residual después~\cite[ecs.~(2)--(3)]{dosovitskiy2021},
+\cite[ec.~(3)]{liu2021swin}:
+\[
+  X \leftarrow X + \operatorname{MhSa}\bigl(\operatorname{LN}(X)\bigr), \qquad
+  x_n \leftarrow x_n + \operatorname{mlp}\bigl(\operatorname{LN}(x_n)\bigr).
+\]
+Prince señala que colocar la LayerNorm fuera del bloque residual hace que los
+gradientes se reduzcan al propagarse hacia atrás por la red, y que cambiar la
+posición de la LayerNorm es una de las propuestas para estabilizar el
+entrenamiento de los transformers~\cite[cap.~12, notas]{prince2023understanding}.
+\end{observacion}
+
+\subsection{Vision Transformer}\label{sec:vit}
+
+% [agente] Texto redactado a partir de Dosovitskiy et al. (2021), secs. 3.1, 3.2 y 4.1, tabla 1 y
+% apéndice D.4. Las ecuaciones (1)-(4) del artículo se han traspuesto a la notación por columnas de
+% Prince (el artículo coloca los tokens en filas). Comprobado en param0_*/resultados.txt: entrada de
+% 224x224, proyección de parches Conv2d con 590592 = 768*(16*16*3) + 768 parámetros, salida de
+% 768 x 14 x 14, y 12 GELU.
+El \emph{Vision Transformer} (ViT) de Dosovitskiy et al.~\cite{dosovitskiy2021}
+aplica a imágenes un transformer que sigue lo más fielmente posible el
+transformer original del procesamiento del lenguaje. La ventaja de esta elección
+es que las arquitecturas escalables de procesamiento del lenguaje, y sus
+implementaciones eficientes, pueden usarse casi directamente
+\cite[sec.~3]{dosovitskiy2021}. Adaptamos la notación del artículo a la de
+Prince, con los tokens en columnas.
+
+El transformer recibe una secuencia de vectores. Para aplicarlo a una imagen
+$x\in\R^{H\times W\times C}$, donde $(H,W)$ es la resolución y $C$ el número de
+canales, la imagen se divide en $N = HW/P^2$ parches de $P\times P$ píxeles, que
+se aplanan en vectores $x_p^1,\dots,x_p^N\in\R^{P^2C}$. $N$ es la longitud de la
+secuencia que recibe el transformer. Como el transformer usa la misma dimensión
+$D$ en todas sus capas, cada parche se proyecta a $\R^{D}$ con una matriz
+aprendida $E$; el resultado se llama \emph{embedding} del parche
+\cite[sec.~3.1]{dosovitskiy2021}.
+
+\begin{definicion}[{Vision Transformer~\cite[sec.~3.1]{dosovitskiy2021}}]\label{def:vit}
+Sean $E\in\R^{D\times P^2C}$ la proyección de los parches,
+$x_{\mathrm{class}}\in\R^{D}$ un vector aprendido (el \emph{token de clase}) y
+$E_{\mathrm{pos}}\in\R^{D\times(N+1)}$ una matriz de embeddings de posición
+aprendidos. El ViT con $L$ capas calcula
+\begin{align*}
+  Z_0 &= \bigl[\,x_{\mathrm{class}}\ \ Ex_p^1\ \ Ex_p^2\ \cdots\ Ex_p^N\,\bigr] + E_{\mathrm{pos}},\\
+  Z'_\ell &= Z_{\ell-1} + \operatorname{MhSa}\bigl(\operatorname{LN}(Z_{\ell-1})\bigr), && \ell = 1,\dots,L,\\
+  Z_\ell &= Z'_\ell + \operatorname{MLP}\bigl(\operatorname{LN}(Z'_\ell)\bigr), && \ell = 1,\dots,L,\\
+  y &= \operatorname{LN}\bigl(z_L^{0}\bigr),
+\end{align*}
+donde $\operatorname{LN}$ y $\operatorname{MLP}$ se aplican a cada columna por
+separado, $\operatorname{MLP}$ es una red con dos capas y activación GELU
+(\cref{def:gelu}) y $z_L^{0}$ es la primera columna de $Z_L$, la que corresponde
+al token de clase.
+\end{definicion}
+
+Las capas de la \cref{def:vit} son capas transformer con la LayerNorm antes de
+cada unidad (\cref{obs:prenorm}). Igual que el token \texttt{[class]} de BERT, el
+token de clase no corresponde a ningún parche: su estado a la salida del
+transformer, $y$, es la representación de la imagen, y a él se conecta la cabeza
+de clasificación. En el artículo, esta cabeza es un MLP con una capa oculta
+durante el preentrenamiento y una única capa lineal durante el ajuste fino
+\cite[sec.~3.1]{dosovitskiy2021}.
+
+\begin{observacion}
+Los embeddings de posición son una codificación posicional absoluta y aprendida
+(\cref{sec:codificacion-posicional}). Dosovitskiy et al.\ usan embeddings
+unidimensionales, que tratan los parches como una secuencia en orden de lectura,
+porque no observaron mejoras significativas con embeddings bidimensionales.
+En sus experimentos hay una gran diferencia entre no usar información posicional y
+usarla, pero apenas hay diferencias entre las distintas formas de codificarla
+(unidimensional, bidimensional o relativa). Los autores lo atribuyen a que el
+transformer trabaja con parches y no con píxeles, de modo que la forma de
+codificar la información espacial es menos importante~\cite[ap.~D.4]{dosovitskiy2021}.
+\end{observacion}
+
+Para adaptar a una tarea concreta un modelo preentrenado, se elimina la cabeza de
+predicción y se añade una capa de $D\times K$ inicializada a cero, donde $K$ es el
+número de clases. Si las imágenes del ajuste fino tienen mayor resolución que las
+del preentrenamiento, se mantiene el tamaño de los parches, de modo que la
+secuencia es más larga; como los embeddings de posición preentrenados pueden
+dejar de tener sentido, se interpolan en dos dimensiones según su posición en la
+imagen original~\cite[sec.~3.2]{dosovitskiy2021}.
+
+Dosovitskiy et al.\ definen tres variantes a partir de las de BERT, y la notación
+ViT-B/16 indica la variante \emph{Base} con parches de $16\times16$. ViT-B tiene
+$L = 12$ capas, dimensión $D = 768$, MLP de dimensión $3072$, $12$ cabezas y
+$86$ millones de parámetros~\cite[tabla~1]{dosovitskiy2021}. Como la longitud de
+la secuencia es inversamente proporcional al cuadrado del tamaño de los parches,
+los modelos con parches más pequeños son más costosos
+\cite[sec.~4.1]{dosovitskiy2021}. En el ViT-B/16 usado en este trabajo, con
+imágenes de $224\times224$, la secuencia tiene $N = 224^2/16^2 = 196$ parches,
+más el token de clase. La cabeza de clasificación no es la del artículo, sino la
+que añade fastai (\cref{sec:learner}).
+
+\subsubsection{Sesgo inductivo: transformers frente a redes convolucionales}
+
+Se llama \emph{sesgo inductivo} de un modelo a su tendencia a preferir unas soluciones frente a otras al extrapolar entre los datos de entrenamiento~\cite[sec.~8.4]{prince2023understanding}; viene determinado, en gran medida, por la arquitectura.
+Las redes convolucionales tienen un sesgo inductivo muy adecuado para las imágenes: cada capa es equivariante por traslaciones y solo relaciona píxeles cercanos, de modo que la estructura bidimensional de la imagen está incorporada en la propia arquitectura.
+La autoatención, en cambio, no hace ninguna de estas suposiciones: cada parche puede relacionarse con cualquier otro desde la primera capa, y la intensidad de esas relaciones se aprende a partir de los datos. Esto permite modelar relaciones de largo alcance en la imagen,
+pero obliga al modelo a aprender la estructura espacial que una red convolucional tiene de partida. Por eso, como señala Prince~\cite[sec.~12.10]{prince2023understanding}, los transformers solo superan a las redes convolucionales cuando se entrenan con cantidades muy grandes de datos,
+habitualmente mediante un preentrenamiento a gran escala.
+
+% [agente] Párrafo redactado a partir de Dosovitskiy et al. (2021), sec. 1, párrafo «Inductive bias»
+% de la sec. 3.1 y sec. 4.3.
+Dosovitskiy et al.\ precisan este argumento para ViT. En una red convolucional,
+la localidad, la estructura bidimensional de vecindad y la equivarianza a
+traslaciones están incorporadas en cada capa. En ViT, solo las capas MLP son
+locales y equivariantes a traslaciones, mientras que las capas de autoatención
+son globales. La estructura bidimensional se usa muy poco: al principio, al
+dividir la imagen en parches, y en el ajuste fino, al interpolar los embeddings
+de posición para imágenes de otra resolución. Por lo demás, los embeddings de
+posición no contienen al inicializarse información sobre la posición
+bidimensional de los parches, y todas las relaciones espaciales entre ellos
+tienen que aprenderse desde cero~\cite[sec.~3.1]{dosovitskiy2021}. En
+consecuencia, cuando se entrenan en conjuntos de tamaño medio como ImageNet sin
+una regularización fuerte, los ViT obtienen exactitudes unos puntos porcentuales
+por debajo de las de ResNet de tamaño comparable~\cite[sec.~1]{dosovitskiy2021}.
+Con preentrenamiento en ImageNet, ViT-Large rinde peor que ViT-Base, y solo con
+el preentrenamiento en JFT-300M, con unos 303 millones de imágenes, se aprecia
+todo el beneficio de los modelos más grandes~\cite[secs.~4.1 y~4.3]{dosovitskiy2021}.
 
 \subsection{Swin Transformer}\label{sec:swin}
 
-% - Liu et al. (2021): atención en ventanas locales (7x7 parches), ventanas desplazadas entre
-%   bloques consecutivos, fusión de parches (jerarquía), coste lineal en el número de parches.
-% - Swin-S (swin_small_patch4_window7_224): características de 768 dimensiones tras el pooling,
-%   con LayerNorm (relevante para ReAct, ASH y DICE en el capítulo 10).
-\begin{proposicion}[Coste de la atención por ventanas]\label{prop:swin-coste}
-\pendiente{enunciado: complejidad global frente a por ventanas}
+% [agente] Texto redactado a partir de Liu et al. (2021), secs. 1, 3.1, 3.2 y 3.3 (ecs. 1-4), y de
+% Prince, sec. 12.10.3 y fig. 12.18. La demostración de la proposición de coste es propia.
+% Comprobado en param4_*/resultados.txt (swin_small_patch4_window7_224): entrada de 224x224,
+% 24 GELU (2 + 2 + 18 + 2 bloques), LayerNorm final, promedio de 49 tokens a 768 características,
+% capa lineal 768 -> 14 y 48 800 366 parámetros.
+% Relevante para el capítulo 10: Swin-S usa LayerNorm y GELU, no BatchNorm y ReLU.
+ViT trabaja a una única escala: todas sus capas operan sobre la misma rejilla de
+parches. Se han propuesto transformers que procesan la imagen a varias escalas y
+que, como las redes convolucionales, empiezan con parches de alta resolución y
+pocos canales y van reduciendo la resolución a la vez que aumentan el número de
+canales~\cite[sec.~12.10.3]{prince2023understanding}. Un ejemplo representativo
+es el \emph{Swin Transformer} (\emph{shifted window transformer}) de Liu et
+al.~\cite{liu2021swin}.
+
+Liu et al.\ explican las dificultades de trasladar el transformer del lenguaje a
+la visión por dos diferencias entre ambos dominios: los objetos de una imagen
+pueden aparecer a escalas muy distintas, mientras que en los transformers
+existentes todos los tokens tienen una escala fija; y la resolución de los
+píxeles de una imagen es mucho mayor que la de las palabras de un texto, mientras
+que el coste de la autoatención es cuadrático en el tamaño de la
+imagen~\cite[sec.~1]{liu2021swin}. Swin responde a ambas con una representación
+jerárquica y con autoatención calculada dentro de ventanas locales.
+
+\subsubsection{Arquitectura}
+
+La imagen se divide en parches de $4\times4$ píxeles que no se solapan, como en
+ViT. Cada parche es un token cuyo vector de características es la concatenación
+de sus valores RGB, de dimensión $4\times4\times3 = 48$, y una capa lineal lo
+proyecta a una dimensión $C$. Sobre estos $\frac{H}{4}\times\frac{W}{4}$ tokens se
+aplican varios bloques Swin, que mantienen el número de tokens; todo ello forma la
+\emph{etapa 1}. Para obtener una representación jerárquica, una capa de
+\emph{fusión de parches} (\emph{patch merging}) concatena las características de
+cada grupo de $2\times2$ parches vecinos, de dimensión $4C$, y les aplica una capa
+lineal con salida de dimensión $2C$. Así, el número de tokens se divide entre
+$4$, la resolución entre $2$ y el número de canales se duplica. Siguen nuevos
+bloques Swin, que forman la \emph{etapa 2}, con resolución
+$\frac{H}{8}\times\frac{W}{8}$. El proceso se repite en las etapas 3 y 4, con
+resoluciones $\frac{H}{16}\times\frac{W}{16}$ y $\frac{H}{32}\times\frac{W}{32}$:
+las mismas que las de redes convolucionales típicas como
+ResNet~\cite[sec.~3.1]{liu2021swin}. La fusión de parches desempeña así un papel
+análogo al del \emph{pooling} en una red convolucional.
+
+Un \emph{bloque Swin} es una capa transformer con LayerNorm antes de cada unidad
+(\cref{obs:prenorm}) en la que la autoatención multicabeza se sustituye por una
+autoatención por ventanas; el MLP tiene dos capas con GELU. Los bloques
+consecutivos alternan dos particiones en ventanas, la regular (W-MSA) y la
+desplazada (SW-MSA), que se describen a continuación:
+\begin{align*}
+  \widehat{Z}_\ell &= Z_{\ell-1} + \operatorname{W-MSA}\bigl(\operatorname{LN}(Z_{\ell-1})\bigr), &
+  Z_\ell &= \widehat{Z}_\ell + \operatorname{MLP}\bigl(\operatorname{LN}(\widehat{Z}_\ell)\bigr),\\
+  \widehat{Z}_{\ell+1} &= Z_\ell + \operatorname{SW-MSA}\bigl(\operatorname{LN}(Z_\ell)\bigr), &
+  Z_{\ell+1} &= \widehat{Z}_{\ell+1} + \operatorname{MLP}\bigl(\operatorname{LN}(\widehat{Z}_{\ell+1})\bigr),
+\end{align*}
+donde $\widehat{Z}_\ell$ y $Z_\ell$ son las salidas de la autoatención y del MLP
+del bloque $\ell$~\cite[ec.~(3)]{liu2021swin}.
+
+Swin no tiene token de clase: las características de la última capa se promedian
+sobre todos los tokens y una capa lineal las transforma en las puntuaciones de
+las clases~\cite[sec.~12.10.3]{prince2023understanding}.
+
+\subsubsection{Autoatención por ventanas}
+
+La autoatención global de ViT relaciona cada token con todos los demás, lo que
+tiene un coste cuadrático en el número de tokens. Para reducirlo, Swin calcula la
+autoatención dentro de \emph{ventanas} locales de $M\times M$ parches que dividen
+la imagen sin solaparse~\cite[sec.~3.2]{liu2021swin}. El siguiente resultado
+cuantifica la diferencia.
+
+\begin{proposicion}[{Coste de la atención por ventanas~\cite[ecs.~(1)--(2)]{liu2021swin}}]\label{prop:swin-coste}
+Sea un mapa de $h\times w$ parches con $C$ canales y sea $M$ un divisor de $h$ y
+de $w$. Contando las multiplicaciones de los productos de matrices y omitiendo el
+cálculo de la función \emph{softmax}, el coste de la autoatención multicabeza
+global (MSA) y el de la autoatención por ventanas de $M\times M$ parches (W-MSA)
+son
+\begin{align*}
+  \Omega(\mathrm{MSA}) &= 4hwC^2 + 2(hw)^2C,\\
+  \Omega(\text{W-MSA}) &= 4hwC^2 + 2M^2hwC.
+\end{align*}
+El primero es cuadrático en el número de parches $hw$ y el segundo es lineal en
+$hw$ para $M$ fijo.
 \end{proposicion}
+
+\begin{demostracion}
+Sean $T = hw$ el número de tokens, $X\in\R^{C\times T}$ la matriz de entrada y $H$
+el número de cabezas, cada una con consultas, claves y valores de dimensión
+$C/H$.
+
+\emph{Proyecciones.} Para cada cabeza, calcular $\Omega_{v_h}X$, con
+$\Omega_{v_h}\in\R^{(C/H)\times C}$, requiere $(C/H)\cdot C\cdot T$
+multiplicaciones; para las $H$ cabezas, $C^2T$. Lo mismo ocurre con las consultas
+y las claves, y con la proyección final $\Omega_c\in\R^{C\times C}$ de la
+\cref{def:multicabeza}. En total, $4C^2T = 4hwC^2$ multiplicaciones. Estas
+operaciones actúan sobre cada token por separado, así que su coste es el mismo en
+MSA y en W-MSA.
+
+\emph{Atención global.} Para cada cabeza, $K_h^{\top}Q_h$ es el producto de una
+matriz $T\times(C/H)$ por otra $(C/H)\times T$, con $T^2\,C/H$ multiplicaciones,
+y $V_h\Softmax(\cdot)$ es el producto de una matriz $(C/H)\times T$ por otra
+$T\times T$, con otras $T^2\,C/H$. Para las $H$ cabezas, $2T^2C = 2(hw)^2C$.
+Sumando, se obtiene $\Omega(\mathrm{MSA})$.
+
+\emph{Atención por ventanas.} Cada ventana contiene $M^2$ tokens y se procesa
+igual que en el caso global con $T = M^2$, con un coste de $2(M^2)^2C$. Como hay
+$hw/M^2$ ventanas, el coste total de la atención es
+$\frac{hw}{M^2}\cdot 2M^4C = 2M^2hwC$. Sumando las proyecciones, se obtiene
+$\Omega(\text{W-MSA})$.
+\end{demostracion}
+
+Liu et al.\ fijan $M = 7$ por defecto. En la primera etapa de Swin-S, con
+imágenes de $224\times224$, el mapa tiene $h = w = 56$; la parte de atención del
+coste se reduce en un factor $hw/M^2 = 3136/49 = 64$. Liu et al.\ indican que la
+atención global es inabordable para $hw$ grande, mientras que la atención por
+ventanas es escalable~\cite[sec.~3.2]{liu2021swin}. Si $M$ no divide a $h$ o a $w$,
+el mapa se rellena por la parte inferior derecha~\cite[sec.~3.2]{liu2021swin}.
+
+\subsubsection{Ventanas desplazadas}
+
+La autoatención por ventanas no relaciona parches de ventanas distintas, lo que
+limita la capacidad del modelo. Para introducir conexiones entre ventanas sin
+perder la eficiencia, los bloques consecutivos alternan dos particiones. La
+primera es la partición regular, que empieza en el píxel superior izquierdo; la
+segunda desplaza las ventanas $\bigl(\lfloor M/2\rfloor, \lfloor M/2\rfloor\bigr)$
+parches respecto de la regular. Así, las nuevas ventanas cruzan los bordes de las
+de la capa anterior y las conectan~\cite[sec.~3.2]{liu2021swin}. Prince lo resume
+diciendo que, tras varias capas, la información puede propagarse por toda la
+imagen~\cite[fig.~12.18]{prince2023understanding}.
+
+La partición desplazada da lugar a más ventanas, de
+$\lceil h/M\rceil\times\lceil w/M\rceil$ a
+$(\lceil h/M\rceil+1)\times(\lceil w/M\rceil+1)$, y algunas son más pequeñas que
+$M\times M$. Para no aumentar el coste, Liu et al.\ desplazan cíclicamente el mapa
+hacia la esquina superior izquierda. Tras el desplazamiento, una ventana puede
+estar formada por varias subventanas que no son adyacentes en el mapa original,
+así que se aplica una máscara que limita la autoatención al interior de cada
+subventana. De este modo, el número de ventanas es el mismo que con la partición
+regular~\cite[sec.~3.2, fig.~4]{liu2021swin}.
+
+\subsubsection{Sesgo de posición relativa}
+
+Swin no suma embeddings de posición a la entrada, sino que usa una codificación
+posicional relativa (\cref{sec:codificacion-posicional}): dentro de cada ventana
+y para cada cabeza, suma un \emph{sesgo de posición relativa}
+$B\in\R^{M^2\times M^2}$ a las compatibilidades antes de la función
+\emph{softmax},
+\[
+  \operatorname{Sa}(X) = V\,\Softmax\!\left(\frac{K^{\top}Q}{\sqrt{d}} + B\right),
+\]
+donde $d$ es la dimensión de las consultas y las claves, y el elemento de $B$
+correspondiente a dos parches de la ventana depende solo de su desplazamiento
+relativo~\cite[ec.~(4)]{liu2021swin}. Como el desplazamiento en cada eje está en
+$[-M+1, M-1]$, basta aprender una matriz $\widehat{B}\in\R^{(2M-1)\times(2M-1)}$
+de la que se toman los valores de $B$. Liu et al.\ observan mejoras significativas
+frente a no usar este sesgo o frente a usar embeddings de posición absolutos, y
+que añadir además embeddings absolutos a la entrada, como en ViT, empeora
+ligeramente el rendimiento~\cite[sec.~3.2]{liu2021swin}.
+
+\subsubsection{Swin-S}
+
+Liu et al.\ definen cuatro variantes, Swin-T, Swin-S, Swin-B y Swin-L. En todas,
+$M = 7$, la dimensión de las consultas de cada cabeza es $d = 32$ y la capa
+oculta del MLP tiene $4$ veces la dimensión de la entrada. Swin-S tiene $C = 96$
+y $\{2, 2, 18, 2\}$ bloques en sus cuatro etapas, y su complejidad es similar a la
+de ResNet-101~\cite[sec.~3.3]{liu2021swin}. La \cref{tab:swin-s} resume el
+Swin-S usado en este trabajo. Su salida, tras el promedio, tiene $768$
+características.
+
+\begin{table}[tbp]
+  \centering
+  \caption{Etapas del Swin-S usado en este trabajo, con imágenes de entrada de
+    $224\times224$: resolución del mapa de tokens, número de canales, número de
+    bloques Swin y número de cabezas.}
+  \label{tab:swin-s}
+  \begin{tabular}{ccccc}
+    \toprule
+    Etapa & Resolución & Canales & Bloques & Cabezas\\
+    \midrule
+    1 & $56\times56$ & $96$  & $2$  & $3$\\
+    2 & $28\times28$ & $192$ & $2$  & $6$\\
+    3 & $14\times14$ & $384$ & $18$ & $12$\\
+    4 & $7\times7$   & $768$ & $2$  & $24$\\
+    \bottomrule
+  \end{tabular}
+\end{table}
+% Resolución, canales y bloques: resumen de capas de param4_*/resultados.txt.
+\revisar{el número de cabezas no aparece en el resumen de capas: se ha obtenido como canales$/d$ con
+$d = 32$ (Liu et al., sec.~3.3)}
 
 \subsection{ConvNeXt}\label{sec:convnext}
 
-% - Liu et al. (2022): red convolucional modernizada con decisiones de diseño de los transformers.
-\pendiente{ConvNeXt}
+% [agente] Texto redactado a partir de Todi et al. (2023), que resume a Liu et al. (2022), y del
+% resumen de capas de param2_*/resultados.txt (convnext_small): entrada de 256x256; convolución
+% inicial Conv2d con 4704 = 96*3*4*4 + 96 parámetros (4x4, paso 4, salida 64x64); bloques con
+% Conv2d 4800 = 96*7*7 + 96 (por canal, 7x7), LayerNorm, Linear 96->384, GELU, Linear 384->96;
+% reducción entre etapas LayerNorm2d + Conv2d 73920 = 96*192*2*2 + 192 (2x2); etapas de 3, 3, 27
+% y 3 bloques (36 GELU) con 96, 192, 384 y 768 canales; salida de 768 x 8 x 8.
+
+En 2020 las redes neuronales convulcionales parecían estancadas ante la superioridad de los transformers. ¿Y si realmente,
+no es que fueran peores, y sólo es que estaban desactualizadas? Esta pregunta fue respondida en 2022, cuando unos investigadores de Facebook presentaron una familia de redes
+convolucionales, llamada ConvNeXt, que superó a los vision transformers en
+clasificación de imágenes~\cite{liu2022convnext,todi2023convnext}. Para construirla, partieron de
+una ResNet y la adaptaron para que se pareciera más a un vision
+transformer. Para esto aplicaron diversas implementaciones como pasar de entrenar con 90 épocas a 300, utilizar
+como optimizador AdamW en vez SGD, nuevas técnicas de data augmentation, stochasthic depth y label smoothing que evitó que el modelo 
+fuese demasiado confiado. También empleó en cada una de las cuatro etapas principales de la red neuronal una distribución de 
+bloques residuales en donde se dedica mucha más capacidad de procesamiento a extraer características complejas en una resolución intermedia. Estó último permitió que el modelo fuera capaz de adquirir características más complejas. Entre otras implementaciones como utilizar como función 
+de activación GELU en vez de RELU la estructura final del bloque ConvNext es la siguiente:
+
+\textit{Input $\rightarrow$ 7x7 DWConv $\rightarrow$ Capa de normalización $\rightarrow$ 1x1 Conv $\rightarrow$ Función de activación Gelu $\rightarrow$ 1x1 Conv}
+\cite{liu2022convnext}
+El el modelo resultante se entrenó y evaluó en ImageNet-1k e
+ImageNet-22k y tiene varias variantes~\cite{todi2023convnext}. ConvNeXt es, por
+tanto, una red puramente convolucional que incorpora decisiones de diseño de los
+transformers~\cite{todi2023convnext}.
+
+\subsubsection{Convoluciones por canal y puntuales}
+
+El bloque ConvNeXt combina dos tipos de convolución~\cite{todi2023convnext}. En
+la \emph{convolución por canal} (\emph{depthwise convolution}), cada canal de
+entrada se convoluciona con su propio filtro, y en la \emph{convolución puntual}
+(\emph{pointwise convolution}) cada canal de salida combina todos los canales de
+entrada. Con la notación de la \cref{eq:conv-multicanal}, y para un núcleo
+espacial de $k\times k$:
+
+\begin{definicion}[Convolución por canal y convolución puntual]\label{def:conv-depthwise}
+Sea $\mathsf{V}$ una entrada con $C$ canales. La \emph{convolución por canal}
+con núcleo $\mathsf{K}\in\R^{C\times k\times k}$ da una salida con $C$ canales,
+\[
+  \mathsf{Z}_{i,j,l} = \sum_{m,n} \mathsf{V}_{i,\, j+m-1,\, l+n-1}\, \mathsf{K}_{i,m,n},
+\]
+y la \emph{convolución puntual} con núcleo $\mathsf{K}\in\R^{C'\times C}$ da una
+salida con $C'$ canales,
+\[
+  \mathsf{Z}_{i,j,l} = \sum_{c=1}^{C} \mathsf{V}_{c,j,l}\, \mathsf{K}_{i,c}.
+\]
+\end{definicion}
+
+La convolución puntual es una convolución de $1\times1$: en cada posición
+espacial aplica la misma transformación lineal $\R^{C}\to\R^{C'}$ al vector de
+canales. Es, por tanto, equivalente a una capa totalmente conectada aplicada a
+cada posición por separado, como el MLP de una capa transformer a cada token.
+
+\begin{proposicion}\label{prop:conv-depthwise-param}
+Sin contar los sesgos, una convolución de $k\times k$ de $C$ a $C'$ canales tiene
+$C\,C'\,k^2$ parámetros, mientras que una convolución por canal de $k\times k$
+seguida de una convolución puntual de $C$ a $C'$ canales tiene
+$C\,k^2 + C\,C'$.
+\end{proposicion}
+
+\begin{demostracion}
+Basta contar los elementos de los núcleos: el de la convolución de la
+\cref{eq:conv-multicanal} tiene un peso $\mathsf{K}_{i,c,m,n}$ por cada canal de
+salida $i$, canal de entrada $c$ y posición $(m,n)$ del núcleo, es decir,
+$C'\,C\,k^2$; los de la \cref{def:conv-depthwise} tienen $C\,k^2$ y $C'\,C$
+elementos.
+\end{demostracion}
+
+Por ejemplo, en la primera etapa del ConvNeXt-S usado en este trabajo, con
+$C = C' = 96$ y $k = 7$, una convolución completa tendría
+$96^2\cdot 49 = 451\,584$ pesos, mientras que la convolución por canal tiene
+$96\cdot 49 = 4704$.
+
+\subsubsection{El bloque ConvNeXt}
+
+Según Todi et al., un bloque ConvNeXt consta de una convolución por canal, una
+convolución puntual, una conexión residual, una LayerNorm y una activación
+GELU~\cite{todi2023convnext}. En la implementación usada en este trabajo, el
+bloque con $C$ canales calcula
+\[
+  x \;\leftarrow\; x + \operatorname{PW}_2\Bigl(\operatorname{GELU}\bigl(\operatorname{PW}_1\bigl(\operatorname{LN}(\operatorname{DW}_{7\times7}(x))\bigr)\bigr)\Bigr),
+\]
+donde $\operatorname{DW}_{7\times7}$ es una convolución por canal de $7\times7$,
+$\operatorname{LN}$ normaliza los $C$ canales en cada posición espacial,
+$\operatorname{PW}_1$ es una convolución puntual de $C$ a $4C$ canales y
+$\operatorname{PW}_2$ otra de $4C$ a $C$. Es el bloque de la figura~4 de Liu et
+al.~\cite[fig.~4]{liu2022convnext}.
+% Orden comprobado en el resumen de capas (Conv2d, LayerNorm, Linear, GELU, Linear) y en la fig. 4
+% de Liu et al. (2022). El parámetro gamma (escalado por capa) se ha comprobado en
+% param2_*/convnext_small_pesos_finales.pth: uno por bloque, 36 en total.
+Liu et al.\ aplican además el escalado por capa (\emph{layer scale}) de Touvron et
+al., con valor inicial $10^{-6}$~\cite[sec.~3]{liu2022convnext}. El modelo usado en
+este trabajo lo incluye: cada uno de sus $36$ bloques tiene un parámetro
+\texttt{gamma}, que no aparece en el resumen de capas porque no es una capa.
+\pendiente{definir el escalado por capa y añadirlo a la ecuación del bloque: requiere
+Touvron et al.~(2021), \emph{Going deeper with image transformers}, ICCV (ref.~[74] de
+Liu et al.), que no está en tfg-referencias/papers}
+
+Liu et al.\ parten de una ResNet-50 y la modifican paso a paso siguiendo el
+diseño de Swin, comprobando en ImageNet-1K el efecto de cada cambio
+\cite[sec.~2]{liu2022convnext}. La comparación con las arquitecturas anteriores
+muestra qué se ha tomado de cada una:
+% [agente] Lista redactada a partir de Liu et al. (2022), secs. 2.2-2.6 y fig. 4.
+\begin{itemize}
+  \item \emph{Diseño por etapas.} De ResNet-50 (\cref{sec:resnet}) conserva la
+  estructura convolucional en cuatro etapas con conexiones residuales, que reducen
+  la resolución y aumentan los canales. El número de bloques por etapa pasa de
+  $(3, 4, 6, 3)$ en ResNet-50 a $(3, 3, 9, 3)$, siguiendo la proporción $1:1:3:1$
+  de Swin-T~\cite[sec.~2.2]{liu2022convnext}. El ConvNeXt-S usado en este trabajo
+  tiene $(3, 3, 27, 3)$ bloques~\cite[sec.~3]{liu2022convnext}.
+  \item \emph{Entrada por parches.} ResNet empieza con una convolución de
+  $7\times7$ con paso $2$ seguida de \emph{max pooling}, que reduce la resolución
+  a la cuarta parte. ConvNeXt la sustituye por una convolución de $4\times4$ con
+  paso $4$, que divide la imagen en parches de $4\times4$ que no se solapan, como
+  la división en parches de ViT y de Swin~\cite[sec.~2.2]{liu2022convnext}.
+  \item \emph{Convolución por canal.} Liu et al.\ señalan que la convolución por
+  canal se parece a la suma ponderada de la autoatención, que actúa canal a canal
+  y solo mezcla información en la dimensión espacial. Combinada con las
+  convoluciones de $1\times1$, separa la mezcla espacial de la mezcla entre
+  canales, como en los vision transformers. Para compensar la pérdida de
+  capacidad, la anchura de la primera etapa pasa de $64$ a $96$ canales, como en
+  Swin-T~\cite[sec.~2.3]{liu2022convnext}.
+  \item \emph{Cuello de botella invertido.} En cada bloque transformer, la capa
+  oculta del MLP tiene cuatro veces la dimensión de la entrada. Del mismo modo,
+  $\operatorname{PW}_1$ y $\operatorname{PW}_2$ expanden los canales a $4C$ y
+  los reducen de nuevo a $C$, al contrario que el cuello de botella de ResNet, que
+  los reduce en la capa intermedia~\cite[sec.~2.4]{liu2022convnext}. Además, la
+  convolución por canal se coloca al principio del bloque, igual que en un
+  transformer la autoatención va antes del MLP~\cite[sec.~2.5]{liu2022convnext}.
+  \item \emph{Núcleos grandes.} Las ventanas de Swin son de al menos $7\times7$,
+  mucho mayores que los núcleos de $3\times3$ de ResNet. Liu et al.\ prueban
+  núcleos de $3$, $5$, $7$, $9$ y $11$: la exactitud mejora hasta $7\times7$ y a
+  partir de ahí se satura~\cite[sec.~2.5]{liu2022convnext}. Así, la convolución
+  por canal mezcla la información de una vecindad del mismo tamaño que las
+  ventanas de Swin ($M = 7$), pero con pesos que no dependen de la entrada.
+  \item \emph{Microdiseño.} La ReLU se sustituye por la GELU, se deja una sola
+  activación por bloque, entre las dos convoluciones de $1\times1$, como en el MLP
+  de un transformer, y una sola normalización, que pasa de BatchNorm a LayerNorm.
+  El bloque con cuello de botella de ResNet tiene, en cambio, tres de cada tipo
+  \cite[sec.~2.6, fig.~4]{liu2022convnext}.
+  \item \emph{Capas de reducción separadas.} ResNet reduce la resolución en el
+  primer bloque de cada etapa con una convolución de $3\times3$ y paso $2$. Como
+  Swin, ConvNeXt usa capas separadas: convoluciones de $2\times2$ con paso $2$,
+  que reducen la resolución a la mitad y duplican los canales, igual que la fusión
+  de parches. Con ellas el entrenamiento divergía, y se estabilizó añadiendo
+  LayerNorm donde cambia la resolución: antes de cada capa de reducción, después
+  de la primera capa y después del promedio global final
+  \cite[sec.~2.6]{liu2022convnext}.
+\end{itemize}
+Con todos estos cambios, ConvNeXt supera a Swin-T en ImageNet-1K con un coste
+similar y sin módulos especializados como la atención por ventanas desplazadas o
+el sesgo de posición relativa. Liu et al.\ señalan que ninguna de estas
+decisiones es nueva en la literatura de redes convolucionales: se habían estudiado
+por separado, pero no conjuntamente~\cite[sec.~2]{liu2022convnext}.
+
+El ConvNeXt-S usado en este trabajo tiene cuatro etapas de $3$, $3$, $27$ y $3$
+bloques con $96$, $192$, $384$ y $768$ canales. Con las imágenes de
+$256\times256$ con las que se entrenó, los mapas de características de las etapas
+tienen resoluciones de $64\times64$, $32\times32$, $16\times16$ y $8\times8$, de
+modo que su salida es un mapa de $768\times8\times8$. Como en los demás modelos
+entrenados con fastai, la cabeza de clasificación es la de fastai
+(\cref{sec:learner}). Las capas \texttt{conv\_dw}, \texttt{fc1} y \texttt{fc2}
+del bloque son, respectivamente, $\operatorname{DW}_{7\times7}$,
+$\operatorname{PW}_1$ y $\operatorname{PW}_2$; son los nombres que se usan en la
+configuración de LRP del \cref{cap:explicabilidad}.
+% Nombres comprobados en param2_*/convnext_small_pesos_finales.pth:
+% model.stages.i.blocks.j.{conv_dw, mlp.fc1, mlp.fc2, gamma}.
 
 \endinput
