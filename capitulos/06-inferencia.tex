@@ -236,24 +236,27 @@ Dada una muestra $(x_1, \dots, x_n)$, el método \emph{bootstrap} consiste en:
   \]
 
   \item Se repiten los pasos 1 y 2 un número $B$ grande de veces (1000, por ejemplo). De esta forma se
-  obtiene una secuencia de $B$ valores, $\hat\theta^*_1, \dots, \hat\theta^*_B$, que se considerará
+  obtiene una secuencia de $B$ valores del estimador, $\hat\theta^*_1, \dots, \hat\theta^*_B$, que se considerará
   una aproximación de la distribución de $\hat\theta$. Su media será
   \[
     \bar\theta^* = \frac{1}{B} \sum_{b=1}^{B} \hat\theta^*_b,
   \]
   y su varianza,
   \[
-    \widehat{\Var}^*\bigl(\hat\theta\bigr) = \frac{1}{B-1} \sum_{b=1}^{B} \bigl(\hat\theta^*_b - \bar\theta^*\bigr)^2 .
+    \widehat{\Var}^*\bigl(\hat\theta\bigr) = \frac{1}{B} \sum_{b=1}^{B} \bigl(\hat\theta^*_b - \bar\theta^*\bigr)^2 .
   \]
-\end{enumerate}
+  ~\cite{pena2008fundamentos}
+\end{enumerate} 
 
 \begin{definicion}[Intervalo \emph{bootstrap} por percentiles~\cite{efron1979}]\label{def:bootstrap}
 Sean $\hat\theta^*_{(1)} \le \hat\theta^*_{(2)} \le \dots \le \hat\theta^*_{(B)}$ las réplicas
 \emph{bootstrap} ordenadas de menor a mayor y sea $\alpha \in (0, 1)$. El intervalo \emph{bootstrap}
 por percentiles de nivel $1 - \alpha$ para $\theta$ es
 \[
-  \Bigl[\, \hat\theta^*_{(\lceil B\alpha/2 \rceil)},\ \hat\theta^*_{(\lceil B(1-\alpha/2) \rceil)} \,\Bigr].
+  \Bigl[\, \hat\theta^*_{(\lceil B \times \alpha/2 \rceil)},\ \hat\theta^*_{(\lceil B \times (1-\alpha/2) \rceil)} \,\Bigr].
 \]
+
+donde [ ] indica redondear al entero más próximo.   ~\cite{pena2008fundamentos}
 \end{definicion}
 
 \begin{observacion}[Bootstrap estratificado, pareado y por lámina]\label{obs:bootstrap-variantes}
@@ -263,68 +266,381 @@ por percentiles de nivel $1 - \alpha$ para $\theta$ es
 %=======================================================
 \section{Predicción conforme}\label{sec:prediccion-conforme}
 %=======================================================
+%
+% Convenciones de los comentarios «% Fuente»:
+% - angelopoulos2021: «A Gentle Introduction to Conformal Prediction...», versión del 8 de diciembre
+%   de 2022 (arXiv:2107.07511); página del PDF.
+% - vovk2022: 2.ª edición (Springer, 2022); página impresa.
+% - angelopoulos2021raps: versión arXiv:2009.14193v5; página del PDF.
+% [agente] Sección redactada por el agente a partir de estas tres fuentes (encargo del autor).
 
-Predicción conforme. La predicción conforme (CP) se erige como un marco estadístico robusto en el aprendizaje automático, diseñado principalmente para proporcionar medidas de confianza para las predicciones (Shafer y Vovk~\cite{shafer2008}; Angelopoulos y Bates~\cite{angelopoulos2021}).
-\revisar{posible traducción casi literal (en las notas aparece bajo «Añadir esta parte de Inferencia Estadística»); comprobar la fuente, parafrasear y citar}
+Un clasificador como el de la \cref{def:entropia-cruzada} devuelve, para cada
+imagen, una distribución sobre las clases, pero sus probabilidades son una medida
+heurística de la incertidumbre: nada garantiza que estén bien
+calibradas~\cite{angelopoulos2021}. La \emph{predicción conforme} transforma esa
+medida heurística en una garantía estadística: a partir de un modelo ya entrenado
+y de un conjunto de calibración no usado en el entrenamiento, construye para cada
+entrada un \emph{conjunto de predicción} que contiene la clase verdadera con una
+probabilidad elegida por el usuario, sin suponer nada sobre la distribución de los
+datos ni sobre el modelo, y con validez para tamaños de muestra
+finitos~\cite{angelopoulos2021}. El marco procede de los trabajos de Vovk,
+Gammerman y Shafer~\cite{vovk2022,shafer2008}; aquí se sigue la versión dividida
+(\emph{split}) que presentan Angelopoulos y Bates~\cite{angelopoulos2021}.
+% Fuente: angelopoulos2021, resumen, p. 1, y §1, pp. 4-5 (medida heurística, conjunto de
+% calibración, validez sin hipótesis de distribución); vovk2022, §1.4, pp. 9-12.
+% Sustituye a la frase de las notas marcada como posible traducción (procedía de Yang et al., IJCV,
+% §2.6, p. 5642, que ya se parafrasea en el capítulo 2).
 
-\begin{definicion}[Intercambiabilidad]\label{def:intercambiabilidad}
-\pendiente{definición}
+En toda la sección, $\alpha \in (0,1)$ es el \emph{nivel de error} elegido por el
+usuario. Vovk et al.\ lo llaman nivel de significación y lo denotan
+$\epsilon$~\cite{vovk2022}.
+% Fuente: vovk2022, §2.1.2-2.2.4, pp. 20-30 (notación \epsilon para el nivel de significación).
+
+\subsection{Intercambiabilidad y predicción conforme dividida}\label{sec:conforme-dividida}
+
+La única hipótesis que necesitan las garantías es que los datos de calibración y
+el de prueba sean intercambiables.
+
+\begin{definicion}[{Intercambiabilidad~\cite[secs.~2.1.1 y~2.1.5]{vovk2022}}]\label{def:intercambiabilidad}
+Una sucesión finita de variables aleatorias $Z_1,\dots,Z_N$ es
+\emph{intercambiable} si, para toda permutación $\sigma$ de $\{1,\dots,N\}$, el
+vector $(Z_{\sigma(1)},\dots,Z_{\sigma(N)})$ tiene la misma distribución que
+$(Z_1,\dots,Z_N)$.
 \end{definicion}
 
-\begin{definicion}[Predicción conforme dividida]\label{def:split-conformal}
-% Puntuación de no conformidad s(x, y); puntuaciones de calibración s_1, ..., s_n;
-% \hat q = k-ésimo menor valor, k = \lceil (n+1)(1-\alpha) \rceil (\hat q = \infty si k > n);
-% C(x) = \{ y : s(x, y) \le \hat q \}.
-\pendiente{definición}
+Es decir, la distribución conjunta no depende del orden de los datos. Toda
+sucesión de variables independientes e idénticamente distribuidas es
+intercambiable~\cite{vovk2022}, de modo que las garantías que siguen valen en
+particular en el caso i.i.d.; Angelopoulos y Bates enuncian sus resultados con esa
+hipótesis y señalan que se mantienen bajo la condición, más débil, de
+intercambiabilidad~\cite{angelopoulos2021}.
+% Fuente: vovk2022, §2.1.1, pp. 19-20, ec. (2.2), y §2.1.5, p. 25 (versión finita);
+% angelopoulos2021, apéndice D, p. 50.
+
+Sea $\{(X_i,Y_i)\}_{i=1}^{n}$ un conjunto de \emph{calibración}, disjunto del de
+entrenamiento, y sea $s\colon\mathcal{X}\times\mathcal{Y}\to\R$ una
+\emph{puntuación de no conformidad}: una función que toma valores mayores cuanto
+peor concuerdan $x$ e $y$ según el modelo~\cite{angelopoulos2021,vovk2022}.
+
+\begin{definicion}[{Predicción conforme dividida~\cite[sec.~1.1 y ap.~D]{angelopoulos2021}}]\label{def:split-conformal}
+Sean $s_i = s(X_i,Y_i)$, $i = 1,\dots,n$, las puntuaciones de calibración,
+$s_{(1)} \le \dots \le s_{(n)}$ esas puntuaciones ordenadas de menor a mayor y
+\[
+  k = \bigl\lceil (n+1)(1-\alpha) \bigr\rceil .
+\]
+El \emph{umbral conforme} es $\hat q = s_{(k)}$ si $k \le n$ y $\hat q = +\infty$
+si $k > n$. El \emph{conjunto de predicción} de una nueva entrada $x$ es
+\[
+  C(x) = \bigl\{\, y \in \mathcal{Y} : s(x,y) \le \hat q \,\bigr\}.
+\]
 \end{definicion}
 
-\begin{teorema}[Cobertura marginal]\label{teo:cobertura}
-% Si (X_1, Y_1), ..., (X_{n+1}, Y_{n+1}) son intercambiables y \hat q es el k-ésimo menor valor de las
-% puntuaciones de calibración, k = \lceil (n+1)(1-\alpha) \rceil, entonces
-% 1 - \alpha \le \Prob(Y_{n+1} \in C(X_{n+1})) \le 1 - \alpha + 1/(n+1) (la cota superior, sin empates).
-\pendiente{enunciado}
-\end{teorema}
-\begin{demostracion}
-% Rango de la puntuación de test entre las n+1 puntuaciones: uniforme en \{1, ..., n+1\} por la
-% intercambiabilidad.
-\pendiente{demostración}
-\end{demostracion}
+El umbral $\hat q$ es, esencialmente, el cuantil $1-\alpha$ de las puntuaciones de
+calibración, con una pequeña corrección por el tamaño
+finito de la muestra~\cite{angelopoulos2021}. Vovk et al.\ llaman a esta versión
+\emph{predictor conforme inductivo}: el conjunto de entrenamiento se divide en un
+conjunto de entrenamiento propiamente dicho, con el que se ajusta el modelo, y uno
+de calibración, con el que se calcula el umbral~\cite{vovk2022}. Cuando $k > n$, el
+conjunto de calibración es demasiado pequeño para el nivel pedido y el conjunto
+de predicción contiene todas las clases~\cite{angelopoulos2021}.
+% Fuente: angelopoulos2021, §1, p. 4 (cuantil corregido); §1.1, p. 5 (pasos generales); apéndice D,
+% pp. 50-51 (definición de \hat q como ínfimo y caso \hat q = \infty si \alpha < 1/(n+1));
+% vovk2022, §4.2, pp. 109-110, ec. (4.4) y observación 4.2, ec. (4.6).
 
-\begin{proposicion}[$p$-valor conforme]\label{prop:p-valor-conforme}
-% p(x) = (1 + #\{i : s_i \ge s(x)\}) / (n + 1) es superuniforme: P(p \le u) \le u bajo intercambiabilidad.
-% Conecta con \cref{prop:p-valor-uniforme} y con la detección OOD (un p-valor que sí está calibrado,
-% a diferencia del de STOOD-X).
-\pendiente{enunciado}
+\subsection{\texorpdfstring{$p$}{p}-valor conforme y cobertura}\label{sec:conforme-cobertura}
+
+Las garantías de la predicción conforme se apoyan en un $p$-valor construido con
+los rangos de las puntuaciones.
+
+\begin{proposicion}[{$p$-valor conforme~\cite[secs.~2.2.3 y~4.2]{vovk2022}}]\label{prop:p-valor-conforme}
+Sean $S_1,\dots,S_n,S_{n+1}$ variables aleatorias reales intercambiables y
+\[
+  p = \frac{1 + \#\{\, i \in \{1,\dots,n\} : S_i \ge S_{n+1} \,\}}{n+1}.
+\]
+Entonces $p$ es \emph{superuniforme}: $\Prob(p \le u) \le u$ para todo
+$u \in [0,1]$.
 \end{proposicion}
+
 \begin{demostracion}
-\pendiente{demostración}
+Para cada $j \in \{1,\dots,n+1\}$, sea
+$R_j = \#\{\, i \in \{1,\dots,n+1\} : S_i \ge S_j \,\}$, de modo que
+$p = R_{n+1}/(n+1)$. Fijado un entero $m$, veamos que como mucho $m$ índices
+cumplen $R_j \le m$. Si $A$ es el conjunto de esos índices y $j^\ast \in A$ es uno
+con la menor puntuación $S_{j^\ast}$, todos los $i \in A$ cumplen
+$S_i \ge S_{j^\ast}$, luego $R_{j^\ast} \ge |A|$ y, como $R_{j^\ast} \le m$, se
+tiene $|A| \le m$. Por tanto,
+$\sum_{j=1}^{n+1} \Ind\{R_j \le m\} \le m$.
+
+Por la intercambiabilidad, el vector $(R_1,\dots,R_{n+1})$ tiene la misma
+distribución que cualquier permutación suya, así que todas las $R_j$ tienen la
+misma distribución. Tomando esperanzas,
+\[
+  (n+1)\,\Prob(R_{n+1} \le m) = \sum_{j=1}^{n+1} \Prob(R_j \le m)
+  = \E\Bigl[\,\sum_{j=1}^{n+1} \Ind\{R_j \le m\}\Bigr] \le m .
+\]
+Por último, $p \le u$ equivale a $R_{n+1} \le \lfloor u(n+1) \rfloor$, y con
+$m = \lfloor u(n+1) \rfloor$ se obtiene
+$\Prob(p \le u) \le \lfloor u(n+1)\rfloor/(n+1) \le u$.
 \end{demostracion}
+% Fuente: vovk2022, §2.2.3, p. 29, ec. (2.20) (p-valor como fracción de ejemplos al menos tan no
+% conformes); §4.2, p. 110, ec. (4.4) (forma (\#\{\alpha_j \ge \alpha_i\} + 1)/(h + 1)); proposición
+% 4.1, p. 109 (validez conservadora). La demostración adapta el argumento de rangos del apéndice D
+% de angelopoulos2021 (pp. 50-51), que supone puntuaciones sin empates; aquí se admiten empates.
 
-\begin{definicion}[Puntuaciones LAC y APS~\cite{romano2020}]\label{def:lac-aps}
-% LAC: s(x, y) = 1 - \pi_y(x).
-% APS: s(x, y) = \sum_{j < o(y)} \pi_{(j)}(x) + u \, \pi_{(o(y))}(x), u \sim U(0, 1).
-\pendiente{definición}
+El $p$-valor mide qué fracción de las puntuaciones es al menos tan anómala como la
+nueva. Cuanto menor es, menos se parece el nuevo dato a los de calibración, y
+rechazar cuando $p \le \alpha$ es un contraste de la hipótesis de que el dato es
+intercambiable con los de calibración, con probabilidad de error de tipo~I a lo
+sumo $\alpha$~\cite{angelopoulos2021,vovk2022}. Este es el fundamento de la
+detección OOD conforme del \cref{cap:conforme}. Como el $p$-valor solo toma los
+valores $1/(n+1), 2/(n+1), \dots, 1$, no es exactamente uniforme (compárese con la
+\cref{prop:p-valor-uniforme}); Vovk et al.\ obtienen un $p$-valor exactamente
+uniforme rompiendo los empates con una variable aleatoria uniforme
+independiente, lo que llaman predictores conformes
+\emph{suavizados}~\cite{vovk2022}.
+% Fuente: angelopoulos2021, §4.4, p. 20 (rechazo como p-valor menor que alfa frente a la hipótesis de
+% intercambiabilidad); vovk2022, §2.2.3, p. 29 (p-valores pequeños = no conformes), §2.2.6,
+% pp. 31-32, ec. (2.24) y proposición 2.4 (predictores suavizados, validez exacta).
+
+\begin{teorema}[{Cobertura marginal~\cite{angelopoulos2021}}]\label{teo:cobertura}
+Si $(X_1,Y_1),\dots,(X_n,Y_n),(X_{n+1},Y_{n+1})$ son intercambiables y $C$ es el
+conjunto de predicción de la \cref{def:split-conformal}, entonces
+\[
+  \Prob\bigl(Y_{n+1} \in C(X_{n+1})\bigr) \ge 1-\alpha .
+\]
+\end{teorema}
+
+\begin{demostracion}
+Si $k > n$, entonces $\hat q = +\infty$ y $C(X_{n+1}) = \mathcal{Y}$, de modo que
+la cobertura es $1$. Supongamos $k \le n$ y sean $s_i = s(X_i,Y_i)$ y
+$s_{n+1} = s(X_{n+1},Y_{n+1})$; estas puntuaciones son intercambiables porque se
+obtienen aplicando la misma función $s$ a datos intercambiables. Si
+$Y_{n+1} \notin C(X_{n+1})$, entonces $s_{n+1} > s_{(k)}$, de modo que las $k$
+puntuaciones de calibración más pequeñas son menores que $s_{n+1}$ y como mucho
+$n-k$ son mayores o iguales que ella. Con la notación de la
+\cref{prop:p-valor-conforme}, aplicada a $S_i = s_i$,
+\[
+  p \le \frac{1 + n - k}{n+1} \le \frac{1 + n - (n+1)(1-\alpha)}{n+1} = \alpha .
+\]
+Por la \cref{prop:p-valor-conforme},
+$\Prob\bigl(Y_{n+1} \notin C(X_{n+1})\bigr) \le \Prob(p \le \alpha) \le \alpha$.
+\end{demostracion}
+% Fuente: angelopoulos2021, ec. (1), p. 4; teorema 1, p. 6 (atribuido a Vovk, Gammerman y Saunders,
+% 1999); teorema D.1 y demostración, pp. 50-51 (argumento de rangos, sin empates). La reducción a la
+% proposición del p-valor es del agente. Garantía equivalente en vovk2022, proposición 4.1, p. 109.
+
+La garantía es \emph{marginal}: la probabilidad se toma a la vez sobre los datos
+de calibración y sobre el de prueba, de modo que se cumple en promedio y no para
+cada imagen ni para cada clase~\cite{angelopoulos2021,angelopoulos2021raps}.
+Además, la garantía se cumple para cualquier puntuación, pero la utilidad de los
+conjuntos depende de ella: si la puntuación ordena bien los datos según el error
+del modelo, los conjuntos son pequeños para las entradas fáciles y grandes para
+las difíciles, y si no, los conjuntos pueden ser inútiles aunque la cobertura sea
+correcta~\cite{angelopoulos2021}.
+% Fuente: angelopoulos2021, §1, p. 4 (cobertura marginal), y p. 6 («Choice of score function»);
+% angelopoulos2021raps, §1, p. 2 (garantía marginal sobre X e Y).
+
+\begin{observacion}[Cota superior]\label{obs:cobertura-superior}
+Si las puntuaciones tienen una distribución conjunta continua, de modo que no hay
+empates, la cobertura está también acotada superiormente:
+\[
+  \Prob\bigl(Y_{n+1} \in C(X_{n+1})\bigr) \le 1 - \alpha + \frac{1}{n+1}.
+\]
+Angelopoulos y Bates enuncian este resultado y remiten su demostración a Lei et
+al.\ (2018); en la práctica, la condición de continuidad puede asegurarse
+añadiendo a la puntuación un ruido aleatorio
+despreciable~\cite{angelopoulos2021}. Así, con calibraciones grandes la cobertura
+es prácticamente $1-\alpha$.
+\end{observacion}
+% Fuente: angelopoulos2021, ec. (1), p. 4; teorema D.2, p. 51 (remite al teorema 2.2 de Lei et al.,
+% 2018, que no está en library.bib). También angelopoulos2021raps, §2.1, p. 5.
+
+\begin{observacion}[Cobertura condicionada a la calibración]\label{obs:cobertura-beta}
+El \cref{teo:cobertura} promedia también sobre el conjunto de calibración. Fijado
+este, la cobertura sobre infinitos datos de prueba es una variable aleatoria que,
+según Angelopoulos y Bates, que atribuyen el resultado a Vovk, sigue una
+distribución
+\[
+  \mathrm{Beta}(n+1-l,\; l), \qquad l = \bigl\lfloor (n+1)\alpha \bigr\rfloor ,
+\]
+de media $1 - l/(n+1)$~\cite{angelopoulos2021}. Como $n+1-l = k$, se trata de una
+$\mathrm{Beta}(k,\, n+1-k)$. Su dispersión decrece como $O(n^{-1/2})$: con
+calibraciones pequeñas, la cobertura obtenida con una calibración concreta puede
+alejarse bastante de $1-\alpha$~\cite{angelopoulos2021}. Si además la cobertura se
+estima con $n_{\mathrm{val}}$ datos de prueba, la proporción observada sigue una
+distribución beta-binomial, con media $1 - l/(n+1)$ y desviación típica
+\[
+  \sqrt{\frac{l\,(n+1-l)\,(n+n_{\mathrm{val}}+1)}{n_{\mathrm{val}}\,(n+1)^2\,(n+2)}} ;
+\]
+estas expresiones permiten comprobar si una cobertura observada es compatible con
+la teoría~\cite{angelopoulos2021}.
+\end{observacion}
+% Fuente: angelopoulos2021, §3.2, pp. 14-15 (distribución Beta, atribuida a Vovk 2012, y figura 11);
+% apéndice C, pp. 49-50 (beta-binomial; media y varianza de la media de R ensayos, aquí con R = 1).
+% Relación con vovk2022: validez condicionada al entrenamiento, §4.7.2, proposición 4.8, p. 138.
+
+\subsection{Puntuaciones para clasificación}\label{sec:conforme-puntuaciones}
+
+En clasificación, la puntuación se construye a partir de las probabilidades del
+modelo. Sea $\hat\pi_x(y)$ la probabilidad que el modelo asigna a la clase $y$
+para la entrada $x$ (\cref{def:softmax}), sea $o_x(y)$ el rango de $y$ al ordenar
+las clases de más a menos probable ($o_x(y) = 1$ para la más probable) y sea
+\[
+  \rho_x(y) = \sum_{y' \,:\, \hat\pi_x(y') > \hat\pi_x(y)} \hat\pi_x(y')
+\]
+la probabilidad total de las clases más probables que
+$y$~\cite{angelopoulos2021raps}.
+% Fuente: angelopoulos2021raps, §2.2, p. 5 (definiciones de \rho_x(y) y o_x(y)).
+
+\begin{definicion}[{Puntuaciones LAC y APS~\cite{angelopoulos2021,angelopoulos2021raps,romano2020}}]\label{def:lac-aps}
+La \emph{puntuación LAC} es uno menos la probabilidad de la clase:
+\[
+  s_{\mathrm{LAC}}(x,y) = 1 - \hat\pi_x(y).
+\]
+La \emph{puntuación APS} (\emph{Adaptive Prediction Sets}) es la probabilidad
+acumulada de las clases que preceden a $y$, más una fracción aleatoria de la
+probabilidad de $y$:
+\[
+  s_{\mathrm{APS}}(x,y,u) = \rho_x(y) + u\,\hat\pi_x(y), \qquad u \sim U(0,1),
+\]
+donde $u$ es independiente de todo lo demás y se genera una vez por dato.
+\end{definicion}
+% Fuente: angelopoulos2021, §1, p. 4 (puntuación 1 - softmax de la clase verdadera); §2.1, pp. 6-7
+% (puntuación APS acumulada); angelopoulos2021raps, §1, p. 2 (APS introducido por Romano et al.,
+% 2020 = romano2020) y §2.2, ec. (4) con \lambda = 0, p. 5 (versión aleatorizada).
+% El nombre «LAC» no aparece en las fuentes: se toma del trabajo de Sadinle et al. (2019), «Least
+% ambiguous set-valued classifiers», que angelopoulos2021 (p. 6) cita por dar los conjuntos de menor
+% tamaño medio.
+
+Con la puntuación LAC, el conjunto de predicción contiene todas las clases cuya
+probabilidad supera $1-\hat q$~\cite{angelopoulos2021}. Angelopoulos y Bates
+indican que esta puntuación da los conjuntos de menor tamaño medio, pero tiende a
+infracubrir los subgrupos difíciles y a sobrecubrir los
+fáciles~\cite{angelopoulos2021}. La puntuación APS, propuesta por Romano et al.\ y
+presentada por Angelopoulos y Bates, imita el procedimiento que se usaría si las
+probabilidades fueran exactas: añadir clases de más a menos probable hasta reunir
+una probabilidad $1-\alpha$. Así usa las probabilidades de todas las clases, y no
+solo la de la clase verdadera~\cite{angelopoulos2021,romano2020}. El término
+aleatorio $u\,\hat\pi_x(y)$ suaviza el salto discreto que produce la inclusión de
+cada clase y afecta como mucho a una de ellas~\cite{angelopoulos2021raps}; con él,
+el conjunto puede llegar a ser vacío.
+% Fuente: angelopoulos2021, §1, p. 4 (conjunto con \hat\pi \ge 1 - \hat q); §2.1, p. 6 (menor tamaño
+% medio, infracobertura de subgrupos difíciles; oráculo); p. 7 (usa todas las clases);
+% angelopoulos2021raps, §2.2, p. 5 (término aleatorio). La posibilidad de conjuntos vacíos se deduce de
+% la ec. (4) de angelopoulos2021raps; angelopoulos2021 (ec. (3), p. 7) modifica APS para evitarlos.
+
+\begin{definicion}[{RAPS~\cite[sec.~2.2]{angelopoulos2021raps}}]\label{def:raps}
+Dados $\lambda \ge 0$ y $k_{\mathrm{reg}} \ge 0$, la puntuación RAPS
+(\emph{Regularized Adaptive Prediction Sets}) es
+\[
+  s_{\mathrm{RAPS}}(x,y,u) = \rho_x(y) + u\,\hat\pi_x(y)
+  + \lambda\,\bigl(o_x(y) - k_{\mathrm{reg}}\bigr)^{+},
+\]
+donde $(z)^+ = \max\{z, 0\}$. Para $\lambda = 0$ coincide con la puntuación APS.
+\end{definicion}
+% Fuente: angelopoulos2021raps, §2.2, ec. (4), p. 5, y algoritmos 2-3, p. 6.
+
+Angelopoulos et al.\ observan que los conjuntos APS son a menudo más grandes de lo
+necesario, porque dependen de las probabilidades pequeñas y ruidosas de las clases
+poco probables, cuyo orden es en buena parte aleatorio. La penalización añade
+$\lambda$ por cada posición más allá de la $k_{\mathrm{reg}}$, de modo que esas
+clases solo entran si el umbral es mucho mayor~\cite{angelopoulos2021raps}. RAPS
+conserva la cobertura del \cref{teo:cobertura} y, según sus experimentos en
+ImageNet, da conjuntos mucho más pequeños que APS con la misma
+cobertura~\cite{angelopoulos2021raps}. Los autores proponen elegir
+$k_{\mathrm{reg}}$ y $\lambda$ con un conjunto de ajuste separado del de
+calibración~\cite{angelopoulos2021raps}. A cambio de conjuntos más pequeños, una
+penalización fuerte reduce la adaptatividad: los conjuntos varían menos con la
+dificultad de la imagen~\cite{angelopoulos2021raps}.
+% Fuente: angelopoulos2021raps, §2.3, p. 6 (por qué regularizar); proposición 1, p. 6 (cobertura);
+% §1, p. 2, y tabla 1, p. 7 (tamaños menores que APS); ap. E, p. 15 (elección de k_reg y \lambda con
+% datos de ajuste); §2, p. 4, y ap. D, tabla 8, p. 15 (tensión entre tamaño y adaptatividad).
+
+\subsection{Predicción conforme condicionada por clase (Mondrian)}\label{sec:conforme-mondrian-teoria}
+
+La garantía del \cref{teo:cobertura} es marginal y puede repartirse de forma
+desigual entre clases: una cobertura muy alta en las clases frecuentes puede
+compensar una cobertura baja en las raras. Vovk et al.\ señalan que, cuando los
+errores en distintas categorías tienen consecuencias distintas, no se puede
+permitir que tasas de error bajas en unas compensen tasas excesivas en
+otras~\cite{vovk2022}. Para obtener la cobertura en cada clase basta calibrar por
+separado dentro de cada una~\cite{angelopoulos2021}. Vovk et al.\ estudian esta
+construcción dentro de los predictores conformes \emph{Mondrian}, que dividen los
+datos en categorías y calibran dentro de cada categoría; el caso en que la
+categoría es la etiqueta es el predictor conforme Mondrian condicionado por la
+etiqueta~\cite{vovk2022}.
+% Fuente: vovk2022, §4.6.2, p. 128 (clasificación asimétrica; taxonomías de Mondrian), §4.6.7, p. 134
+% (Mondrian por etiqueta); angelopoulos2021, §4.2, p. 17 (cobertura por clase).
+
+\begin{definicion}[{Predicción conforme Mondrian~\cite[sec.~4.2]{angelopoulos2021}, \cite[sec.~4.6]{vovk2022}}]\label{def:mondrian}
+Para cada clase $y$, sean $n_y$ el número de datos de calibración de la clase,
+$s^{(y)}_{(1)} \le \dots \le s^{(y)}_{(n_y)}$ sus puntuaciones ordenadas y
+$k_y = \lceil (n_y+1)(1-\alpha) \rceil$. El umbral de la clase es
+$\hat q_y = s^{(y)}_{(k_y)}$ si $k_y \le n_y$ y $\hat q_y = +\infty$ si
+$k_y > n_y$, y el conjunto de predicción es
+\[
+  C(x) = \bigl\{\, y \in \mathcal{Y} : s(x,y) \le \hat q_y \,\bigr\}.
+\]
 \end{definicion}
 
-\begin{definicion}[RAPS~\cite{angelopoulos2021raps}]\label{def:raps}
-% APS con penalización \lambda (o(y) - k_{reg})^+ sobre el rango de la clase.
-\pendiente{definición}
-\end{definicion}
+En la prueba no se conoce la clase verdadera, de modo que cada clase candidata
+$y$ se compara con su propio umbral $\hat q_y$~\cite{angelopoulos2021}. Si los
+datos de calibración y el de prueba son i.i.d., el conjunto cumple la garantía por
+clase
+\[
+  \Prob\bigl(Y_{n+1} \in C(X_{n+1}) \mid Y_{n+1} = y\bigr) \ge 1 - \alpha
+  \qquad \text{para toda clase } y ,
+\]
+resultado que Angelopoulos y Bates atribuyen a Vovk y que Vovk et al.\ obtienen
+como caso particular de la validez de los predictores
+Mondrian~\cite{angelopoulos2021,vovk2022}. Intuitivamente, condicionado a las
+etiquetas, los datos de calibración de la clase $y$ y un dato de prueba de esa
+clase son intercambiables, y basta aplicar el \cref{teo:cobertura} dentro de la
+clase. El precio es que cada umbral se calcula con menos datos que el umbral
+marginal.
+% Fuente: angelopoulos2021, §4.2, pp. 17-18 (algoritmo, ec. (9), proposición 2, atribuida a Vovk
+% 2012); vovk2022, §4.6.2, ec. (4.31) y proposición 4.6, pp. 128-130; §4.6.7, p. 134. El argumento
+% intuitivo es del agente.
 
-\begin{definicion}[Predicción conforme Mondrian]\label{def:mondrian}
-% Cuantil por clase \hat q_y con k_y = \lceil (n_y+1)(1-\alpha) \rceil; garantía
-% \Prob(Y \in C(X) \mid Y = y) \ge 1 - \alpha.
-\pendiente{definición}
-\end{definicion}
+El tamaño de la calibración de cada clase condiciona el umbral, como precisa el
+siguiente resultado.
 
 \begin{proposicion}[Umbral infinito y umbral máximo en Mondrian]\label{prop:mondrian-ny}
-% - Umbral infinito (k_y > n_y) si y solo si n_y < (1-\alpha)/\alpha: n_y \le 18 con \alpha = 0,05.
-% - Umbral igual al máximo de las puntuaciones de calibración (k_y = n_y) si y solo si
-%   (1-\alpha)/\alpha \le n_y < (2-\alpha)/\alpha: 19 \le n_y \le 38 con \alpha = 0,05.
-\pendiente{enunciado}
+Con la notación de la \cref{def:mondrian}:
+\begin{enumerate}
+  \item El umbral de la clase $y$ es infinito ($k_y > n_y$) si y solo si
+  $n_y < (1-\alpha)/\alpha$.
+  \item El umbral es la mayor puntuación de calibración de la clase ($k_y = n_y$)
+  si y solo si $(1-\alpha)/\alpha \le n_y < (2-\alpha)/\alpha$.
+\end{enumerate}
+Con $\alpha = 0{,}05$, el umbral es infinito si $n_y \le 18$ y es el máximo si
+$19 \le n_y \le 38$; con $\alpha = 0{,}10$, si $n_y \le 8$ y si
+$9 \le n_y \le 18$, respectivamente.
 \end{proposicion}
+
 \begin{demostracion}
-\pendiente{demostración}
+Como $n_y$ es entero, $\lceil t \rceil > n_y$ si y solo si $t > n_y$, y
+$\lceil t \rceil = n_y$ si y solo si $n_y - 1 < t \le n_y$. Con
+$t = (n_y+1)(1-\alpha)$:
+\begin{enumerate}
+  \item $(n_y+1)(1-\alpha) > n_y$ equivale a $1 > (n_y+1)\alpha$, es decir, a
+  $n_y < (1-\alpha)/\alpha$.
+  \item $(n_y+1)(1-\alpha) \le n_y$ equivale a $n_y \ge (1-\alpha)/\alpha$, y
+  $(n_y+1)(1-\alpha) > n_y - 1$ equivale a $2 > (n_y+1)\alpha$, es decir, a
+  $n_y < (2-\alpha)/\alpha$.
+\end{enumerate}
+Para $\alpha = 0{,}05$, $(1-\alpha)/\alpha = 19$ y $(2-\alpha)/\alpha = 39$;
+para $\alpha = 0{,}10$, $9$ y $19$.
 \end{demostracion}
+% Fuente: consecuencia directa de la definición del cuantil (angelopoulos2021, §4.2, p. 18, y
+% apéndice D, p. 51, caso \hat q = \infty; vovk2022, observación 4.2, ec. (4.6), p. 110). Enunciado y
+% demostración del agente. Comprobado numéricamente en results_conforme/mondrian/
+% condicion_umbral_maximo.csv (columna comprobacion_formula).
+
+Cuando el umbral es la mayor puntuación de calibración de la clase, basta un solo
+dato de calibración con una puntuación muy alta (una imagen de la clase a la que el
+modelo asigna una probabilidad muy baja) para que la clase entre en casi todos los
+conjuntos de predicción. Este efecto se observa en la \cref{sec:conforme-mondrian}.
+% Interpretación del agente a partir de la proposición; el caso concreto se analiza en el capítulo 12.
 
 \endinput

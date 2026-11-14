@@ -18,7 +18,7 @@
 Este capítulo revisa los trabajos sobre los que se apoya la memoria. La
 \cref{sec:ea-histopatologia} recoge el uso del aprendizaje profundo en la
 clasificación de imágenes histopatológicas y lo que se ha hecho en detección de
-datos fuera de distribución en este dominio. La \cref{sec:ea-ood} presenta el
+datos fuera de distribución (\emph{out-of-distribution}, OOD) en este dominio. La \cref{sec:ea-ood} presenta el
 marco de la detección OOD generalizada, las familias de métodos y su evaluación,
 y la \cref{sec:ea-explicabilidad}, los conceptos de explicabilidad que se usan
 después y su aplicación a la detección OOD. La \cref{sec:ea-sintesis} resume lo
@@ -125,12 +125,13 @@ como ImageNet~\cite{kandel2020}. Kandel y Castelli distinguen dos formas de
 hacerlo: el \emph{ajuste fino}, en el que los pesos originales se reentrenan para
 el nuevo conjunto, y la \emph{extracción de características}, en la que se fijan
 y la red se usa solo para extraer
-características~\cite{kandel2020}. Su estudio, con tres arquitecturas
-convolucionales y dos conjuntos de histopatología, muestra que ajustar la red
-entera no siempre da el mejor resultado: en las redes poco profundas basta con
-ajustar los bloques superiores, mientras que en las más profundas ajustar toda la
-red mejora el rendimiento, y en todos los casos recomiendan una tasa de
-aprendizaje baja para no deteriorar los pesos preentrenados~\cite{kandel2020}.
+características~\cite{kandel2020}. En su estudio, con tres arquitecturas
+convolucionales y dos conjuntos de histopatología, ajustar la red entera no dio
+siempre el mejor resultado: en las dos redes menos profundas (VGG16 y VGG19) los
+mejores resultados se obtuvieron ajustando solo los bloques superiores, mientras
+que en la más profunda (InceptionV3) ajustar toda la red mejoró el rendimiento; a
+partir de sus experimentos, recomiendan una tasa de aprendizaje baja para no
+deteriorar los pesos preentrenados~\cite{kandel2020}.
 Los propios autores advierten de que sus conclusiones se refieren a la aplicación
 estudiada~\cite{kandel2020}. Ayensa-Jiménez et al.\ siguen también este enfoque:
 parten de cinco arquitecturas preentrenadas en ImageNet, tres convolucionales
@@ -186,14 +187,6 @@ Estos trabajos motivan la revisión de la detección OOD de la sección siguient
 \section{Detección de datos fuera de distribución}\label{sec:ea-ood}
 %=======================================================================
 
-Para que los sistemas de reconocimiento inteligente puedan operar de forma
-autónoma en el mundo abierto, es indispensable que sean capaces de detectar y
-manejar entradas desconocidas. Este problema se suele formular como detección
-de datos fuera de distribución (\emph{out-of-distribution}, OOD) o como
-reconocimiento en conjunto abierto (\emph{open set recognition},
-OSR)~\cite{openood15}.
-% Fuente: openood15, §1, pp. 1-2. Párrafo del autor (corregidas erratas).
-
 La mayoría de los modelos de aprendizaje automático se entrenan bajo el supuesto
 de \emph{mundo cerrado}: se asume que los datos de prueba proceden de la misma
 distribución que los de entrenamiento, la distribución \emph{en distribución}
@@ -244,8 +237,9 @@ mientras que DTD introduce un cambio semántico (\cref{sec:conjuntos-ood}).
 Varios problemas comparten con la detección OOD la hipótesis de mundo abierto y
 el objetivo de identificar muestras que no pertenecen a la distribución de
 referencia: la \emph{detección de anomalías} (\emph{anomaly detection}, AD), la
-\emph{detección de novedades} (\emph{novelty detection}, ND), el reconocimiento
-en conjunto abierto y la \emph{detección de valores atípicos}
+\emph{detección de novedades} (\emph{novelty detection}, ND), el
+\emph{reconocimiento en conjunto abierto} (\emph{open set recognition}, OSR) y la
+\emph{detección de valores atípicos}
 (\emph{outlier detection})~\cite{yang2024}. Estos temas se han desarrollado de
 forma aislada y sus diferencias de definición confunden a menudo a
 investigadores y usuarios. Para ordenarlos, Yang et al.\ proponen el marco de la
@@ -400,7 +394,11 @@ el test ID al 90,77\,\% en las mismas imágenes con menor resolución
 Yang et al.\ agrupan los métodos de detección OOD en cuatro familias: basados en
 clasificación, en densidad, en distancia y en
 reconstrucción~\cite{yang2024}. La \cref{tab:ea-familias} las resume e indica
-cuáles se evalúan en este trabajo.
+cuáles se evalúan en este trabajo. La frontera entre familias no es nítida: Yang
+et al.\ citan el modelado gaussiano por clase tanto entre los métodos de densidad
+como entre los de distancia, y sitúan SHE entre los métodos basados en la salida
+del clasificador~\cite{yang2024}. En este trabajo se sigue la agrupación del
+\cref{cap:metodos}.
 % Fuente: yang2024, §2.7, p. 5642, y §3, p. 5643.
 
 \begin{table}[tbp]
@@ -418,11 +416,16 @@ cuáles se evalúan en este trabajo.
     Clasificación, post hoc sobre activaciones o pesos & Modificar activaciones o pesos antes de calcular la puntuación & ReAct, DICE, ASH & ReAct, ASH, DICE (\cref{sec:metodos-activaciones}) \\
     Clasificación, con entrenamiento & Regularizar el entrenamiento, a veces con datos atípicos reales o sintéticos & Rama de confianza, G-ODIN, LogitNorm, OE, MCD & --- \\
     Clasificación, basados en gradientes & Usar la información del gradiente & ODIN, GradNorm & --- (\cref{sec:ea-excluidos}) \\
-    Densidad & Modelar la distribución ID y señalar las regiones de baja densidad & Gaussianas condicionales por clase, flujos & MDS, RMDS (\cref{sec:metodos-caracteristicas}) \\
-    Distancia & Medir la distancia a prototipos o muestras ID en el espacio de características & Mahalanobis, KNN, coseno, ViM & KNN, ViM (\cref{sec:metodos-caracteristicas}); \stoodx (\cref{sec:metodo-stoodx}) \\
+    Densidad & Modelar la distribución ID y señalar las regiones de baja densidad & Gaussianas condicionales por clase$^{a}$, flujos & --- \\
+    Distancia & Medir la distancia a prototipos o muestras ID en el espacio de características & Mahalanobis$^{a}$, KNN, coseno, ViM & MDS, RMDS$^{a}$, KNN, ViM (\cref{sec:metodos-caracteristicas}); \stoodx (\cref{sec:metodo-stoodx}) \\
     Reconstrucción & Comparar la reconstrucción de un codificador-decodificador & Autocodificadores, MoodCat, READ & --- \\
     \bottomrule
   \end{tabularx}
+
+  \smallskip
+  {\footnotesize $^{a}$MDS y RMDS modelan cada clase con una gaussiana en el espacio
+  de características; Yang et al.\ citan este modelado tanto entre los métodos
+  basados en densidad como entre los basados en distancia.}
 \end{table}
 % Fuente: yang2024, §3.1-3.4, pp. 5643-5647 (familias y ejemplos); sevillano2026, §2.1, p. 2
 % (MDS y RMDS como métodos de distancia paramétricos, KNN no paramétrico). La asignación de los
@@ -530,10 +533,11 @@ aspectos que ya quedan cubiertos por los métodos basados en características y 
 logits evaluados en este trabajo.
 % Fuente: yang2024, §3.1.3, p. 5646 (Igoe et al. = igoe2022). Párrafo del autor.
 
-Dentro de los métodos basados en densidad se distinguen dos enfoques. El
+Entre los métodos que modelan la distribución ID se distinguen dos enfoques. El
 modelado mediante gaussianas condicionales por clase en el espacio de
 características (Lee et al.~\cite{lee2018}) se ha incluido en la evaluación a
-través de MDS y RMDS. En cambio, no se han considerado los modelos generativos
+través de MDS y RMDS, que aquí se agrupan con los métodos basados en distancia
+(\cref{tab:ea-familias}). En cambio, no se han considerado los modelos generativos
 sobre el espacio de entrada, como los basados en flujos, por tres motivos: su
 entrenamiento resulta costoso y difícil de optimizar sobre imágenes de alta
 resolución; su verosimilitud presenta un fuerte sesgo hacia la complejidad de la
@@ -667,13 +671,17 @@ específicos~\cite{openood15}.
 \section{Explicabilidad}\label{sec:ea-explicabilidad}
 %=======================================================================
 
-Yang et al.~\cite{yang2024} identifican la explicabilidad como uno de los retos
-abiertos en la detección OOD. Este trabajo aborda dicho aspecto desde dos
+Sevillano-García et al.\ señalan que muchos métodos de detección OOD carecen de
+explicabilidad, lo que dificulta entender cómo y por qué una muestra se considera
+OOD~\cite{sevillano2026}, y Yang et al.\ mencionan la explicabilidad de estos
+modelos entre los aspectos en los que se espera más
+investigación~\cite{yang2024}. Este trabajo aborda dicho aspecto desde dos
 perspectivas complementarias: mediante \stoodx, que proporciona explicaciones de
 las decisiones de detección, y mediante técnicas de relevancia por conceptos
 (CRP), que permiten identificar y eliminar características sesgadas del
 clasificador y analizar su efecto sobre la fiabilidad del sistema.
-% Fuente: yang2024, §3.5, p. 5648. Párrafo del autor.
+% Fuente: sevillano2026, §1, p. 1 (falta de explicabilidad); yang2024, §3.5, p. 5648. Párrafo del
+% autor, con la primera frase reescrita.
 
 \subsection{Conceptos básicos y transparencia}\label{sec:ea-xai-conceptos}
 
@@ -855,11 +863,8 @@ características importantes, pero no \emph{qué} representan; además, cada map
 superpone muchos subprocesos de decisión internos del modelo. Los \emph{globales}
 muestran qué conceptos ha aprendido el modelo en general, pero no cuáles usa en
 una predicción concreta. Ambos tipos dejan al usuario la tarea de interpretar el
-razonamiento del modelo~\cite{achtibat2023}. La diferencia que tiene CRP frente a
-los métodos de explicabilidad local es que estos otros reflejan las zonas en las
-que se ha fijado el modelo, pero no son capaces de determinar la importancia de
-estas características para la decisión final.
-% Fuente: achtibat2023, pp. 1006-1007. La última frase es del autor.
+razonamiento del modelo~\cite{achtibat2023}.
+% Fuente: achtibat2023, pp. 1006-1007.
 
 LRP explica la predicción de una red propagando la relevancia hacia atrás, desde
 la salida hasta la entrada, y asigna así un valor de relevancia a cada píxel y a

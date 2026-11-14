@@ -14,13 +14,13 @@ Palabras de prosa del autor por capítulo (sin comentarios, marcas, tablas, figu
 | 3. Aprendizaje supervisado | 0 | Esqueleto con entornos `definicion`/`proposicion`/`demostracion`. |
 | 4. Formalización OOD y métricas | 348 | Descripción informal de las métricas (de las notas). Definiciones y teoremas en esqueleto (AUROC = P(...) = U/(n₁n₂), etc.). |
 | 5. Métodos post hoc | 824 | Descripción de los grupos 1–3 y de STOOD-X (de las notas). Definiciones formales en esqueleto. |
-| 6. Inferencia estadística | 31 | Esqueleto: Mann-Whitney, bootstrap y McNemar, predicción conforme (teorema de cobertura, APS/LAC, Mondrian). |
+| 6. Inferencia estadística | ~2.300 | Predicción conforme redactada (intercambiabilidad, predicción conforme dividida, p-valor conforme con demostración, cobertura marginal con demostración, cota superior y distribución beta como observaciones, LAC/APS, RAPS, Mondrian y proposición del umbral). Resto (contrastes, Mann-Whitney, McNemar, bootstrap) en esqueleto. |
 | 7. Explicabilidad (LRP, CRP) | 0 | Esqueleto. |
 | 8. Materiales y métodos | 989 | Con contenido: conjunto ID, partición, conjuntos OOD, NCT-CRC, PANDA, DataLoader y Learner. Esqueleto: integridad, control/DTD, entorno, configuración del entrenamiento. |
 | 9. Clasificación ID | 302 | Tablas y figuras de los cinco modelos (curvas y matrices de confusión a ancho completo, en figuras separadas) y elección del Swin (texto de las notas, con marcas). Esqueleto: análisis de cada tabla, agrupaciones y discusión. |
 | 10. Detección OOD | 740 | Con contenido: cinco bloques con tabla, figura y análisis de las notas; «Conclusión» abre la discusión. Pendientes: conclusiones parciales e integración. |
 | 11. STOOD-X | 539 | Con contenido: configuración, puntuación, resultados, calibración, sensibilidad a K y ejemplos (solo la figura de colon aceptado; el resto, en el apéndice C). Pendientes: diferencias con la implementación pública, conclusiones parciales y discusión. |
-| 12. Predicción conforme | 0 | Esqueleto con tablas y figuras y las cifras en comentarios. |
+| 12. Predicción conforme | ~2.400 | Redactado: introducción y limitación de intercambiabilidad, detección OOD conforme, APS y RAPS, Mondrian (incluido el efecto de glomeruloide y del label smoothing), conclusiones parciales y discusión. Sin marcas. |
 | 13. Fuga por lámina | 0 | Esqueleto con tablas y figuras y las cifras en comentarios. |
 | 14. Explicabilidad y sesgos | 0 | Esqueleto (en desarrollo). |
 | 15. Conclusiones | 25 | Solo la frase de limitaciones de las notas; resto en esqueleto. |
@@ -139,26 +139,25 @@ Se generan con `python3 scripts/generar_tablas.py` a partir de `OpenOOD/results_
 - `capitulos/05-metodos-posthoc.tex:122` — definición
 - `capitulos/05-metodos-posthoc.tex:135` — definición formal
 - `capitulos/05-metodos-posthoc.tex:140` — segunda etapa del método: explicaciones
-- `capitulos/06-inferencia.tex:15` — introducción al test (Mann y Whitney~\cite{mann1947}; Wilcoxon~\cite{wilcoxon1945})
-- `capitulos/06-inferencia.tex:16` — sustituir por fuente académica (la explicación del test de las notas enlaza a un blog)
-- `capitulos/06-inferencia.tex:20` — definición
-- `capitulos/06-inferencia.tex:25` — enunciado
-- `capitulos/06-inferencia.tex:28` — demostración
-- `capitulos/06-inferencia.tex:33` — enunciado
-- `capitulos/06-inferencia.tex:41` — desarrollo
-- `capitulos/06-inferencia.tex:47` — desarrollo
-- `capitulos/06-inferencia.tex:59` — definición
-- `capitulos/06-inferencia.tex:65` — enunciado
-- `capitulos/06-inferencia.tex:68` — demostración
-- `capitulos/06-inferencia.tex:84` — desarrollo de la predicción conforme dividida
-- `capitulos/06-inferencia.tex:87` — definición
-- `capitulos/06-inferencia.tex:94` — enunciado
-- `capitulos/06-inferencia.tex:99` — demostración
-- `capitulos/06-inferencia.tex:105` — definición
-- `capitulos/06-inferencia.tex:110` — definición
-- `capitulos/06-inferencia.tex:116` — definición
-- `capitulos/06-inferencia.tex:123` — enunciado
-- `capitulos/06-inferencia.tex:126` — demostración
+- `capitulos/06-inferencia.tex:13` — introducción del capítulo
+- `capitulos/06-inferencia.tex:27` — definición
+- `capitulos/06-inferencia.tex:32` — definición
+- `capitulos/06-inferencia.tex:40` — enunciado
+- `capitulos/06-inferencia.tex:43` — demostración
+- `capitulos/06-inferencia.tex:52` — introducción al test (Mann y Whitney~\cite{mann1947}; Wilcoxon~\cite{wilcoxon1945}; Canavos~\cite{canavos2003})
+- `capitulos/06-inferencia.tex:57` — definición
+- `capitulos/06-inferencia.tex:62` — enunciado
+- `capitulos/06-inferencia.tex:65` — demostración
+- `capitulos/06-inferencia.tex:71` — enunciado
+- `capitulos/06-inferencia.tex:77` — enunciado
+- `capitulos/06-inferencia.tex:80` — demostración
+- `capitulos/06-inferencia.tex:88` — desarrollo
+- `capitulos/06-inferencia.tex:95` — desarrollo
+- `capitulos/06-inferencia.tex:106` — planteamiento (McNemar~\cite{mcnemar1947})
+- `capitulos/06-inferencia.tex:111` — enunciado
+- `capitulos/06-inferencia.tex:114` — demostración
+- `capitulos/06-inferencia.tex:213` — planteamiento
+- `capitulos/06-inferencia.tex:263` — desarrollo
 - `capitulos/07-explicabilidad.tex:18` — definición
 - `capitulos/07-explicabilidad.tex:22` — enunciado
 - `capitulos/07-explicabilidad.tex:25` — demostración
@@ -200,18 +199,6 @@ Se generan con `python3 scripts/generar_tablas.py` a partir de `OpenOOD/results_
 - `capitulos/11-stoodx.tex:93` — conclusión parcial
 - `capitulos/11-stoodx.tex:111` — análisis de los ejemplos del \cref{ap:complementario} (\cref{fig:stoodx-ejemplos-detectadas,fig:stoodx-ejemplos-id,fig:stoodx-ejemplos-falsas,fig:stoodx-ejemplos-lym,fig:stoodx-ejemplos-dtd}; variante $K_c$: \cref{fig:stoodx-kc-id-alta})
 - `capitulos/11-stoodx.tex:119` — discusión global
-- `capitulos/12-prediccion-conforme.tex:16` — introducción del capítulo y limitación de intercambiabilidad entre validación y test
-- `capitulos/12-prediccion-conforme.tex:29` — análisis de la \cref{tab:conforme-ood}
-- `capitulos/12-prediccion-conforme.tex:33` — conclusión parcial
-- `capitulos/12-prediccion-conforme.tex:45` — análisis de la \cref{tab:conforme-aps} y de la \cref{fig:conforme-cobertura}
-- `capitulos/12-prediccion-conforme.tex:63` — análisis de la \cref{tab:conforme-tamano-ood} y de la \cref{fig:conforme-tamanos-clase}
-- `capitulos/12-prediccion-conforme.tex:74` — conclusión parcial
-- `capitulos/12-prediccion-conforme.tex:84` — análisis de la \cref{tab:mondrian-global}
-- `capitulos/12-prediccion-conforme.tex:93` — análisis de la \cref{tab:mondrian-clase} y de la \cref{fig:mondrian-cobertura-clase}
-- `capitulos/12-prediccion-conforme.tex:112` — análisis de la \cref{fig:mondrian-beta}
-- `capitulos/12-prediccion-conforme.tex:129` — análisis de la \cref{fig:mondrian-glomeruloide}
-- `capitulos/12-prediccion-conforme.tex:148` — conclusión parcial
-- `capitulos/12-prediccion-conforme.tex:156` — discusión global
 - `capitulos/13-fuga-lamina.tex:12` — introducción del capítulo
 - `capitulos/13-fuga-lamina.tex:27` — identificación de las láminas a partir de los nombres de fichero
 - `capitulos/13-fuga-lamina.tex:33` — análisis de la \cref{tab:fuga-contiguidad}
@@ -230,7 +217,7 @@ Se generan con `python3 scripts/generar_tablas.py` a partir de `OpenOOD/results_
 - `apendices/C-material-complementario.tex:12` — presentación de las figuras
 - `apendices/C-material-complementario.tex:55` — presentación de las figuras
 
-Total: 152
+Total: 139
 
 ### \revisar
 
@@ -239,7 +226,6 @@ Total: 152
 - `capitulos/05-metodos-posthoc.tex:24` — añadidas las citas a los artículos originales de MSP, MaxLogit y Energy
 - `capitulos/05-metodos-posthoc.tex:25` — en EBO, «de las exponenciales de los argumentos de todos los logits» se ha simplificado a «de las exponenciales de todos los logits»
 - `capitulos/05-metodos-posthoc.tex:83` — añadidas las citas a los artículos originales de KNN, MDS, RMDS, ViM y SHE
-- `capitulos/06-inferencia.tex:74` — posible traducción casi literal (en las notas aparece bajo «Añadir esta parte de Inferencia Estadística»); comprobar la fuente, parafrasear y citar
 - `capitulos/08-materiales-metodos.tex:20` — traducción casi literal; parafrasear y citar
 - `capitulos/08-materiales-metodos.tex:21` — añadida la frase de las 85 WSI anotadas (dato del artículo, como se pidió); la primera frase atribuye el apartado al artículo, en lugar del título «información extraída del paper de Iván Sevillano» de las notas
 - `capitulos/08-materiales-metodos.tex:28` — las notas daban un total de 126.192; el real es 126.109 (113.491 + 12.618; results\_integridad)
@@ -277,5 +263,5 @@ Total: 152
 - `capitulos/11-stoodx.tex:33` — tono
 - `capitulos/13-fuga-lamina.tex:28` — deducción a partir de los nombres de fichero: 95 láminas y rejilla de 224\,px, frente a las 85 WSI y el paso de 256\,px del artículo
 
-Total: 42
+Total: 41
 

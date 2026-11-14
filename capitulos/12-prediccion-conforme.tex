@@ -7,42 +7,106 @@
 
 \chapter{Predicción conforme}\label{cap:conforme}
 
-% Esqueleto: las notas no incluyen texto de este capítulo. Cifras de results_conforme/ y
-% results_conforme/mondrian/. Fundamentos en la \cref{sec:prediccion-conforme}.
-% Limitación común: la validación ID se usó durante el entrenamiento para elegir la época
-% (EarlyStoppingCallback sobre valid_loss) y procede de la carpeta train original, mientras que el
-% test procede de la carpeta val original; la intercambiabilidad no está asegurada. Exactitud del
-% Swin-S: 97,02 % en validación y 96,88 % en test.
-\pendiente{introducción del capítulo y limitación de intercambiabilidad entre validación y test}
+% [agente] Capítulo redactado por el agente (encargo del autor) a partir de angelopoulos2021,
+% angelopoulos2021raps y vovk2022 (fundamentos en la sección 6.5) y de las cifras de
+% OpenOOD/results_conforme/ y results_conforme/mondrian/ (CSV y resumen.md; solo cifras).
+% Páginas de las fuentes: como en la sección de predicción conforme del capítulo 6.
+
+Este capítulo aplica la predicción conforme (\cref{sec:prediccion-conforme}) al
+Swin-S de dos formas. Primero, para calibrar el umbral de los detectores OOD de
+modo que la proporción de falsas alarmas en datos ID quede controlada
+(\cref{sec:conforme-ood}). Después, para sustituir la predicción de una sola clase
+por conjuntos de predicción con cobertura garantizada, en su versión marginal
+(\cref{sec:conforme-aps}) y condicionada por clase (\cref{sec:conforme-mondrian}).
+En todos los casos, la calibración se hace con la validación ID y la evaluación,
+con el test ID, el control de resolución y los conjuntos OOD del
+\cref{cap:materiales}.
+% Fuente: diseño de results_conforme (config.json).
+
+Las garantías de la predicción conforme exigen que los datos de calibración y los
+de prueba sean intercambiables (\cref{def:intercambiabilidad}), y en este trabajo
+esa hipótesis no está asegurada. La validación ID se usó durante el entrenamiento
+para elegir la época (con una parada temprana sobre la pérdida de validación) y
+procede de la carpeta de entrenamiento original, mientras que el test procede de
+la carpeta de validación original. Un indicio de que ambos conjuntos no se
+comportan igual es que la exactitud del Swin-S es del 97,02\,\% en la validación y
+del 96,88\,\% en el test. Por eso, las coberturas observadas en el test se
+contrastan en este capítulo con lo que predice la teoría.
+% Fuente: results_conforme/config.json, campo «limitacion»; resumen.md, l. 9 (97,02 % en id_val);
+% exactitud en el test: 0,9688 (results_fase1).
 
 \section{Detección OOD conforme}\label{sec:conforme-ood}
 
-% Puntos que debería cubrir:
-% - Umbral calibrado con las puntuaciones de la validación ID (n = 22.691):
-%   p(x) = (1 + #\{s_i \le s(x)\}) / (n + 1); OOD si p(x) \le \alpha.
-% - Falsas alarmas en el test ID compatibles con \alpha en los 15 casos (5 métodos x 3 valores de
-%   \alpha): el IC exacto contiene \alpha en todos.
-% - Con \alpha = 0,05: STOOD-X es el que más detecta en TUM+NORM (0,879), PANDA (0,568) y DTD (0,972),
-%   a diferencia de lo que indicaba FPR@95 (otro punto de funcionamiento); también el que más marca
-%   el control de resolución (0,596). ViM y MDS detectan más LYM (0,826 y 0,813).
-% - Con \alpha = 0,01, ViM y MDS detectan ~55 % de TUM+NORM y STOOD-X el 75 %.
-\pendiente{análisis de la \cref{tab:conforme-ood}}
+Cada detector del \cref{cap:metodos} asigna a una imagen una puntuación $s(x)$, más
+alta cuanto más ID parece. Con las puntuaciones $s_1,\dots,s_n$ de las
+$n = \num{22691}$ imágenes de la validación ID se calcula el $p$-valor conforme
+\[
+  p(x) = \frac{1 + \#\{\, i : s_i \le s(x) \,\}}{n+1},
+\]
+que es el de la \cref{prop:p-valor-conforme} con la puntuación de no conformidad
+$-s$, y la imagen se declara OOD si $p(x) \le \alpha$. Si la validación y el test
+son intercambiables, la proporción de imágenes ID marcadas como OOD (falsas
+alarmas) es a lo sumo $\alpha$~\cite{angelopoulos2021,vovk2022}. Es el uso de la
+predicción conforme para la detección de valores atípicos que describen
+Angelopoulos y Bates: el umbral se calibra con datos limpios y garantiza que no se
+devuelvan demasiados falsos positivos~\cite{angelopoulos2021}. Se han evaluado
+cinco detectores con $\alpha \in \{0{,}01;\, 0{,}05;\, 0{,}10\}$
+(\cref{tab:conforme-ood}).
+% Fuente: angelopoulos2021, §4.4, pp. 19-20 (detección de valores atípicos conforme, proposición 3);
+% vovk2022, §4.2, ec. (4.4), p. 110. Datos: results_conforme/deteccion_ood_conforme.csv (n_cal = 22.691).
 
 \input{tablas/t12_ood_conforme}
 
-\pendiente{conclusión parcial}
+Las falsas alarmas en el test ID son compatibles con $\alpha$ en los quince casos:
+el intervalo de confianza exacto contiene $\alpha$ para los cinco métodos y los tres
+niveles. A diferencia del \FPRn{95}, que fija la tasa de detección de los datos OOD
+(\cref{sec:fpr95}), este procedimiento fija la tasa de falsas alarmas sobre los ID
+sin usar ningún dato OOD, que es la situación de un despliegue real. Con
+$\alpha = 0{,}05$, \stoodx es el detector que más detecta en TUM+NORM (0,879),
+PANDA (0,568) y DTD (0,972), y también el que más marca el control de resolución
+(0,596); ViM y MDS son los que más detectan en LYM (0,826 y 0,812). Con
+$\alpha = 0{,}01$, ViM y MDS detectan alrededor del 55\,\% de TUM+NORM (0,552 y
+0,554), frente al 75\,\% de \stoodx (0,748). Que el control de resolución se
+marque como OOD en una proporción apreciable es coherente con el criterio
+conservador de este trabajo (\cref{sec:ea-conservador}), que considera OOD los
+cambios de apariencia que degradan el clasificador.
+% Fuente: tabla tab:conforme-ood (results_conforme/deteccion_ood_conforme.csv).
+
+\paragraph{Conclusión parcial.} La calibración conforme convierte cualquier
+puntuación de detección en un detector con una tasa de falsas alarmas controlada,
+que en el test ID se cumple para todos los métodos y niveles evaluados. Con ese
+control, \stoodx es el detector que más muestras OOD señala en casi todos los
+conjuntos, mientras que ViM y MDS destacan en LYM.
 
 \section{Conjuntos de predicción APS y RAPS}\label{sec:conforme-aps}
 
-% Puntos que debería cubrir:
-% - Calibración con el 80 % de la validación ID (18.153); el 20 % restante (4.538) para ajustar RAPS
-%   (k_reg = 1, \lambda = 0,5: en la práctica, conjuntos de tamaño 0 o 1).
-% - Verificación por simulación de la implementación (1.000 particiones, n = 4.000).
-% - Test ID: APS \alpha = 0,05: cobertura 0,945 [0,941; 0,949], tamaño 1,04, vacíos 3,9 %; el déficit
-%   de 0,005 es de ~1,9 desviaciones típicas.
-% - Conjuntos vacíos: como la exactitud supera 1 - \alpha, el método puede «abstenerse».
-% - Control de resolución: la garantía se rompe (APS 0,922 y RAPS 0,894 con \alpha = 0,05).
-\pendiente{análisis de la \cref{tab:conforme-aps} y de la \cref{fig:conforme-cobertura}}
+Los conjuntos de predicción se calculan con las puntuaciones APS y RAPS de las
+\cref{def:lac-aps,def:raps}, sobre las probabilidades del Swin-S. La validación ID
+se divide en dos partes: el 80\,\% (\num{18153} imágenes) se usa para calibrar y
+el 20\,\% restante (\num{4538}) para elegir los hiperparámetros de RAPS, como
+proponen Angelopoulos et al.~\cite{angelopoulos2021raps}. En esa parte de ajuste,
+con $k_{\mathrm{reg}} = 1$, el valor $\lambda = 0{,}5$ es el que da el menor tamaño
+medio entre los probados ($0{,}001$ a $0{,}5$). Con estos valores, cada clase a
+partir de la segunda suma una penalización de al menos $0{,}5$, de modo que, en la
+práctica, los conjuntos RAPS tienen tamaño 0 o 1. Se usan las versiones
+aleatorizadas, con una variable $u \sim U(0,1)$ por imagen, que admiten conjuntos
+vacíos.
+% Fuente: results_conforme/config.json (n_calibracion = 18.153, n_ajuste = 4.538, k_reg = 1,
+% lambda = 0,5 y tamaños medios por lambda); resumen.md, l. 83 (versiones aleatorizadas, semilla 0,
+% conjuntos vacíos permitidos); angelopoulos2021raps, ap. E, p. 15 (datos de ajuste separados).
+
+Antes de aplicarlas, se comprobó la implementación con una simulación: en
+\num{1000} particiones aleatorias con $n = \num{4000}$ imágenes de calibración, la
+cobertura media coincide con lo que predicen el \cref{teo:cobertura} y la
+\cref{obs:cobertura-superior}, que la sitúan entre $1-\alpha$ y
+$1-\alpha+1/(n+1)$, dentro de dos errores estándar para APS y RAPS con ambos
+valores de $\alpha$ (por ejemplo, 0,9500 para APS con $\alpha = 0{,}05$). Es el
+diagnóstico que recomiendan Angelopoulos y Bates: repetir el procedimiento con
+distintas calibraciones y comprobar que la cobertura media se acerca a
+$1-\alpha$~\cite{angelopoulos2021}.
+% Fuente: results_conforme/verificacion_simulacion.csv (1.000 repeticiones, n_cal = 4.000; APS 0,05:
+% 0,95003; RAPS 0,05: 0,94983; APS 0,10: 0,89980; RAPS 0,10: 0,89984; todas dentro de 2 ee);
+% angelopoulos2021, §3.3, p. 15.
 
 \input{tablas/t12_aps_raps}
 
@@ -53,14 +117,44 @@
   \label{fig:conforme-cobertura}
 \end{figure}
 
-% Puntos que debería cubrir:
-% - La garantía es marginal, no por clase: con \alpha = 0,05, glomeruloide 0,68 (APS) y 0,52 (RAPS);
-%   pobremente formadas 0,79 y 0,73; Gleason_3 0,87 y 0,79. APS compensa con conjuntos mayores en
-%   esas clases (~1,4 frente a ~1,0).
-% - Con APS, el tamaño medio crece fuera de distribución (\alpha = 0,05: 3,14 en TUM+NORM, 2,72 en
-%   LYM, 2,51 en DTD, 1,69 en PANDA, frente a 1,04 en el test ID): el tamaño es una señal de OOD.
-%   Con RAPS esa señal desaparece.
-\pendiente{análisis de la \cref{tab:conforme-tamano-ood} y de la \cref{fig:conforme-tamanos-clase}}
+En el test ID, la cobertura está cerca de $1-\alpha$ en los cuatro casos
+(\cref{tab:conforme-aps,fig:conforme-cobertura}). APS con $\alpha = 0{,}05$ queda
+0,005 por debajo (0,945 [0,941; 0,949]), y su intervalo no contiene 0,95; pero ese
+intervalo solo recoge la variabilidad del test. Si se añade la de la calibración
+mediante la distribución beta-binomial de la \cref{obs:cobertura-beta}, con
+$n = \num{18153}$ y $n_{\mathrm{val}} = \num{12618}$, la desviación típica de la
+cobertura es de unos 0,0025, y el déficit equivale a unas 1,9 desviaciones
+típicas: compatible con el azar, aunque también con la falta de
+intercambiabilidad. Los conjuntos son pequeños, con un tamaño medio cercano a 1,
+y entre el 2 y el 8\,\% son vacíos. Como la exactitud del Swin-S (96,88\,\%)
+supera $1-\alpha$, el método puede devolver un conjunto vacío, es decir,
+abstenerse, en una parte de las imágenes y seguir cumpliendo la cobertura.
+% Fuente: tabla tab:conforme-aps; results_conforme/aps_raps_resumen.csv (APS 0,05: cobertura
+% 0,94516); desviación típica calculada con la fórmula de angelopoulos2021, ap. C, p. 50, con R = 1:
+% l = 907, media 0,95004, d. t. 0,00253, déficit 0,00488 = 1,93 d. t. (resumen.md, ll. 61-63, da
+% 0,0025 y 1,9).
+
+En el control de resolución, en cambio, la garantía se rompe: con $\alpha = 0{,}05$,
+la cobertura baja a 0,922 con APS y a 0,894 con RAPS. Es lo esperable, porque
+estas imágenes tienen las mismas etiquetas que el test ID pero distinta apariencia
+(desplazamiento de covariables), y las garantías del \cref{teo:cobertura} suponen
+que los datos de prueba proceden de la misma distribución que los de
+calibración~\cite{angelopoulos2021}.
+% Fuente: tabla tab:conforme-aps; angelopoulos2021, §4.5, p. 20.
+
+La garantía es además marginal y no por clase (\cref{fig:conforme-tamanos-clase}).
+Con $\alpha = 0{,}05$, la cobertura es de 0,68 con APS y 0,52 con RAPS en
+\clase{Gleason\_4\_glomeruloide}, de 0,79 y 0,73 en
+\clase{Gleason\_4\_pobremente\_formadas} y de 0,87 y 0,79 en \clase{Gleason\_3}.
+APS compensa en parte devolviendo conjuntos mayores en esas clases (unas 1,44
+clases de media, frente a algo menos de 1 en las clases grandes), mientras que los
+conjuntos RAPS tienen en ellas un tamaño de 1 o menos. Es el compromiso entre
+tamaño y adaptatividad que describen Angelopoulos et al.: una regularización
+fuerte da conjuntos más pequeños, pero menos sensibles a la dificultad de cada
+imagen~\cite{angelopoulos2021raps}.
+% Fuente: results_conforme/aps_raps_por_clase.csv (alfa 0,05, id_test: APS glomeruloide 0,68,
+% tamaño 1,44; pobremente 0,787, 1,449; Gleason_3 0,874, 1,443; RAPS 0,52, 0,732, 0,791, tamaños
+% 0,98-1,00); angelopoulos2021raps, §2, p. 4, y ap. D, tabla 8, p. 15.
 
 \input{tablas/t12_aps_tamano_ood}
 
@@ -71,26 +165,42 @@
   \label{fig:conforme-tamanos-clase}
 \end{figure}
 
-\pendiente{conclusión parcial}
+Fuera de distribución, el tamaño de los conjuntos APS crece
+(\cref{tab:conforme-tamano-ood}): con $\alpha = 0{,}05$ pasa de 1,04 en el test ID
+a 3,14 en TUM+NORM, 2,72 en LYM, 2,51 en DTD, 1,69 en PANDA y 1,25 en el control de
+resolución. Angelopoulos y Bates señalan que los conjuntos crecen cuando el modelo
+está inseguro y que su tamaño indica la certeza del modelo~\cite{angelopoulos2021}:
+aquí, el tamaño APS funciona como una señal de que la entrada es OOD. Con RAPS esa
+señal desaparece, porque la penalización mantiene el tamaño cerca de 1 en todos
+los conjuntos (entre 0,99 y 1,05 con $\alpha = 0{,}05$).
+% Fuente: tabla tab:conforme-tamano-ood; angelopoulos2021, §1, p. 5.
+
+\paragraph{Conclusión parcial.} En el test ID, APS y RAPS dan una cobertura
+compatible con $1-\alpha$ y conjuntos de tamaño cercano a 1, pero la garantía es
+marginal: las clases pequeñas y difíciles quedan por debajo del objetivo. APS
+reacciona a la incertidumbre con conjuntos más grandes en esas clases y fuera de
+distribución, mientras que RAPS, con la regularización elegida, pierde esa
+información. Ninguno mantiene la cobertura en el control de resolución.
 
 \section{Predicción conforme Mondrian}\label{sec:conforme-mondrian}
 
-% Puntos que debería cubrir:
-% - Puntuaciones LAC (1 - softmax) y APS; misma calibración que la versión marginal.
-% - La cobertura global es la misma (LAC \alpha = 0,05: 0,948 en ambas), pero el tamaño medio se
-%   duplica con \alpha = 0,05 (LAC 0,96 -> 1,98; APS 1,04 -> 2,15).
-% - Control de resolución: ninguna versión mantiene la garantía; con LAC, Mondrian empeora
-%   (0,859 -> 0,777).
-\pendiente{análisis de la \cref{tab:mondrian-global}}
+Para corregir la infracobertura de las clases pequeñas se aplica la versión
+Mondrian (\cref{def:mondrian}), que calibra un umbral por clase, con las
+puntuaciones LAC y APS y la misma calibración que la versión marginal
+(\cref{tab:mondrian-global}).
+% Fuente: results_conforme/mondrian/config.json y global.csv.
 
 \input{tablas/t12_mondrian_global}
 
-% Puntos que debería cubrir:
-% - La versión marginal sobrecubre las clases grandes (0,97-0,99) e infracubre mucho las pequeñas
-%   (0,40 en glomeruloide, 0,61 en pobremente formadas); Mondrian iguala la cobertura entre clases.
-% - Gleason_4_pobremente_formadas (0,874 [0,803; 0,926]) y Gleason_3 (0,901 [0,858; 0,935]) siguen
-%   por debajo de 0,95 con IC que no incluyen 0,95.
-\pendiente{análisis de la \cref{tab:mondrian-clase} y de la \cref{fig:mondrian-cobertura-clase}}
+La cobertura global es prácticamente la misma en ambas versiones (con LAC y
+$\alpha = 0{,}05$, 0,948 en las dos), pero con $\alpha = 0{,}05$ el tamaño medio
+de los conjuntos se duplica: de 0,96 a 1,98 con LAC y de 1,04 a 2,15 con APS. Con
+$\alpha = 0{,}10$ apenas cambia (de 0,91 a 0,94 con LAC y de 0,95 a 0,98 con APS);
+la causa de esa diferencia se analiza al final de la sección. En el control de
+resolución ninguna versión mantiene la garantía y, con LAC, la versión Mondrian
+empeora la cobertura (de 0,859 a 0,777 con $\alpha = 0{,}05$ y de 0,726 a 0,649
+con $\alpha = 0{,}10$).
+% Fuente: tabla tab:mondrian-global.
 
 \input{tablas/t12_mondrian_clase}
 
@@ -101,15 +211,19 @@
   \label{fig:mondrian-cobertura-clase}
 \end{figure}
 
-% Puntos que debería cubrir:
-% - Mondrian coincide con la teoría en todas las clases (LAC, \alpha = 0,05): medias 0,949-0,965
-%   frente a 0,950-0,966 teóricas.
-% - La versión marginal infracubre sistemáticamente las clases pequeñas (glomeruloide 0,51 [0,38;
-%   0,65]).
-% - En el test, la cobertura Mondrian de pobremente formadas (0,874) y Gleason_3 (0,901) queda por
-%   debajo del P5 de las particiones (0,897 y 0,921): evidencia de que validación y test no son
-%   intercambiables en esas clases.
-\pendiente{análisis de la \cref{fig:mondrian-beta}}
+Por clases (\cref{tab:mondrian-clase,fig:mondrian-cobertura-clase}), la versión
+marginal sobrecubre las clases grandes, con coberturas de 0,97 a 0,99 en
+\clase{Adenocarcinoma\_ductal}, \clase{Estroma} y
+\clase{Glandulas\_no\_neoplasicas}, e infracubre mucho las pequeñas: 0,400 en
+\clase{Gleason\_4\_glomeruloide} y 0,606 en
+\clase{Gleason\_4\_pobremente\_formadas}. Es la situación que describen Vovk et
+al.\ para la clasificación asimétrica: tasas de error bajas en unas categorías
+compensan tasas excesivas en otras~\cite{vovk2022}. La versión Mondrian iguala la
+cobertura entre clases, aunque \clase{Gleason\_4\_pobremente\_formadas} (0,874
+[0,803; 0,926]) y \clase{Gleason\_3} (0,901 [0,858; 0,935]) siguen por debajo de
+0,95, con intervalos que no contienen ese valor.
+% Fuente: tabla tab:mondrian-clase; results_conforme/mondrian/por_clase.csv (IC de Mondrian, LAC,
+% alfa 0,05); vovk2022, §4.6.2, p. 128.
 
 \begin{figure}[tbp]
   \centering
@@ -118,15 +232,38 @@
   \label{fig:mondrian-beta}
 \end{figure}
 
-% Puntos que debería cubrir:
-% - Con 33 imágenes de calibración, el umbral de glomeruloide es el máximo (\cref{prop:mondrian-ny}):
-%   \hat q_y = 0,995 (LAC), es decir, la clase entra si su softmax es \ge 0,005, lo que ocurre en el
-%   99,2 % del test ID. Sin esa clase, el tamaño medio sería 0,99. Lo fija una sola imagen
-%   (1449718_015457_039873_000224.png, predicha como cribiforme con 0,921).
-% - Label smoothing (\varepsilon = 0,1, \cref{prop:ls-optimo}): el óptimo da \varepsilon/K = 0,00714 a las
-%   clases no verdaderas; en el test, mediana 0,00682 y el 98,1 % entre \varepsilon/(2K) y 2\varepsilon/K.
-% - Con \alpha = 0,10 el efecto desaparece (glomeruloide en el 2,3 % de los conjuntos).
-\pendiente{análisis de la \cref{fig:mondrian-glomeruloide}}
+Para saber si esas desviaciones caben dentro de la variabilidad esperable, la
+validación ID se dividió en 100 particiones aleatorias, cada una con la mitad para
+calibrar y la otra mitad para evaluar, y se comparó la cobertura obtenida en cada
+clase con la distribución teórica de la \cref{obs:cobertura-beta}, aplicada dentro
+de cada clase (\cref{fig:mondrian-beta}). Con LAC y $\alpha = 0{,}05$, la versión
+Mondrian coincide con la teoría en todas las clases: las coberturas medias van de
+0,949 a 0,965, frente a medias teóricas de 0,950 a 0,966. La versión marginal, en
+cambio, infracubre de forma sistemática las clases pequeñas; en
+\clase{Gleason\_4\_glomeruloide}, su cobertura media es de 0,51, con los
+percentiles 5 y 95 en 0,38 y 0,65. Sin embargo, en el test la cobertura Mondrian de
+\clase{Gleason\_4\_pobremente\_formadas} (0,874) y de \clase{Gleason\_3} (0,901)
+queda por debajo del percentil 5 de las particiones (0,897 y 0,921). Como dentro de
+la validación la versión Mondrian se comporta como predice la teoría, este
+resultado indica que, en esas clases, la validación y el test no son
+intercambiables.
+% Fuente: results_conforme/mondrian/variabilidad_por_clase.csv (LAC, alfa 0,05: medias Mondrian
+% 0,9494-0,9649, teóricas 0,9502-0,9657; marginal glomeruloide 0,510, P5 0,380, P95 0,648; P5 Mondrian
+% pobremente 0,897 y Gleason_3 0,921); angelopoulos2021, §3.2, p. 14.
+
+Queda por explicar por qué los conjuntos Mondrian duplican su tamaño con
+$\alpha = 0{,}05$ (\cref{fig:mondrian-glomeruloide}). La causa es
+\clase{Gleason\_4\_glomeruloide}, que tiene $n_y = 33$ imágenes de calibración. Por
+la \cref{prop:mondrian-ny}, con $\alpha = 0{,}05$ y $19 \le n_y \le 38$ el umbral
+de la clase es su mayor puntuación de calibración. Esa puntuación la fija una sola
+imagen, que el modelo predice como \clase{Gleason\_4\_cribiformes} con una
+probabilidad de 0,921 y a la que asigna una probabilidad de 0,0047 para su clase
+verdadera; con LAC, el umbral es $\hat q_y = 0{,}995$, de modo que la clase entra
+en el conjunto siempre que su probabilidad sea al menos 0,005. Esto ocurre en el
+99,2\,\% de las imágenes del test ID; sin esa clase, el tamaño medio sería de 0,99.
+% Fuente: tabla tab:mondrian-clase (n_y = 33, k_y = 33); results_conforme/mondrian/
+% glomeruloide_calibracion.csv (softmax 0,0047, LAC 0,9953, predicha Gleason_4_cribiformes con
+% 0,9212; imagen 1449718_015457_039873_000224.png); resumen.md, ll. 93-94 (99,2 % y tamaño 0,99).
 
 \begin{figure}[tbp]
   \centering
@@ -145,14 +282,50 @@
   \label{fig:mondrian-glomeruloide}
 \end{figure}
 
-\pendiente{conclusión parcial}
+Que casi ninguna probabilidad baje de 0,005 se debe al \emph{label smoothing} con
+que se entrenó el modelo. Con $\varepsilon = 0{,}1$ y $K = 14$ clases, el óptimo de
+la pérdida asigna a cada clase no verdadera una probabilidad de
+$\varepsilon/K \approx 0{,}00714$ (\cref{prop:ls-optimo}). En el test, la mediana
+de las probabilidades de las clases no predichas es 0,00682, y el 98,1\,\% de ellas
+está entre $\varepsilon/(2K)$ y $2\varepsilon/K$: un «suelo» que queda por encima
+del umbral de 0,005. Con $\alpha = 0{,}10$ el efecto desaparece: el umbral de la
+clase pasa a ser $\hat q_y = 0{,}988$, la clase solo entra si su probabilidad es al
+menos 0,012 y aparece en el 2,3\,\% de los conjuntos.
+% Fuente: results_conforme/mondrian/label_smoothing.json (eps/K = 0,00714; mediana 0,00682; 98,1 %
+% entre eps/(2K) y 2 eps/K); por_clase.csv (q_y = 0,9881 con alfa 0,10); resumen.md, l. 101 (2,3 %).
+
+\paragraph{Conclusión parcial.} La versión Mondrian corrige la infracobertura de
+las clases pequeñas sin cambiar la cobertura global, y dentro de la validación se
+comporta como predice la teoría. Tiene dos costes: con clases muy pequeñas, su
+umbral depende de una sola imagen y, combinado con el \emph{label smoothing},
+puede duplicar el tamaño de los conjuntos; y, con LAC, es más frágil ante el
+desplazamiento de covariables. Las clases en las que no alcanza la cobertura en el
+test son las mismas en las que la validación y el test no parecen
+intercambiables.
 
 \section{Discusión}\label{sec:conforme-discusion}
 
-% Integrar: la detección OOD conforme controla las falsas alarmas; los conjuntos APS ofrecen
-% cobertura marginal y su tamaño señala OOD; Mondrian corrige la infracobertura de las clases
-% minoritarias con dos costes (conjuntos mayores con clases muy pequeñas y fragilidad ante
-% covariate shift con LAC); la no intercambiabilidad entre validación y test limita las garantías.
-\pendiente{discusión global}
+La predicción conforme aporta al sistema garantías que no dependen del modelo:
+calibrada con la validación ID, la detección OOD controla la tasa de falsas alarmas
+en todos los métodos y niveles evaluados, y los conjuntos de predicción alcanzan
+una cobertura compatible con el objetivo en el test ID. Los resultados muestran
+también sus límites. La garantía de APS y RAPS es marginal y deja por debajo del
+objetivo a las clases pequeñas, que en este conjunto de datos son patrones de
+Gleason difíciles de distinguir; la versión Mondrian lo corrige, a costa de
+conjuntos mayores cuando una clase tiene muy pocos datos de calibración y de una
+peor cobertura ante el desplazamiento de covariables con LAC. Además, el tamaño de
+los conjuntos APS crece fuera de distribución y puede servir como señal
+complementaria a los detectores del \cref{cap:deteccion-ood}, mientras que la
+regularización de RAPS la elimina.
+
+Ninguna variante mantiene la cobertura en el control de resolución, lo que
+confirma que las garantías dependen de que los datos de prueba se parezcan a los
+de calibración~\cite{angelopoulos2021}; por eso conviene combinar los conjuntos de
+predicción con la detección OOD, que señala precisamente esas entradas. Por
+último, la intercambiabilidad entre validación y test no está asegurada en este
+trabajo, y el análisis por particiones apunta a que falla en
+\clase{Gleason\_4\_pobremente\_formadas} y \clase{Gleason\_3}: las garantías deben
+leerse con esa reserva.
+% Fuente: síntesis de las secciones anteriores; angelopoulos2021, §4.5, p. 20.
 
 \endinput
