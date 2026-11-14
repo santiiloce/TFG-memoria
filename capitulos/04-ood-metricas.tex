@@ -158,10 +158,8 @@ Puede ser interpretado como la probabilidad de que el detector separe correctame
 
 \subsection{FPR@95}\label{sec:fpr95}
 
-\textbf{FPR@95}: consiste en ajustar el umbral que delimita un caso como ID de forma que dicho umbral detecte el 95\,\% de las OOD.
-% Completar: la métrica es la proporción de imágenes ID clasificadas como OOD con ese umbral
-% (más bajo es mejor).
-\pendiente{completar qué se mide con ese umbral (la proporción de ID rechazadas como OOD; más bajo es mejor)}
+\textbf{FPR@95}: consiste en ajustar el umbral que delimita un caso como ID de forma que dicho umbral detecte el 95\,\% de las OOD, es decir, mide que proporción de imágenes ID
+son rechazadas por error como OOD con el umbral fijo en un punto. De esta forma cuanto más bajo sea el valor de la métrica mejor.
 
 \begin{definicion}[FPR@TPR$x$]\label{def:fpr95}
 \pendiente{definición}

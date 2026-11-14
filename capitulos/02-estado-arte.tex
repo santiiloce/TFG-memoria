@@ -97,7 +97,7 @@ autores advierten de que el estudio se basa en un único conjunto de datos,
 preparado por un mismo equipo en condiciones controladas, y de que la validación
 clínica requeriría conjuntos externos multicéntricos preparados, digitalizados y
 anotados por equipos distintos~\cite{ayensa2026}. Las características del
-conjunto se detallan en la \cref{sec:conjunto-id}.
+conjunto se detallan en el \cref{sec:conjunto-id}.
 % Fuente: ayensa2026, §II, p. 1265 (escasez de datos anotados); §III-A, p. 1266 (7.752 regiones,
 % 85 WSI, 14 categorías); §V, p. 1267 y resumen, p. 1264 (97,33 % de exactitud a nivel de
 % parche, XCiT Medium); §VII, p. 1268 (limitaciones y validación externa).
@@ -111,10 +111,10 @@ de validación internos y externos de Europa y Estados Unidos, con distintos
 laboratorios, procedimientos de preparación y escáneres~\cite{bulten2022}. Según
 los autores, los algoritmos alcanzaron en la validación externa un acuerdo con
 uropatólogos expertos similar o superior al de patólogos generales; el error más
-frecuente fue sobrediagnosticar biopsias benignas como grupo 1, lo que atribuyen
+frecuente fue sobrediagnosticar biopsias benignas como grupo 1 (corresponde con el grado de menor benignidad), lo que atribuyen
 probablemente al desplazamiento de la distribución entre los datos de
 entrenamiento y los de validación externa~\cite{bulten2022}. En este trabajo se
-usan teselas de PANDA como conjunto OOD de próstata adquirido en otros centros
+usan teselas de PANDA como conjunto OOD (\textit{Out-Of-Distribution}) de próstata adquirido en otros centros
 (\cref{sec:panda}).
 % Fuente: bulten2022, pp. 154-155 (tamaño, participantes, diseño ciego, cohortes);
 % p. 158 (validación externa, sobrediagnóstico de GG1 y desplazamiento de distribución).
@@ -175,7 +175,7 @@ mejores en far-OOD, mientras que en el problema near-OOD los supera un conjunto
 de cabezas entrenado para favorecer la diversidad; las conclusiones obtenidas en
 los benchmarks clásicos de visión por computador no se trasladan por completo a
 la patología digital~\cite{linmans2023}. También muestran que la presencia de
-tejido OOD empeora la detección del tumor, y concluyen que el ajuste de estos
+tejido OOD empeora la detección del tumor pudiendo generar falsos positivos, y concluyen que el ajuste de estos
 sistemas puede requerir conocimiento experto del problema concreto~\cite{linmans2023}.
 Estos trabajos motivan la revisión de la detección OOD de la sección siguiente.
 % Fuente: linmans2023, §1, p. 2 (trabajos previos, órgano distinto, near/far-OOD); §2.1-2.2,
@@ -189,8 +189,8 @@ Estos trabajos motivan la revisión de la detección OOD de la sección siguient
 
 La mayoría de los modelos de aprendizaje automático se entrenan bajo el supuesto
 de \emph{mundo cerrado}: se asume que los datos de prueba proceden de la misma
-distribución que los de entrenamiento, la distribución \emph{en distribución}
-(\emph{in-distribution}, ID)~\cite{yang2024}. Al desplegarlos en un escenario
+distribución que los de entrenamiento, la distribución ID
+(\emph{in-distribution, en distribución})~\cite{yang2024}. Al desplegarlos en un escenario
 abierto, pueden aparecer muestras OOD que el modelo clasifica con una confianza
 alta en alguna de las clases conocidas~\cite{yang2024}. Un sistema fiable debería
 detectar estas muestras y rechazarlas o derivarlas a una persona, como el sistema
@@ -206,9 +206,9 @@ propuestos no ha dejado de crecer~\cite{yang2024}.
 \subsection{Cambio semántico y desplazamiento de covariables}\label{sec:ea-shift}
 
 Yang et al.\ distinguen dos tipos de cambio de distribución~\cite{yang2024}. En
-el \emph{desplazamiento de covariables} cambia la distribución de las entradas,
+el \emph{desplazamiento de covariables} (\textit{covariate shift}) cambia la distribución de las entradas,
 pero no el espacio de etiquetas: ejemplos de ello son los cambios de dominio o de
-estilo y los ejemplos adversarios. En el \emph{cambio semántico} aparecen clases
+estilo y los ejemplos adversarios. En el \emph{cambio semántico} (\textit{semantic shift}) aparecen clases
 nuevas o se alteran las existentes, lo que modifica también, de forma indirecta,
 la distribución de las entradas. Como un cambio en las etiquetas arrastra un
 cambio en las entradas, los autores proponen distinguir ambos tipos por la
@@ -226,7 +226,10 @@ adaptación y la generalización de dominio abordan el primer problema: esperan
 desplazamiento de covariables en la prueba, sin cambio semántico, y exigen que el
 modelo siga acertando. Cuando ocurren ambos cambios a la vez, el modelo debería
 ser robusto al desplazamiento de covariables y detectar el cambio
-semántico~\cite{yang2024}. En este trabajo, PANDA corresponde a un desplazamiento
+semántico~\cite{yang2024}. Otras publicaciones como ~\cite{openood15} también aborda esta idea. Sin embargo, en \cite{zimmerer2022}
+se defiende la tarea de que en tareas de alto riesgo donde los modelos son muy conservadores y se espera
+solo hacer conservaciones de muestras de la misma distribución que la de entrenamiento, el modelo debe ser capaz de rechazar 
+y detectar aquellos casos donde la muestra no pertenece al mismo entorno que el de entrenamiento. En la sección \ref{sec:ea-conservador} se aborda que criterio de los dos se ha elegido.  Por otro lado en este trabajo, PANDA corresponde a un desplazamiento
 de covariables, porque es tejido del mismo órgano adquirido en otros centros,
 mientras que DTD introduce un cambio semántico (\cref{sec:conjuntos-ood}).
 % Fuente: yang2024, §2, p. 5637 (uso de cada tipo de cambio); §2.6, p. 5642 (adaptación y
@@ -370,7 +373,7 @@ rechazar también el primero~\cite{yang2024}.
 
 Aunque en clasificación general la detección OOD suele restringirse al cambio
 semántico, Yang et al.~\cite{yang2024} señalan que en tareas de alto riesgo, como
-la clasificación de imágenes médicas (Zimmerer et al.~\cite{zimmerer2022}), se
+la clasificación de imágenes médicas o en el tratamiento de información sensible en materia de privacida (Zimmerer et al.~\cite{zimmerer2022}), se
 espera que los modelos sean conservadores y rechacen cualquier muestra que se
 desvíe de la distribución de entrenamiento. Siguiendo este criterio, en este
 trabajo se considera OOD tanto el cambio semántico (DTD) como el desplazamiento
@@ -567,7 +570,7 @@ con la implementación de OpenOOD (\cref{cap:metodos}).
 El protocolo de OpenOOD toma como ID el conjunto que define la tarea de
 clasificación y como OOD varios conjuntos públicos cuyas categorías no se solapan
 con las ID, en lugar de uno solo~\cite{openood15}. Los conjuntos OOD se agrupan en
-\emph{near-OOD}, más difíciles, y \emph{far-OOD}, más fáciles, con un criterio
+\emph{near-OOD}, más difíciles de detectar, y \emph{far-OOD}, más fáciles de detectar, con un criterio
 semántico o empírico: en los benchmarks de CIFAR, las imágenes near-OOD contienen
 objetos parecidos a los ID, mientras que las far-OOD (dígitos, texturas o escenas)
 se alejan de ellas tanto en significado como en estadísticas de bajo nivel; en
@@ -578,14 +581,14 @@ mientras que los far-OOD añaden un desplazamiento de dominio
 evidente~\cite{yang2024}. Además, OpenOOD reserva conjuntos de validación ID y OOD
 para ajustar los hiperparámetros, en lugar de hacerlo con los datos de prueba,
 para no obtener resultados demasiado optimistas~\cite{openood15}. En este trabajo,
-NCT-CRC desempeña el papel de near-OOD y DTD el de far-OOD
+NCT-CRC-HE-100K-NONORM desempeña el papel de near-OOD y DTD (\textit{textures}) el de far-OOD
 (\cref{tab:diseno-ood}); en patología digital, Linmans et al.\ aplican la misma
 distinción con el linfoma y el tejido de colon (\cref{sec:ea-ood-patologia}).
 % Fuente: openood15, §3, pp. 5-6 (protocolo, near/far, validación); §4, p. 7 (criterio semántico en
 % CIFAR y empírico en ImageNet); yang2024, §5.1, p. 5651 (near-OOD solo semántico, far-OOD con
 % desplazamiento de dominio). Ubicación de NCT-CRC y DTD: diseño del TFG (capítulo 8).
 
-La evaluación es binaria, con las muestras OOD como clase positiva, y usa
+La evaluación es binaria, con las muestras OOD como clase positiva, y se usan
 métricas independientes del umbral, como el \AUROC y el AUPR, y el \FPRn{95},
 que fija un punto de operación~\cite{openood15}; se definen en la
 \cref{sec:metricas}. OpenOOD v1.5 evalúa también la \emph{detección del espectro
@@ -630,7 +633,7 @@ trabajo~\cite{openood15}:
   y ReAct, los dos mejores con ResNet-50, empeoran notablemente con transformers,
   mientras que RMDS se adapta mucho mejor a ellos que a las ResNet. Los autores
   sugieren que la mayoría de los métodos post hoc están diseñados para redes
-  convolucionales. Este resultado es relevante aquí, porque el clasificador
+  convolucionales. Este resultado en este trabajo, porque el clasificador
   principal es un Swin-S.
 \end{itemize}
 Entre el resto de observaciones, los métodos post hoc aplicados a un modelo
