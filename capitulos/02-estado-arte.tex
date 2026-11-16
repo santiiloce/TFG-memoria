@@ -226,9 +226,9 @@ adaptación y la generalización de dominio abordan el primer problema: esperan
 desplazamiento de covariables en la prueba, sin cambio semántico, y exigen que el
 modelo siga acertando. Cuando ocurren ambos cambios a la vez, el modelo debería
 ser robusto al desplazamiento de covariables y detectar el cambio
-semántico~\cite{yang2024}. Otras publicaciones como ~\cite{openood15} también aborda esta idea. Sin embargo, en \cite{zimmerer2022}
+semántico~\cite{yang2024}. Otras publicaciones como ~\cite{openood15} también abordan esta idea. Sin embargo, en \cite{zimmerer2022}
 se defiende la tarea de que en tareas de alto riesgo donde los modelos son muy conservadores y se espera
-solo hacer conservaciones de muestras de la misma distribución que la de entrenamiento, el modelo debe ser capaz de rechazar 
+solo hacer predicciones de muestras de la misma distribución que la de entrenamiento, el modelo debe ser capaz de rechazar 
 y detectar aquellos casos donde la muestra no pertenece al mismo entorno que el de entrenamiento. En la sección \ref{sec:ea-conservador} se aborda que criterio de los dos se ha elegido.  Por otro lado en este trabajo, PANDA corresponde a un desplazamiento
 de covariables, porque es tejido del mismo órgano adquirido en otros centros,
 mientras que DTD introduce un cambio semántico (\cref{sec:conjuntos-ood}).
@@ -396,7 +396,7 @@ el test ID al 90,77\,\% en las mismas imágenes con menor resolución
 
 Yang et al.\ agrupan los métodos de detección OOD en cuatro familias: basados en
 clasificación, en densidad, en distancia y en
-reconstrucción~\cite{yang2024}. La \cref{tab:ea-familias} las resume e indica
+reconstrucción~\cite{yang2024}. El \cref{tab:ea-familias} los resume e indica
 cuáles se evalúan en este trabajo. La frontera entre familias no es nítida: Yang
 et al.\ citan el modelado gaussiano por clase tanto entre los métodos de densidad
 como entre los de distancia, y sitúan SHE entre los métodos basados en la salida
@@ -695,8 +695,18 @@ XAI)~\cite{sevillano2025tesis}. Barredo Arrieta et al.\ señalan que la
 imposibilidad de explicar el funcionamiento de los modelos es una de las
 principales barreras para su implantación, sobre todo en sectores muy regulados y
 reacios a técnicas que puedan poner en riesgo sus activos, como la banca, la
-seguridad o la salud~\cite{barredo2020}.
+seguridad o la salud~\cite{barredo2020}. Gracias a la ~\ref{fig:ea-papers-xai} se puede apreciar el incipiente 
+aumento de contribuciones en XAI y en aspectos relacionados.
 % Fuente: sevillano2025tesis, cap. 2, p. 16; barredo2020, §2.3, p. 86.
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=\textwidth]{img/cap02/papers_xai.png}
+  \caption{Evolución del número de publicaciones cuyo título, resumen o palabras
+    clave se refieren a la XAI, según Scopus (datos a 10 de diciembre de 2019).
+    Fuente: Barredo Arrieta et al.~\cite{barredo2020} (figura~1).}
+  \label{fig:ea-papers-xai}
+\end{figure}
 
 En la literatura se usan a menudo como sinónimos términos con matices
 distintos~\cite{barredo2020}. La \emph{interpretabilidad} es una característica

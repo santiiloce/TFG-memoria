@@ -116,7 +116,8 @@ def escribir(salida, nombre, lineas, origen):
     print('  ' + ruta)
 
 
-def tabla(caption, label, columnas, cuerpo, tamano='\\small', sep=None, entorno='tabular', ancho=None):
+def tabla(caption, label, columnas, cuerpo, tamano='\\small', sep=None, entorno='tabular', ancho=None,
+          notas=None):
     l = ['\\begin{table}[tbp]', '\\centering', tamano]
     if sep:
         l.append('\\setlength{\\tabcolsep}{%s}' % sep)
@@ -126,7 +127,10 @@ def tabla(caption, label, columnas, cuerpo, tamano='\\small', sep=None, entorno=
     else:
         l.append('\\begin{%s}{%s}' % (entorno, columnas))
     l += cuerpo
-    l += ['\\end{%s}' % entorno, '\\end{table}']
+    l.append('\\end{%s}' % entorno)
+    if notas:
+        l += ['', '\\smallskip', '\\parbox{\\linewidth}{\\scriptsize %s}' % notas]
+    l.append('\\end{table}')
     return l
 
 
@@ -179,6 +183,63 @@ def t08_particion(R, S):
     escribir(S, 't08_particion.tex',
              tabla(cap, 'tab:particion', 'lrrrrr', cuerpo, '\\small'),
              'results_integridad/inventario_por_clase.csv')
+
+
+# Capítulo 8: parámetros de las corrupciones sintéticas (Zhang et al., 2022)
+# ---------------------------------------------------------------------------
+# Rótulos de la columna «Parámetro» (texto, no cifras); las cifras salen del CSV.
+PARAM_CORRUPCION = OrderedDict([
+    ('brightness', 'Incremento de V (HSV)'),
+    ('saturate', 'Incremento de S (HSV)'),
+    ('hue', 'Incremento de H (HSV, circular)$^{c}$'),
+    ('marking_blur', 'Tamaño de la mancha (alto $\\times$ ancho)$^{a}$'),
+    ('bubble_blur', 'Proporción de mezcla con la burbuja$^{b}$'),
+    ('jpeg_compression', 'Calidad JPEG'),
+    ('pixelate', 'Factor de reducción (filtro BOX)'),
+    ('defocus_blur', '(radio del disco; $\\sigma$ del antialias)'),
+    ('motion_blur', '(radio; $\\sigma$) de ImageMagick; ángulo $\\mathcal{U}(-45^\\circ, 45^\\circ)$'),
+])
+
+
+def t08_corrupciones(R, S):
+    import re
+    origen = 'results_corrupciones/parametros_corrupciones.csv'
+    filas = {f['codigo']: f for f in leer_csv(os.path.join(R, origen))}
+    assert list(filas) == list(PARAM_CORRUPCION), 'corrupciones del CSV distintas de las esperadas'
+    mancha = re.compile(r'^(\d+)x(\d+) px en (\(\d+, \d+\))$')
+    posiciones = set()
+
+    def valor(codigo, v):
+        if codigo == 'marking_blur':
+            alto, ancho, pos = mancha.match(v).groups()
+            posiciones.add(pos)
+            return '%s $\\times$ %s\\,px' % (alto, ancho)
+        return v.replace('.', '{,}')
+
+    cuerpo = ['\\toprule', 'Corrupción & Parámetro & Nivel 1 & Nivel 3 & Nivel 5 \\\\', '\\midrule']
+    for codigo, rotulo in PARAM_CORRUPCION.items():
+        f = filas[codigo]
+        cuerpo.append('%s & %s & %s & %s & %s \\\\' % (
+            f['corrupcion'][0].upper() + f['corrupcion'][1:], rotulo,
+            valor(codigo, f['nivel_1']), valor(codigo, f['nivel_3']), valor(codigo, f['nivel_5'])))
+    cuerpo.append('\\bottomrule')
+    assert len(posiciones) == 1, 'la mancha no está en una posición fija'
+    pos = posiciones.pop().replace('(', '').replace(')', '')
+    # El número de burbujas del repositorio (6) consta en results_corrupciones/decisiones.md.
+    notas = ('Marcas y burbujas usan los recursos de 224\\,px del propio repositorio (el código usa por defecto '
+             'los de 96\\,px). Solo el desenfoque por movimiento es aleatorio: su semilla se deriva con SHA-256 del '
+             'fichero, la corrupción y el nivel. '
+             '$^{a}$Siempre la misma mancha, en la posición fija (%s). '
+             '$^{b}$Se usa siempre la primera de las 6 burbujas del repositorio, en posición fija. '
+             '$^{c}$Implementación marcada como poco fiable en el código original.') % pos
+    cap = ('Parámetros de las nueve corrupciones de Zhang et al.~\\cite{zhang2022corruptions} en los niveles de '
+           'severidad 1, 3 y 5. La severidad crece con el parámetro, salvo en JPEG y pixelado, en los que crece '
+           'al bajar la calidad o el factor.')
+    escribir(S, 't08_corrupciones.tex',
+             tabla(cap, 'tab:corrupciones',
+                   '@{}l>{\\raggedright\\arraybackslash}Xccc@{}', cuerpo, '\\footnotesize', '4pt',
+                   'tabularx', notas=notas),
+             origen)
 
 
 # ---------------------------------------------------------------------------
@@ -792,6 +853,232 @@ def tB_anexo(R, S):
 
 
 # ---------------------------------------------------------------------------
+# Apéndice D: detección OOD con ConvNeXt-S (fase 9)
+# ---------------------------------------------------------------------------
+CONVNEXT = 'results_ood_convnext'
+# Mismos métodos que la tabla principal, sin las variantes exploratorias de STOOD-X.
+METODOS_CNX = OrderedDict((m, METODOS[m].replace('$^{a}$', '')) for m in METODOS
+                          if m not in ('stoodx_875', 'stoodx_100_kc'))
+METODOS_CNX['ash'] = 'ASH$^{a}$'
+METODOS_CNX['dice'] = 'DICE$^{a}$'
+PRINCIPALES_CNX = ['msp', 'knn', 'mds', 'rmds', 'vim', 'stoodx_100']
+NOTA_BOOT_PAR = ('IC del 95\\,\\% por \\emph{bootstrap} pareado por imagen (1.000 remuestreos estratificados ID/OOD, '
+                 'semilla 0).')
+
+
+def tex_texto(s):
+    """Texto de los CSV de la fase 9 (UTF-8 con símbolos) a LaTeX compilable con pdflatex."""
+    for a, b in [('%', '\\%'), ('_', '\\_'), ('−', '$-$'), ('→', '$\\to$'), ('≈', '$\\approx$'),
+                 ('≥', '$\\geq$'), ('≤', '$\\leq$'), ('′', '$\'$'), ('|', '$|$'), (' > ', ' $>$ '),
+                 (' < ', ' $<$ ')]:
+        s = s.replace(a, b)
+    return s
+
+
+def signo(x, d=3):
+    return ('+' if float(x) >= 0 else '$-$') + n(abs(float(x)), d)
+
+
+def ic_signo(a, b, d=3):
+    return '[%s; %s]' % (signo(a, d), signo(b, d))
+
+
+def nota_acc_cnx(datos):
+    return ('$^{a}$Modifican la predicción: la exactitud ID baja al %s\\,\\%% (ASH) y al %s\\,\\%% (DICE, con el '
+            'postprocesador de OpenOOD sin cambios).') % (pct(datos[('ash', 'near_nct_tum_norm')]['ACC_ID'], 1),
+                                                          pct(datos[('dice', 'near_nct_tum_norm')]['ACC_ID'], 1))
+
+
+def tD_configuracion(R, S):
+    cfg = {f['parametro']: f for f in leer_csv(os.path.join(R, CONVNEXT, 'configuracion_convnext.csv'))}
+    v = lambda k: tex_texto(cfg[k]['valor'])
+    nt = lambda k: tex_texto(cfg[k]['nota'])
+    mant, expo = cfg['max_dif_logits']['valor'].split('e')
+    dif = '$%s\\cdot 10^{%d}$' % (mant.replace(',', '{,}'), int(expo))
+    filas = [
+        ('Modelo', '%s; mismo entrenamiento que en el \\cref{sec:protocolo}' % v('modelo')),
+        ('Cabeza', '%s. %s' % (v('cabeza'), nt('cabeza'))),
+        ('Espacio principal', '%s: %s. Máx.\\ $|W\'B+b\'-\\mathrm{logits}|$ en los 11 conjuntos: %s' % (
+            v('espacio_principal'), nt('espacio_principal'), dif)),
+        ('Espacio de sensibilidad', '%s: %s' % (v('espacio_sensibilidad'), nt('espacio_sensibilidad'))),
+        ('Dimensión de ViM', '%s (%s)' % (v('vim_dim'), nt('vim_dim'))),
+        ('$K$ de \\stoodx', '%s (%s)' % (v('stoodx_K'), nt('stoodx_K'))),
+        ('Ejecución', 'nodo %s, %s, %s (%s)' % (v('nodo'), v('cpu_gpu'), v('precision'), nt('cpu_gpu'))),
+        ('Tiempo total', '%s (%s)' % (v('tiempo_total'), nt('tiempo_total'))),
+        ('Memoria (MaxRSS)', '%s (%s)' % (v('maxrss'), nt('maxrss'))),
+        ('Exactitud de test', '%s (%s)' % (v('exactitud_test'), nt('exactitud_test'))),
+    ]
+    cuerpo = ['\\toprule', 'Parámetro & Valor \\\\', '\\midrule']
+    cuerpo += ['%s & %s \\\\' % f for f in filas]
+    cuerpo.append('\\bottomrule')
+    cap = ('Configuración de la evaluación OOD con ConvNeXt-S y diferencias con la del Swin-S. B y C son los '
+           'espacios de características; $W\'$ y $b\'$, la última capa lineal con la BatchNorm plegada.')
+    escribir(S, 'tD_configuracion.tex', tabla(cap, 'tab:convnext-config', '@{}l>{\\raggedright\\arraybackslash}X@{}',
+                                              cuerpo, '\\footnotesize', entorno='tabularx'),
+             CONVNEXT + '/configuracion_convnext.csv')
+
+
+def tD_auroc(R, S, datos):
+    conjuntos = list(CONJUNTOS)
+    best = {c: mejores(datos, METODOS_CNX, c, 'AUROC', True) for c in conjuntos}
+
+    def celda(m, c):
+        f = datos[(m, c)]
+        s = negrita(n(f['AUROC']), round(float(f['AUROC']), 3) == round(best[c], 3))
+        return s + (' %s' % ic(f['AUROC_IC_inf'], f['AUROC_IC_sup']) if c == 'near_nct_tum_norm' else '')
+
+    def fila(m):
+        return '%s & %s \\\\' % (METODOS_CNX[m], ' & '.join(celda(m, c) for c in conjuntos))
+
+    cuerpo = ['\\toprule', 'Método & TUM+NORM [IC 95\\,\\%%] & %s \\\\' % ' & '.join(
+        CONJUNTOS[c] for c in conjuntos[1:]), '\\midrule']
+    cuerpo += filas_familias(set(METODOS_CNX), fila, len(conjuntos) + 1)
+    cuerpo.append('\\bottomrule')
+    cap = ('ConvNeXt-S, espacio B: \\AUROC (más alto es mejor) de los 14 métodos en los nueve conjuntos. Clase '
+           'positiva: OOD. En negrita, el mejor valor de cada conjunto. %s Los IC del resto de conjuntos están en '
+           '\\texttt{tabla\\_principal\\_convnext.csv}. %s') % (NOTA_BOOT.replace(' Clase positiva: OOD.', ''),
+                                                                nota_acc_cnx(datos))
+    escribir(S, 'tD_auroc.tex', tabla(cap, 'tab:convnext-auroc', 'l' + 'c' * len(conjuntos), cuerpo,
+                                      '\\scriptsize', '2pt'),
+             CONVNEXT + '/tabla_principal_convnext.csv')
+
+
+def tD_fpr95_ccr(R, S, datos):
+    conjuntos = list(CONJUNTOS)
+    best = {c: mejores(datos, METODOS_CNX, c, 'FPR@95', False) for c in conjuntos}
+    best_ccr = mejores(datos, METODOS_CNX, 'near_nct_tum_norm', 'CCR@FPR5', True)
+
+    def fila(m):
+        fp = [negrita(n(datos[(m, c)]['FPR@95']), round(float(datos[(m, c)]['FPR@95']), 3) == round(best[c], 3))
+              for c in conjuntos]
+        cc = float(datos[(m, 'near_nct_tum_norm')]['CCR@FPR5'])
+        return '%s & %s & %s \\\\' % (METODOS_CNX[m], ' & '.join(fp),
+                                      negrita(n(cc), round(cc, 3) == round(best_ccr, 3)))
+
+    k = len(conjuntos)
+    cuerpo = ['\\toprule',
+              '& \\multicolumn{%d}{c}{\\FPRn{95} $\\downarrow$} & \\CCRn{5} $\\uparrow$ \\\\' % k,
+              '\\cmidrule(lr){2-%d}\\cmidrule(lr){%d-%d}' % (k + 1, k + 2, k + 2),
+              'Método & %s & TUM+NORM \\\\' % ' & '.join(CONJUNTOS.values()), '\\midrule']
+    cuerpo += filas_familias(set(METODOS_CNX), fila, k + 2)
+    cuerpo.append('\\bottomrule')
+    cap = ('ConvNeXt-S, espacio B: \\FPRn{95} (más bajo es mejor) de los 14 métodos en los nueve conjuntos y '
+           '\\CCRn{5} (más alto es mejor) en TUM+NORM. Clase positiva: OOD. En negrita, el mejor valor de cada '
+           'columna. Los IC de \\FPRn{95} están en \\texttt{tabla\\_principal\\_convnext.csv}. %s') % \
+        nota_acc_cnx(datos)
+    escribir(S, 'tD_fpr95_ccr.tex', tabla(cap, 'tab:convnext-fpr', 'l' + 'c' * (k + 1), cuerpo,
+                                          '\\scriptsize', '2.5pt'),
+             CONVNEXT + '/tabla_principal_convnext.csv')
+
+
+def filas_dif_ic(filas_por_clave, columnas, campo_dif, campo_inf, campo_sup):
+    """Una fila con las diferencias por conjunto y, debajo, otra más pequeña con sus IC."""
+    cuerpo = []
+    for c in CONJUNTOS:
+        d = [filas_por_clave.get((k, c)) for k in columnas]
+        cuerpo.append('%s & %s \\\\' % (CONJUNTOS[c], ' & '.join(signo(f[campo_dif]) if f else '--' for f in d)))
+        cuerpo.append('& %s \\\\[2pt]' % ' & '.join(
+            '{\\scriptsize %s}' % ic_signo(f[campo_inf], f[campo_sup]) if f else '' for f in d))
+    return cuerpo
+
+
+def tD_diferencias(R, S):
+    d = por_metodo_conjunto(leer_csv(os.path.join(R, CONVNEXT, 'diferencias_auroc.csv')))
+    cuerpo = ['\\toprule', 'Conjunto & %s \\\\' % ' & '.join(METODOS_CNX[m] for m in PRINCIPALES_CNX), '\\midrule']
+    cuerpo += filas_dif_ic(d, PRINCIPALES_CNX, 'dif_convnext_menos_swin', 'IC_inf', 'IC_sup')
+    cuerpo.append('\\bottomrule')
+    cap = ('Diferencia de \\AUROC ConvNeXt-S $-$ Swin-S (positiva: mejor ConvNeXt-S) en los métodos principales, '
+           'con su IC debajo. %s Los demás métodos están en \\texttt{diferencias\\_auroc.csv}.') % NOTA_BOOT_PAR
+    escribir(S, 'tD_diferencias.tex', tabla(cap, 'tab:convnext-diferencias', 'l' + 'c' * len(PRINCIPALES_CNX),
+                                            cuerpo, '\\footnotesize', '2.5pt'),
+             CONVNEXT + '/diferencias_auroc.csv')
+
+
+def tD_conclusiones(R, S):
+    filas = leer_csv(os.path.join(R, CONVNEXT, 'conclusiones_swin.csv'))
+    cuerpo = ['\\toprule', '\\# & Conclusión con Swin-S & Swin-S & ConvNeXt-S (B) & Estado \\\\', '\\midrule']
+    for f in filas:
+        cuerpo.append('%s & %s & %s & %s & %s \\\\' % (f['num'], tex_texto(f['conclusion']),
+                                                        tex_texto(f['cifra_swin']), tex_texto(f['cifra_convnext']),
+                                                        f['estado'].capitalize()))
+    cuerpo.append('\\bottomrule')
+    cap = ('Conclusiones del \\cref{cap:deteccion-ood} con Swin-S, una por fila, y cifras que las sostienen con cada '
+           'modelo (\\AUROC salvo que se indique otra métrica). No concluyente: la ordenación se mantiene, pero los '
+           'IC se solapan.')
+    rr = '>{\\raggedright\\arraybackslash}'
+    col = '@{}l%sp{2.4cm}%sX%sX%sp{1.4cm}@{}' % (rr, rr, rr, rr)
+    escribir(S, 'tD_conclusiones.tex', tabla(cap, 'tab:convnext-conclusiones', col, cuerpo, '\\scriptsize', '3pt',
+                                             entorno='tabularx'),
+             CONVNEXT + '/conclusiones_swin.csv')
+
+
+def p_valor(p):
+    return '$<0{,}0001$' if float(p) < 1e-4 else n(p, 4)
+
+
+def tD_kendall(R, S):
+    filas = leer_csv(os.path.join(R, CONVNEXT, 'kendall.csv'))
+    cuerpo = ['\\toprule',
+              '& \\multicolumn{2}{c}{14 métodos} & \\multicolumn{2}{c}{Sin ASH ni DICE (12)} \\\\',
+              '\\cmidrule(lr){2-3}\\cmidrule(lr){4-5}', 'Conjunto & $\\tau$ & $p$ & $\\tau$ & $p$ \\\\', '\\midrule']
+    for f in filas:
+        cuerpo.append('%s & %s & %s & %s & %s \\\\' % (CONJUNTOS[f['conjunto']], n(f['tau']), p_valor(f['p']),
+                                                        n(f['tau_sin_ash_dice']), p_valor(f['p_sin_ash_dice'])))
+    cuerpo.append('\\bottomrule')
+    cap = ('$\\tau$ de Kendall entre las ordenaciones de los métodos por \\AUROC con Swin-S y con ConvNeXt-S, en '
+           'cada conjunto ($\\tau=1$: misma ordenación). Valores $p$ sin corregir por comparaciones múltiples.')
+    escribir(S, 'tD_kendall.tex', tabla(cap, 'tab:convnext-kendall', 'lcccc', cuerpo, '\\footnotesize', '5pt'),
+             CONVNEXT + '/kendall.csv')
+
+
+def tD_stoodx(R, S):
+    pv = {(f['modelo'], f['metodo']): f for f in leer_csv(os.path.join(R, CONVNEXT, 'panda_vs_control.csv'))}
+    sat = {(f['modelo'], f['espacio'], f['conjunto']): f
+           for f in leer_csv(os.path.join(R, CONVNEXT, 'saturacion_stoodx.csv'))}
+
+    def fila_pv(m):
+        celdas = ['%s %s' % (n(pv[(mod, m)]['AUROC_panda_vs_control']),
+                             ic(pv[(mod, m)]['IC_inf'], pv[(mod, m)]['IC_sup'])) for mod in ('swin', 'convnext')]
+        return '%s & %s \\\\' % (METODOS_CNX[m], ' & '.join(celdas))
+
+    l = ['\\begin{table}[tbp]', '\\centering', '\\footnotesize', '\\setlength{\\tabcolsep}{4pt}',
+         '\\caption{\\stoodx y la saturación con los dos modelos. (a) \\AUROC con el control de 128\\,px como clase '
+         'negativa y PANDA como positiva: por encima de 0,5, la puntuación coloca PANDA como más OOD que el control. '
+         '%s (b) Porcentaje de imágenes con la puntuación $-z$ de \\stoodx ($K=500$) saturada ($U=n_1n_2$); en C '
+         'solo se calculó en el test ID, TUM y NORM.}' % NOTA_BOOT.replace(' Clase positiva: OOD.', ''),
+         '\\label{tab:convnext-stoodx}', '',
+         '\\textit{(a) PANDA frente al control}\\par\\smallskip',
+         '\\begin{tabular}{lcc}', '\\toprule', 'Método & Swin-S & ConvNeXt-S \\\\', '\\midrule']
+    l += filas_familias(set(METODOS_CNX), fila_pv, 3)
+    l += ['\\bottomrule', '\\end{tabular}', '', '\\bigskip',
+          '\\textit{(b) Imágenes saturadas}\\par\\smallskip',
+          '\\begin{tabular}{lccc}', '\\toprule', 'Conjunto & Swin-S & ConvNeXt-S (B) & ConvNeXt-S (C) \\\\',
+          '\\midrule']
+    for c, nombre in [('id_test', 'Test ID')] + list(CONJUNTOS.items()):
+        celdas = [sat.get(k) for k in [('swin', '-', c), ('convnext', 'B', c), ('convnext', 'C', c)]]
+        l.append('%s & %s \\\\' % (nombre, ' & '.join(pct(f['frac_saturadas']) + '\\,\\%' if f else '--'
+                                                         for f in celdas)))
+    l += ['\\bottomrule', '\\end{tabular}', '\\end{table}']
+    escribir(S, 'tD_stoodx.tex', l, CONVNEXT + '/panda_vs_control.csv y saturacion_stoodx.csv')
+
+
+def tD_sensibilidad(R, S):
+    d = {(f['a'], f['conjunto']): f for f in leer_csv(os.path.join(R, CONVNEXT, 'sensibilidad_pareada.csv'))}
+    cols = [('knn@C', 'KNN'), ('mds@C', 'MDS'), ('rmds@C', 'RMDS'), ('stoodx_100@C', 'STOOD-X'),
+            ('vim_256@B', 'ViM 256 $-$ 171')]
+    cuerpo = ['\\toprule', '& \\multicolumn{4}{c}{C $-$ B} & \\\\', '\\cmidrule(lr){2-5}',
+              'Conjunto & %s \\\\' % ' & '.join(c[1] for c in cols), '\\midrule']
+    cuerpo += filas_dif_ic(d, [c[0] for c in cols], 'dif_a_menos_b', 'IC_inf', 'IC_sup')
+    cuerpo.append('\\bottomrule')
+    cap = ('Sensibilidad de ConvNeXt-S: diferencia de \\AUROC entre el espacio C (1.536 dimensiones) y el B (512), '
+           'y entre ViM con 256 y con 171 dimensiones en B (positiva: mejor C o ViM 256), con su IC debajo. %s '
+           '\\stoodx en C solo se calculó en TUM y NORM.') % NOTA_BOOT_PAR
+    escribir(S, 'tD_sensibilidad.tex', tabla(cap, 'tab:convnext-sensibilidad', 'l' + 'c' * len(cols), cuerpo,
+                                             '\\footnotesize', '4pt'),
+             CONVNEXT + '/sensibilidad_pareada.csv')
+
+
+# ---------------------------------------------------------------------------
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split('\n')[0])
     ap.add_argument('--resultados', default=RAIZ_RESULTADOS)
@@ -802,6 +1089,7 @@ def main():
     print('Generando tablas en ' + S)
 
     t08_particion(R, S)
+    t08_corrupciones(R, S)
 
     t09_modelos(R, S)
     t09_recall_clase(R, S)
@@ -837,6 +1125,16 @@ def main():
     tA_aupr(R, S, datos, 'AUPR_In', 'tA_aupr_in.tex', 'tab:aupr-in', '\\AUPRin (clase positiva: ID)')
     tA_aupr(R, S, datos, 'AUPR_Out', 'tA_aupr_out.tex', 'tab:aupr-out', '\\AUPRout (clase positiva: OOD)')
     tB_anexo(R, S)
+
+    cnx = por_metodo_conjunto(leer_csv(os.path.join(R, CONVNEXT, 'tabla_principal_convnext.csv')))
+    tD_configuracion(R, S)
+    tD_auroc(R, S, cnx)
+    tD_fpr95_ccr(R, S, cnx)
+    tD_diferencias(R, S)
+    tD_conclusiones(R, S)
+    tD_kendall(R, S)
+    tD_stoodx(R, S)
+    tD_sensibilidad(R, S)
 
 
 if __name__ == '__main__':

@@ -12,6 +12,22 @@
 % que la \cref{tab:modelos}). Métricas definidas en el \cref{cap:ood-metricas}; clase positiva: OOD.
 \pendiente{introducción del capítulo: modelo, 16 métodos (13 de OpenOOD y tres configuraciones de STOOD-X), nueve conjuntos (\cref{tab:diseno-ood}) y métricas (\cref{sec:auroc,sec:fpr95,sec:ccr}); IC por \emph{bootstrap} (\cref{sec:bootstrap})}
 
+% Diferencia de exactitud del Swin-S en el test ID: 0,9688 (results_fase1) frente a 0,9687 en la
+% evaluación OOD (features/completo/id_test.npz; también 0,96870 en el nivel 0 de results_corrupciones).
+% Las predicciones coinciden en 12.617 de 12.618 imágenes. Única diferencia:
+% Glandulas_no_neoplasicas/30113155_017249_016353_000224.png (clase real Glandulas_no_neoplasicas):
+% la fase 1 acierta y la evaluación OOD predice Gleason_3; las dos probabilidades más altas están casi
+% empatadas (fase 1: 0,4371 frente a 0,4337; OOD: 0,4391 frente a 0,4321).
+% Entornos según los ficheros: fase 1 (fase1_predicciones.py, results_fase1/predicciones_info.json,
+% script_fase1.sh) y fase A (results_ood/faseA_*/config.json) usan el mismo entorno fastai_env_ood
+% (torch 2.8.0+cu128) y la misma GPU (RTX 2080 Ti). Lo que cambia es la ruta de inferencia: la fase 1
+% carga el learner exportado (.pkl) con learn.get_preds, que «usa la precisión mixta del learner»
+% (results_fase1/resumen.md); la fase A carga el state dict (.pth) en fp32 con el transform de
+% my_evauator_openood.py. La exactitud medida al entrenar (resultados.txt de param4: fastai_env,
+% torch 1.12.1, TITAN Xp) es 0,96870, igual que la de la evaluación OOD.
+\revisar{el autor atribuye la diferencia a un cambio de entorno (versión de PyTorch y hardware), pero según los ficheros la fase 1 y la extracción OOD comparten entorno y GPU; la diferencia está en la ruta de inferencia (learner con precisión mixta frente a state dict en fp32). Confirmar la causa antes de redactar la nota}
+\pendiente{nota al pie sobre la diferencia de exactitud por cambio de entorno}
+
 \revisar{la tabla principal de las notas (\texttt{tabla\_principal\_ood.tex}) se divide en una tabla por bloque; las tablas de AUPR van al \cref{ap:aupr}}
 
 \begin{figure}[tbp]
@@ -23,7 +39,7 @@
 
 \section{Near-OOD principal}\label{sec:ood-near}
 
-Los resultados muestran una separación clara entre familias de métodos. Los métodos que operan sobre el espacio de características (ViM, MDS, KNN, RMDS y STOOD-X) superan de forma sistemática a los basados únicamente en los logits, en todos los conjuntos evaluados. En el near-OOD principal (NCT-CRC TUM + NORM), los primeros alcanzan un AUROC de entre 0,953 y 0,969, frente a 0,821--0,876 de MSP, MaxLogit y Energy. La diferencia es aún mayor en el punto de trabajo: el FPR@95 baja de 0,879 (MSP) a valores entre 0,128 y 0,173, y el CCR@FPR5 sube de 0,118 a más de 0,82. Esto indica que el vector de características de 768 dimensiones contiene información sobre la pertenencia a la distribución que se pierde al proyectarlo sobre los 14 logits.
+Los resultados muestran una separación clara entre familias de métodos. Los métodos que operan sobre el espacio de características (ViM, MDS, KNN, RMDS y STOOD-X) superan de forma sistemática a los basados únicamente en los logits, en todos los conjuntos evaluados. En el near-OOD principal (NCT-CRC TUM + NORM), los primeros alcanzan un AUROC de entre 0,953 y 0,969, frente a 0,821--0,876 de MSP, MaxLogit y Energy. La diferencia es aún mayor en el punto de trabajo: el FPR@95 baja de 0,879 (MSP) a valores entre 0,128 y 0,173, y el CCR@FPR5 sube de 0,118 a más de 0,82. Esto indica que el vector de características de 768 dimensiones contiene información sobre la pertenencia a la distribución que se pierde al proyectarlo sobre los 14 logits. \revisar{en ConvNeXt-S, MSP (0,954) queda al nivel de MDS (0,953) en TUM+NORM: matizar como propio del Swin (\cref{ap:convnext})}
 \revisar{«de forma sistemática [...] en todos los conjuntos»: RMDS queda por debajo de MSP en LYM (AUROC 0,824 frente a 0,854, \cref{tab:ood-control-interno})}
 \revisar{el rango de FPR@95 (0,128--0,173) y el CCR@FPR5 (más de 0,82) valen para ViM, MDS, KNN y RMDS, pero no para STOOD-X (0,349 y 0,646)}
 
@@ -72,7 +88,7 @@ más sensibles al desplazamiento de covariables que al cambio semántico.
 
 \section{PANDA: cambio de centro y de escala}\label{sec:ood-panda}
 
-Respecto a PANDA, la comparación con el control debe interpretarse con especial cuidado, ya que sus imágenes presentan más diferencias que el mero reescalado. Además de proceder de otros centros, las teselas se extrajeron del nivel de menor resolución de las imágenes originales, con un aumento mucho menor, de modo que cada una abarca una región de tejido muy superior a los 112\,$\mu$m de los parches ID; además, contienen mucho más fondo blanco (63\,\% frente a 21\,\%). Los métodos de distancia detectan PANDA (AUROC $\approx 0{,}91$) mejor que el control ($\approx 0{,}77$--$0{,}79$), pero esta diferencia no puede atribuirse solo al cambio de centro, ya que se combina con los cambios de escala y de contenido de fondo. En STOOD-X, ambos AUROC coinciden (0,895 y 0,894) y su puntuación no distingue PANDA del control (AUROC 0,475 [0,467; 0,482]). Sin embargo, cerca de un tercio de las imágenes de ambos conjuntos alcanza el valor extremo del estadístico (\cref{obs:u-empates}), por lo que esta coincidencia refleja la pérdida de capacidad de ordenación por saturación más que una sensibilidad específica a la resolución. Excluir las 291 teselas sin tejido no modifica ninguna de estas conclusiones. Aislar el efecto del centro requeriría extraer las imágenes de PANDA a la misma escala que los datos ID, lo que queda como trabajo futuro.
+Respecto a PANDA, la comparación con el control debe interpretarse con especial cuidado, ya que sus imágenes presentan más diferencias que el mero reescalado. Además de proceder de otros centros, las teselas se extrajeron del nivel de menor resolución de las imágenes originales, con un aumento mucho menor, de modo que cada una abarca una región de tejido muy superior a los 112\,$\mu$m de los parches ID; además, contienen mucho más fondo blanco (63\,\% frente a 21\,\%). Los métodos de distancia detectan PANDA (AUROC $\approx 0{,}91$) mejor que el control ($\approx 0{,}77$--$0{,}79$), pero esta diferencia no puede atribuirse solo al cambio de centro, ya que se combina con los cambios de escala y de contenido de fondo. En STOOD-X, ambos AUROC coinciden (0,895 y 0,894) y su puntuación no distingue PANDA del control (AUROC 0,475 [0,467; 0,482]). Sin embargo, cerca de un tercio de las imágenes de ambos conjuntos alcanza el valor extremo del estadístico (\cref{obs:u-empates}), por lo que esta coincidencia refleja la pérdida de capacidad de ordenación por saturación más que una sensibilidad específica a la resolución. \revisar{reforzar: con ConvNeXt-S, menos saturado, STOOD-X sí distingue PANDA del control (0,859); \cref{tab:convnext-stoodx}} Excluir las 291 teselas sin tejido no modifica ninguna de estas conclusiones. Aislar el efecto del centro requeriría extraer las imágenes de PANDA a la misma escala que los datos ID, lo que queda como trabajo futuro.
 
 \input{tablas/t10_panda_control}
 
@@ -108,7 +124,7 @@ No obstante, con MDS (0,956) Textures resulta más difícil de detectar que TUM,
 
 \section{Discusión}\label{sec:ood-discusion}
 
-\textbf{Conclusión.} Ningún método domina en todas las métricas y conjuntos. ViM ofrece el mejor equilibrio global en AUROC; RMDS, el mejor comportamiento con umbrales exigentes, aunque con un fallo severo en LYM; y STOOD-X destaca en far-OOD y en varias clases de NCT-CRC, pero es el más sensible a la resolución. El hallazgo más relevante es que los mejores detectores responden sobre todo a las condiciones de adquisición, lo que condiciona su uso en un entorno multicéntrico.
+\textbf{Conclusión.} Ningún método domina en todas las métricas y conjuntos. ViM ofrece el mejor equilibrio global en AUROC; RMDS, el mejor comportamiento con umbrales exigentes, aunque con un fallo severo en LYM; y STOOD-X destaca en far-OOD y en varias clases de NCT-CRC, pero es el más sensible a la resolución. El hallazgo más relevante es que los mejores detectores responden sobre todo a las condiciones de adquisición, lo que condiciona su uso en un entorno multicéntrico. \revisar{conclusiones propias del Swin; con ConvNeXt-S cambian (\cref{tab:convnext-conclusiones})}
 
 % Integrar las conclusiones parciales de las secciones anteriores y enlazar con:
 % - STOOD-X en detalle (\cref{cap:stoodx}).
@@ -117,5 +133,11 @@ No obstante, con MDS (0,956) Textures resulta más difícil de detectar que TUM,
 %   0,02-0,07 sin la lámina de cada parche.
 % - AUPR-In y AUPR-Out en el \cref{ap:aupr}; clases ADI, BACK, DEB y MUC en el \cref{ap:anexo-nct}.
 \pendiente{integración de las conclusiones parciales}
+
+% Repetición con ConvNeXt-S (\cref{ap:convnext}, tabla \cref{tab:convnext-conclusiones}). Se mantienen: MSP > MaxLogit >
+% Energy, ReAct/ASH/DICE por debajo de MSP, LYM ~ TUM/NORM y distancia PANDA > control. Dependen del modelo: el
+% mejor método (KNN 0,972 en TUM+NORM), MDS > KNN (se invierte), el fallo de RMDS en LYM (ConvNeXt 0,970) y la
+% coincidencia PANDA/control de STOOD-X (ConvNeXt 0,859).
+\pendiente{remisión al \cref{ap:convnext}: conclusiones que se mantienen y que dependen del modelo}
 
 \endinput

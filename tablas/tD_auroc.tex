@@ -1,0 +1,35 @@
+% Generado por scripts/generar_tablas.py a partir de results_ood_convnext/tabla_principal_convnext.csv. No editar a mano.
+\begin{table}[tbp]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{2pt}
+\caption{ConvNeXt-S, espacio B: \AUROC (más alto es mejor) de los 14 métodos en los nueve conjuntos. Clase positiva: OOD. En negrita, el mejor valor de cada conjunto. IC del 95\,\% por \emph{bootstrap} (1.000 remuestreos estratificados, semilla 0). Los IC del resto de conjuntos están en \texttt{tabla\_principal\_convnext.csv}. $^{a}$Modifican la predicción: la exactitud ID baja al 96{,}5\,\% (ASH) y al 28{,}5\,\% (DICE, con el postprocesador de OpenOOD sin cambios).}
+\label{tab:convnext-auroc}
+\begin{tabular}{lccccccccc}
+\toprule
+Método & TUM+NORM [IC 95\,\%] & TUM & NORM & STR & LYM & MUS & PANDA & Control 128\,px & DTD \\
+\midrule
+\multicolumn{10}{@{}l}{\textit{Basados en logits}} \\
+MSP & 0{,}954 [0{,}951; 0{,}956] & 0{,}940 & 0{,}977 & 0{,}948 & \textbf{0{,}974} & 0{,}891 & 0{,}926 & 0{,}660 & 0{,}988 \\
+MaxLogit & 0{,}867 [0{,}864; 0{,}871] & 0{,}877 & 0{,}851 & 0{,}782 & 0{,}893 & 0{,}723 & 0{,}689 & 0{,}561 & 0{,}918 \\
+Energy & 0{,}833 [0{,}829; 0{,}837] & 0{,}846 & 0{,}812 & 0{,}740 & 0{,}841 & 0{,}691 & 0{,}656 & 0{,}554 & 0{,}865 \\
+\midrule
+\multicolumn{10}{@{}l}{\textit{Modificación de activaciones}} \\
+ReAct & 0{,}830 [0{,}826; 0{,}834] & 0{,}843 & 0{,}809 & 0{,}729 & 0{,}838 & 0{,}681 & 0{,}659 & 0{,}553 & 0{,}860 \\
+ASH$^{a}$ & 0{,}828 [0{,}823; 0{,}832] & 0{,}829 & 0{,}826 & 0{,}754 & 0{,}723 & 0{,}628 & 0{,}447 & 0{,}516 & 0{,}899 \\
+DICE$^{a}$ & 0{,}616 [0{,}610; 0{,}622] & 0{,}594 & 0{,}651 & 0{,}533 & 0{,}209 & 0{,}420 & 0{,}211 & 0{,}501 & 0{,}610 \\
+\midrule
+\multicolumn{10}{@{}l}{\textit{Características y distancias}} \\
+KNN & \textbf{0{,}972} [0{,}971; 0{,}974] & \textbf{0{,}963} & \textbf{0{,}987} & 0{,}960 & 0{,}969 & 0{,}898 & 0{,}885 & 0{,}717 & \textbf{0{,}997} \\
+MDS & 0{,}953 [0{,}950; 0{,}955] & 0{,}952 & 0{,}954 & 0{,}948 & 0{,}968 & 0{,}898 & 0{,}886 & 0{,}709 & 0{,}981 \\
+RMDS & 0{,}958 [0{,}955; 0{,}960] & 0{,}955 & 0{,}963 & 0{,}940 & 0{,}970 & 0{,}898 & 0{,}921 & 0{,}714 & 0{,}969 \\
+ViM & 0{,}939 [0{,}936; 0{,}942] & 0{,}935 & 0{,}945 & 0{,}930 & 0{,}952 & 0{,}876 & 0{,}833 & 0{,}677 & 0{,}977 \\
+SHE (prod.\ escalar) & 0{,}725 [0{,}720; 0{,}730] & 0{,}689 & 0{,}783 & 0{,}775 & 0{,}628 & 0{,}756 & 0{,}666 & 0{,}543 & 0{,}888 \\
+SHE (coseno) & 0{,}942 [0{,}940; 0{,}944] & 0{,}922 & 0{,}976 & 0{,}931 & 0{,}940 & 0{,}845 & 0{,}793 & 0{,}627 & 0{,}991 \\
+SHE (euclídea) & 0{,}939 [0{,}936; 0{,}941] & 0{,}928 & 0{,}957 & 0{,}919 & 0{,}957 & 0{,}832 & 0{,}798 & 0{,}620 & 0{,}977 \\
+\midrule
+\multicolumn{10}{@{}l}{\textit{STOOD-X}} \\
+STOOD-X (100\,\%) & 0{,}949 [0{,}947; 0{,}951] & 0{,}930 & 0{,}981 & \textbf{0{,}986} & 0{,}957 & \textbf{0{,}952} & \textbf{0{,}975} & \textbf{0{,}782} & 0{,}993 \\
+\bottomrule
+\end{tabular}
+\end{table}

@@ -1,0 +1,34 @@
+% Generado por scripts/generar_tablas.py a partir de results_ood_convnext/sensibilidad_pareada.csv. No editar a mano.
+\begin{table}[tbp]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\caption{Sensibilidad de ConvNeXt-S: diferencia de \AUROC entre el espacio C (1.536 dimensiones) y el B (512), y entre ViM con 256 y con 171 dimensiones en B (positiva: mejor C o ViM 256), con su IC debajo. IC del 95\,\% por \emph{bootstrap} pareado por imagen (1.000 remuestreos estratificados ID/OOD, semilla 0). \stoodx en C solo se calculó en TUM y NORM.}
+\label{tab:convnext-sensibilidad}
+\begin{tabular}{lccccc}
+\toprule
+& \multicolumn{4}{c}{C $-$ B} & \\
+\cmidrule(lr){2-5}
+Conjunto & KNN & MDS & RMDS & STOOD-X & ViM 256 $-$ 171 \\
+\midrule
+TUM+NORM & $-$0{,}016 & $-$0{,}019 & +0{,}005 & $-$0{,}041 & +0{,}002 \\
+& {\scriptsize [$-$0{,}018; $-$0{,}014]} & {\scriptsize [$-$0{,}021; $-$0{,}017]} & {\scriptsize [+0{,}003; +0{,}006]} & {\scriptsize [$-$0{,}043; $-$0{,}039]} & {\scriptsize [+0{,}002; +0{,}002]} \\[2pt]
+TUM & $-$0{,}018 & $-$0{,}034 & +0{,}001 & $-$0{,}057 & +0{,}004 \\
+& {\scriptsize [$-$0{,}020; $-$0{,}016]} & {\scriptsize [$-$0{,}036; $-$0{,}032]} & {\scriptsize [$-$0{,}001; +0{,}003]} & {\scriptsize [$-$0{,}060; $-$0{,}055]} & {\scriptsize [+0{,}003; +0{,}004]} \\[2pt]
+NORM & $-$0{,}013 & +0{,}005 & +0{,}011 & $-$0{,}014 & $-$0{,}001 \\
+& {\scriptsize [$-$0{,}014; $-$0{,}011]} & {\scriptsize [+0{,}003; +0{,}008]} & {\scriptsize [+0{,}009; +0{,}012]} & {\scriptsize [$-$0{,}016; $-$0{,}012]} & {\scriptsize [$-$0{,}001; $-$0{,}001]} \\[2pt]
+STR & +0{,}004 & +0{,}006 & +0{,}016 & -- & +0{,}004 \\
+& {\scriptsize [+0{,}002; +0{,}005]} & {\scriptsize [+0{,}004; +0{,}008]} & {\scriptsize [+0{,}015; +0{,}018]} &  & {\scriptsize [+0{,}004; +0{,}005]} \\[2pt]
+LYM & $-$0{,}003 & $-$0{,}002 & $-$0{,}016 & -- & +0{,}005 \\
+& {\scriptsize [$-$0{,}005; $-$0{,}002]} & {\scriptsize [$-$0{,}003; +0{,}000]} & {\scriptsize [$-$0{,}019; $-$0{,}014]} &  & {\scriptsize [+0{,}004; +0{,}005]} \\[2pt]
+MUS & +0{,}024 & +0{,}004 & +0{,}017 & -- & +0{,}004 \\
+& {\scriptsize [+0{,}022; +0{,}025]} & {\scriptsize [+0{,}002; +0{,}006]} & {\scriptsize [+0{,}015; +0{,}019]} &  & {\scriptsize [+0{,}004; +0{,}005]} \\[2pt]
+PANDA & +0{,}007 & +0{,}001 & $-$0{,}022 & -- & +0{,}020 \\
+& {\scriptsize [+0{,}005; +0{,}009]} & {\scriptsize [$-$0{,}001; +0{,}004]} & {\scriptsize [$-$0{,}024; $-$0{,}020]} &  & {\scriptsize [+0{,}019; +0{,}020]} \\[2pt]
+Control 128\,px & +0{,}008 & +0{,}003 & +0{,}015 & -- & +0{,}000 \\
+& {\scriptsize [+0{,}006; +0{,}010]} & {\scriptsize [$-$0{,}000; +0{,}006]} & {\scriptsize [+0{,}010; +0{,}019]} &  & {\scriptsize [$-$0{,}000; +0{,}001]} \\[2pt]
+DTD & $-$0{,}003 & +0{,}017 & +0{,}015 & -- & +0{,}002 \\
+& {\scriptsize [$-$0{,}004; $-$0{,}002]} & {\scriptsize [+0{,}015; +0{,}019]} & {\scriptsize [+0{,}013; +0{,}017]} &  & {\scriptsize [+0{,}001; +0{,}002]} \\[2pt]
+\bottomrule
+\end{tabular}
+\end{table}

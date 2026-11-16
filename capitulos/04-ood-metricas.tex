@@ -184,4 +184,42 @@ son rechazadas por error como OOD con el umbral fijo en un punto. De esta forma 
 \pendiente{definición}
 \end{definicion}
 
+\subsection{Estabilidad de la ordenación por severidad (CEC)}\label{sec:cec}
+
+\pendiente{introducción del autor}
+
+\begin{definicion}[CEC]\label{def:cec}
+Sean los niveles de severidad $L = (\ell_0 = 0, \ell_1, \dots, \ell_m)$, con $m+1$ niveles, y sea $s(x, c, \ell)$ la puntuación de un detector (un valor mayor significa más ID) para la imagen $x$ con la corrupción $c$ en el nivel $\ell$, donde $\ell_0 = 0$ corresponde a la imagen limpia. Para cada par de niveles $\ell_a < \ell_b$, el par es \emph{discordante} si $s(x, c, \ell_b) > s(x, c, \ell_a)$ y \emph{empatado} si $s(x, c, \ell_b) = s(x, c, \ell_a)$. Se define
+\[
+\mathrm{CEC}(x, c) = \frac{\#\{\text{pares discordantes}\} + \tfrac{1}{2}\,\#\{\text{pares empatados}\}}{\binom{m+1}{2}},
+\]
+y la CEC del detector es la media de $\mathrm{CEC}(x, c)$ sobre las imágenes y las corrupciones. Vale $0$ cuando la ordenación es perfectamente monótona, $0{,}5$ cuando es la que daría el azar y $1$ cuando el orden está invertido.
+\end{definicion}
+\revisar{definición añadida por el agente (texto técnico mínimo)}
+
+% Observación (para que la redacte el autor): sin empates, CEC(x, c) = (1 - \tau_a)/2, con \tau_a la
+% \tau de Kendall entre la secuencia de puntuaciones y el orden de severidad. Comprobado
+% numéricamente (results_corrupciones/resumen.md §7, comprobacion_cec_kendall.csv): 300 imágenes
+% por detector y corrupción (135 combinaciones, 40.500 secuencias), |dif| máx. 1,1e-16.
+\pendiente{proposición y demostración (autor)}
+
+% Adaptación de la métrica de Zhang et al. (tono neutro). Comprobado en el PDF (arXiv:2206.14973v1):
+% - Confianza: \hat p(x) = max P(f(x)|x), la probabilidad máxima del softmax (p. 3, antes de la ec. 2).
+%   Orden esperado (ec. 2, p. 3): \hat p(c(x,s_1)) > \hat p(c(x,s_2)) para 0 <= s_1 < s_2 <= 5, con
+%   c(x,0) = x la imagen limpia.
+% - Definición (ec. 5, p. 5; continúa en p. 6): con S(x) = {\hat p(c(x,0)), ..., \hat p(c(x,N))},
+%   CEC = 1/(N_v N_c) \sum_{c=1}^{N_c} \sum_{x \in V} K_\tau(S(x)) / C^2_{N_s}, donde K_\tau es «el número de
+%   intercambios al ordenar la secuencia de confianzas de mayor a menor con el método de la burbuja»
+%   (lo llaman Kendall tau) y C^2_{N_s} «el número de comparaciones entre dos valores cualesquiera de S»
+%   (p. 6). N_c = 9 y N_s = 5 (p. 5, tras la ec. 3), así que C^2_{N_s} = C(5,2) = 10, aunque la secuencia
+%   tiene 6 valores (niveles 0 a 5) y, por tanto, C(6,2) = 15 pares.
+% - Empates: el artículo no los menciona. Con la burbuja de mayor a menor, un par empatado no se
+%   intercambia (cuenta 0).
+% - Su código (utils.py:518-535, sort_metric; results_corrupciones/decisiones.md) normaliza por 15 y
+%   cuenta los empates como 1.
+% - Aquí: puntuación de cada detector en lugar de la confianza; normalización por el número real de
+%   pares (6 con 4 niveles: 0, 1, 3, 5); empates = 1/2.
+% - CEC de la confianza MSP con nuestros niveles: 0,284 [0,281; 0,286]; contar los empates como 1
+%   da el mismo valor a tres decimales (empates exactos de MSP: 0,0009 % de los pares).
+
 \endinput

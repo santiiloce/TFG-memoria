@@ -1,0 +1,26 @@
+% Generado por scripts/generar_tablas.py a partir de results_corrupciones/parametros_corrupciones.csv. No editar a mano.
+\begin{table}[tbp]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\caption{Parámetros de las nueve corrupciones de Zhang et al.~\cite{zhang2022corruptions} en los niveles de severidad 1, 3 y 5. La severidad crece con el parámetro, salvo en JPEG y pixelado, en los que crece al bajar la calidad o el factor.}
+\label{tab:corrupciones}
+\begin{tabularx}{\textwidth}{@{}l>{\raggedright\arraybackslash}Xccc@{}}
+\toprule
+Corrupción & Parámetro & Nivel 1 & Nivel 3 & Nivel 5 \\
+\midrule
+Brillo & Incremento de V (HSV) & 0{,}05 & 0{,}15 & 0{,}25 \\
+Saturación & Incremento de S (HSV) & 0{,}05 & 0{,}15 & 0{,}25 \\
+Tono & Incremento de H (HSV, circular)$^{c}$ & 0{,}02 & 0{,}06 & 0{,}1 \\
+Marcas & Tamaño de la mancha (alto $\times$ ancho)$^{a}$ & 26 $\times$ 24\,px & 80 $\times$ 75\,px & 135 $\times$ 126\,px \\
+Burbujas & Proporción de mezcla con la burbuja$^{b}$ & 0{,}1 & 0{,}5 & 0{,}9 \\
+JPEG & Calidad JPEG & 25 & 15 & 7 \\
+Pixelado & Factor de reducción (filtro BOX) & 0{,}6 & 0{,}4 & 0{,}25 \\
+Desenfoque & (radio del disco; $\sigma$ del antialias) & (3; 0{,}1) & (6; 0{,}5) & (10; 0{,}5) \\
+Movimiento & (radio; $\sigma$) de ImageMagick; ángulo $\mathcal{U}(-45^\circ, 45^\circ)$ & (10; 3) & (15; 8) & (20; 15) \\
+\bottomrule
+\end{tabularx}
+
+\smallskip
+\parbox{\linewidth}{\scriptsize Marcas y burbujas usan los recursos de 224\,px del propio repositorio (el código usa por defecto los de 96\,px). Solo el desenfoque por movimiento es aleatorio: su semilla se deriva con SHA-256 del fichero, la corrupción y el nivel. $^{a}$Siempre la misma mancha, en la posición fija (27, 13). $^{b}$Se usa siempre la primera de las 6 burbujas del repositorio, en posición fija. $^{c}$Implementación marcada como poco fiable en el código original.}
+\end{table}

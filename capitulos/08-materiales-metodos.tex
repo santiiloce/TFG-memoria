@@ -142,11 +142,13 @@ Para comenzar se necesita un conjunto de entrenamiento, uno de validación y uno
     (B) NCT-CRC: STR, LYM, MUS (por separado) & Control interno & Otro centro; tejidos parecidos a clases de entrenamiento (estroma e inflamatorio) & Tejidos nuevamente parecidos a ID: determinamos si descarta por el centro o por el tejido \\
     (C) PANDA (\num{10000})~\cite{bulten2022,kagglepanda128} & Cambio de centro y de escala & Mismo órgano (próstata), otros centros y escáneres; aumento mucho menor (cada tesela abarca una región de tejido mucho mayor) y más fondo blanco & Comprobar si el detector señala tejido del mismo órgano adquirido en condiciones muy distintas \\
     Control de resolución (\num{12618}) & Control & Las mismas imágenes del test ID, reducidas a 128\,px y ampliadas a 224\,px & Valorar únicamente el efecto de la pérdida de detalle (no reproduce la escala de PANDA) \\
+    Corrupciones sintéticas (\num{12618} $\times$ 27) & \emph{Covariate shift} sintético & Las mismas imágenes del test ID con 9 corrupciones en 3 niveles de severidad & Comprobar si el detector señala artefactos de adquisición y si su puntuación gradúa la severidad \\
     DTD / \emph{Textures} & Far-OOD & No es tejido: texturas genéricas & Referencia sencilla: el detector debe señalarla como OOD \\
     NCT-CRC: ADI, BACK, DEB, MUC & Anexo (\cref{ap:anexo-nct}) & Grasa, fondo, restos, moco & \\
     \bottomrule
   \end{tabularx}
 \end{table}
+\revisar{fila «Corrupciones sintéticas» añadida por el agente (\cref{sec:corrupciones})}
 \revisar{tabla de las notas: corregidas erratas y redacción mínima («si descarta por el centro o por el tejido», «discriminación», «órgano»)}
 
 \subsection{NCT-CRC-HE-100K-NONORM}\label{sec:nct}
@@ -233,6 +235,62 @@ De las \num{168256} teselas del conjunto (\num{10516} biopsias con 16 teselas ca
 %   usadas.
 \pendiente{control de resolución y DTD~\cite{cimpoi2014}}
 
+\subsection{Corrupciones sintéticas}\label{sec:corrupciones}
+
+% Puntos (cifras de OpenOOD/results_corrupciones: decisiones.md, resumen.md, comprobacion_*):
+% 1. Motivación: PANDA combina cambio de centro, de escala y de fondo y no aísla cada efecto;
+%    aquí, covariate shift controlado y graduable sobre las mismas imágenes del test ID
+%    (\cref{def:covariate-shift}).
+% 2. Papel: covariate shift sintético, no near-OOD; la etiqueta no cambia, solo P(X). En la
+%    detección del espectro completo (\cref{def:deteccionfullspectrum}) serían csID; aquí se mide
+%    si los detectores las señalan, con criterio clínico: rechazar lo que el clasificador puede
+%    clasificar mal.
+% 3. Generador: Zhang et al. (MICCAI 2022), github.com/superjamessyx/robustness_benchmark,
+%    commit 2b288c11f944192bea7ffae912687d27b3ad220f (1-7-2022), sin fichero de licencia.
+%    9 corrupciones, 5 niveles; se usan 1, 3 y 5: 27 celdas + limpia (nivel 0).
+%    Antecedente en próstata: Schömig-Markiefka et al. (2021).
+% 4. Parámetros por corrupción y nivel: \cref{tab:corrupciones}.
+% 5. Aplicación: 12.618 PNG RGB de 224 px del test ID, uint8, antes del Resize y de la
+%    normalización de ImageNet; después, el mismo flujo de inferencia. Solo motion_blur es
+%    aleatoria (ángulo U(-45°, 45°)); semilla = 4 primeros bytes de
+%    sha256("<fichero>|<corrupción>|<nivel>"); 23/23 regeneraciones idénticas bit a bit (MD5;
+%    20 al azar + 3 de movimiento). Marcas y burbujas: el código usa los recursos de 96 px; se
+%    usaron los de 224 px del propio repositorio sin modificar el código. hue: marcada en el código
+%    como "unreliable and needs debug". Ninguna corrupción sustituida.
+% 6. Exclusiones: sin transformaciones geométricas (orientación arbitraria; volteo y rotación en
+%    el entrenamiento). Brillo y contraste en aug_transforms de fastai (±0,2, p = 0,75); el brillo
+%    se mantiene como control.
+% 7. Diseño pareado: ID = limpias, OOD = sus versiones corruptas en cada celda; referencias de los
+%    detectores = las del resto del cap. 10 (train limpio), sin reajuste.
+% 8. Métricas: exactitud por celda; AUROC y FPR@95 por celda con IC 95 % por bootstrap pareado por
+%    imagen (1.000 réplicas, semilla 0); CEC; % de saturación de STOOD-X; Spearman entre la caída de
+%    exactitud y el AUROC sobre las 27 celdas.
+% 9. Muestra: test completo; la regla de recursos (<= 6 h) daba una submuestra estratificada de
+%    3.000 (test completo estimado en ~14 h en CPU); cambio decidido por el autor antes de ver
+%    resultados. Nivel 0 frente a lo congelado: predicciones idénticas 100 % (0 distintas),
+%    Spearman mínimo 0,99999983 en los 15 detectores, exactitud 0,96870 (igual a la congelada).
+
+La evaluación con PANDA (\cref{sec:panda}) combina un cambio de centro, de escala y de fondo, por lo que no permite aislar el efecto de cada uno. Para estudiar un \emph{covariate shift} (\cref{def:covariate-shift}) controlado y graduable se aplican corrupciones sintéticas a las mismas imágenes del test ID. La etiqueta de cada imagen no cambia; solo cambia $P(X)$. Por eso este conjunto no es near-OOD, sino un \emph{covariate shift} sintético: en la detección del espectro completo (\cref{def:deteccionfullspectrum}) estas imágenes se aceptarían como csID. Aquí se evalúa si los detectores las señalan con un criterio clínico: rechazar aquello que el clasificador puede clasificar mal. \pendiente{justificación del autor}
+
+Las corrupciones son las del banco de pruebas de Zhang et al.~\cite{zhang2022corruptions}, con su código público (commit \texttt{2b288c1}; el repositorio no tiene licencia). Son nueve corrupciones habituales en patología digital (brillo, saturación, tono, marcas, burbujas, compresión JPEG, pixelado, desenfoque y desenfoque por movimiento), cada una con cinco niveles de severidad, de los que se usan los niveles 1, 3 y 5 (\cref{fig:ejemplo-corrupciones,tab:corrupciones}): 27 celdas, más la imagen limpia (nivel 0). En próstata, Schömig-Markiefka et al.~\cite{schomig2021} ya aplicaron un enfoque similar.
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=\textwidth]{img/cap08/a_ejemplo_corrupciones.pdf}
+  \caption{Ejemplo de las nueve corrupciones de Zhang et al.\ en los niveles de severidad 1, 3 y 5 sobre una imagen del test ID (clase \clase{Glandulas\_no\_neoplasicas}, imagen \texttt{1449762\_012769\_019041\_000224.png}). Fuente de las corrupciones: Zhang et al.~\cite{zhang2022corruptions}.}
+  \label{fig:ejemplo-corrupciones}
+\end{figure}
+\input{tablas/t08_corrupciones}
+
+Las corrupciones se aplican a las \num{12618} imágenes del test ID (PNG RGB de $224 \times 224$\,px) en píxeles \texttt{uint8}, antes del redimensionado y de la normalización de ImageNet; después se sigue el mismo flujo de inferencia que en el resto de conjuntos. Solo el desenfoque por movimiento es aleatorio. Su semilla se deriva de forma determinista del nombre del fichero, la corrupción y el nivel (SHA-256), de modo que cada imagen corrupta puede regenerarse: 23 de 23 regeneraciones fueron idénticas bit a bit. Para las marcas y las burbujas, el código usa por defecto recursos de 96\,px; se usaron los de 224\,px del propio repositorio, sin modificar el código. La implementación del tono está marcada en el propio código como poco fiable. No se sustituyó ninguna corrupción.
+
+No se incluyen transformaciones geométricas: la orientación del tejido es arbitraria y el modelo se entrenó con volteo y rotación (\cref{sec:dataloader}). El brillo y el contraste formaban parte del aumento de datos del entrenamiento (\cref{sec:dataloader}; \texttt{aug\_transforms} de fastai~\cite{howard2020fastai}, $\pm 0{,}2$ con probabilidad $0{,}75$); el brillo se mantiene como control, ya que se espera que el modelo sea robusto a él.
+
+El diseño es pareado: las imágenes limpias son las ID y sus versiones corruptas de cada celda, las OOD. Las referencias de los detectores son las mismas que en el resto del \cref{cap:deteccion-ood} (calculadas con el train limpio), sin reajustar nada. Así, el efecto de la corrupción queda aislado de cualquier diferencia de centro, escala o lámina. En cada celda se miden la exactitud del clasificador, el \AUROC (\cref{sec:auroc}) y el \FPRn{95} (\cref{sec:fpr95}), con intervalos de confianza del 95\,\% por \emph{bootstrap} pareado por imagen (\cref{sec:bootstrap}; \num{1000} réplicas, semilla 0). Además se calculan la CEC (\cref{sec:cec}), el porcentaje de imágenes con la puntuación de \stoodx saturada (\cref{obs:u-empates}) y la correlación de Spearman entre la caída de exactitud y el \AUROC sobre las 27 celdas (\cref{def:spearman}).
+
+Se usó el test completo. La regla de recursos fijada de antemano daba una submuestra de \num{3000} imágenes, porque el test completo tardaba unas 14\,h en CPU; el cambio se decidió antes de ver ningún resultado. Con el nivel 0 se comprobó que el cálculo reproduce la evaluación del resto del capítulo: las predicciones coinciden al 100\,\%, la correlación de Spearman entre puntuaciones es al menos 0,9999998 en todos los detectores y la exactitud es la misma. \revisar{la exactitud del nivel 0 es 0,96870, igual a la de las \emph{features} congeladas de la evaluación OOD (0,9687 [0,9657; 0,9716] en exactitud\_celda.csv), pero no a la de results\_fase1 (0,9688 [0,9658; 0,9717]): no se da la cifra}
+
+\revisar{fin del borrador del agente}
+
 \section{Entorno de ejecución}\label{sec:entorno}
 
 Vamos a usar el repositorio OpenOOD~\cite{openood} para continuar con nuestro análisis de resultados.
@@ -246,6 +304,15 @@ Vamos a usar el repositorio OpenOOD~\cite{openood} para continuar con nuestro an
 %   NumPy 1.26.4, scikit-learn 1.6.1, pandas 1.5.3, OpenOOD (commit 3c35632).
 % - Software del entrenamiento: fastai 2.7.19 y PyTorch 1.12.1 (entorno fastai_env; slurm-*.out).
 % - Software de la explicabilidad: torch 2.8 y fastai 2.7.19 (entorno crp_env).
+% - Corrupciones sintéticas (\cref{sec:corrupciones}; results_corrupciones/decisiones.md y resumen.md):
+%   CPU de dionisio (Intel Xeon Silver 4216 a 2,10 GHz), 12 hilos, fp32, entorno fastai_env_ood.
+%   Sin GPU: la TITAN Xp de atenea (sm_61) no la soporta torch 2.8.0+cu128. «El resto de GPU
+%   estaban ocupadas» no consta en los ficheros: decisiones.md dice que atenea y hera pasaron a
+%   DRAIN (14-11-2026) y que titan (Pascal) y hera (driver roto) ya estaban excluidas: comprobar. Cálculo: 13 h 25 min; MaxRSS ~ 10,6 GB. Wand 0.6.13 e ImageMagick
+%   6.9.10-23 Q16, copiados en results_corrupciones/pydeps/.
+% - Detección OOD con ConvNeXt-S (\cref{ap:convnext}; results_ood_convnext/resumen.md y decisiones.md): nodo zeus,
+%   solo CPU (Intel Xeon Silver 4114 a 2,20 GHz), 12 hilos, fp32, entorno fastai_env_ood; trabajo SLURM 192107:
+%   8 h 56 min (8 h 56 min 12 s); MaxRSS 6,2 GiB (6.480.436 KB). El Swin-S se evaluó en GPU.
 \pendiente{hardware y software}
 
 \section{Protocolo de entrenamiento}\label{sec:protocolo}
@@ -254,6 +321,10 @@ Vamos a usar el repositorio OpenOOD~\cite{openood} para continuar con nuestro an
 
 Para una primera aproximación del modelo hemos decidido crear un conjunto de imágenes menor a partir del original, el cual sirve para pruebas y para comprobar el funcionamiento correcto de nuestro modelo antes de pasar a entrenar con el conjunto de datos original. Este, al igual que el conjunto de datos original, cuenta con tres carpetas: inicialmente se seleccionaron 10 imágenes de cada carpeta de la estructura original del conjunto de datos para crear uno nuevo, pero con un número mucho más reducido de imágenes. Posteriormente se aplicó el mismo procedimiento de separar \texttt{train} en dos nuevas carpetas de \texttt{train} y \texttt{val}, y el \texttt{val} original pasó a ser test. Debido a esto, el resultado final ha sido una estructura de tres carpetas: \texttt{train} con 139 imágenes, \texttt{val} con 55 y test con 167.
 \revisar{la figura de tarta del conjunto reducido de las notas no se incluye; las cifras quedan en el texto}
+
+Cada imagen se redimensiona a 224\,px con \texttt{Resize(224, method='squish')}, que la estira sin recortarla. Durante el entrenamiento se aplica aumento de datos por lotes con \texttt{aug\_transforms()} de fastai 2.7.19~\cite{howard2020fastai}, con sus valores por defecto: volteo horizontal con probabilidad 0,5 (sin volteo vertical); rotación de hasta $\pm 10^\circ$, ampliación entre 1,0 y 1,1 y deformación de perspectiva de magnitud máxima 0,2, con probabilidad 0,75; y variación de brillo y contraste de magnitud máxima 0,2, con probabilidad 0,75. Los huecos de las transformaciones geométricas se rellenan por reflexión y no hay recorte aleatorio. Al final se normaliza con la media y la desviación típica de ImageNet. No se aplican cambios de tono ni de saturación, así que el color solo varía en brillo y contraste.
+\revisar{redactado por el agente por indicación del autor}
+\revisar{ConvNeXt-S se entrena a 256\,px: \texttt{clasificador.py} llama a \texttt{Resize(int(output), method='squish')} con \texttt{outputs\_to\_train = [224, 224, 256, 224]}; indicar la excepción}
 
 \subsection{Learner}\label{sec:learner}
 

@@ -1,0 +1,25 @@
+% Generado por scripts/generar_tablas.py a partir de results_ood_convnext/conclusiones_swin.csv. No editar a mano.
+\begin{table}[tbp]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\caption{Conclusiones del \cref{cap:deteccion-ood} con Swin-S, una por fila, y cifras que las sostienen con cada modelo (\AUROC salvo que se indique otra métrica). No concluyente: la ordenación se mantiene, pero los IC se solapan.}
+\label{tab:convnext-conclusiones}
+\begin{tabularx}{\textwidth}{@{}l>{\raggedright\arraybackslash}p{2.4cm}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}p{1.4cm}@{}}
+\toprule
+\# & Conclusión con Swin-S & Swin-S & ConvNeXt-S (B) & Estado \\
+\midrule
+1 & ViM y MDS son los mejores en TUM+NORM & ViM 0,969 (1.º); MDS 0,968 (2.º) & KNN 0,972 (1.º); RMDS 0,958; MSP 0,954; MDS 0,953 (4.º); ViM 0,939 (8.º) & Cambia \\
+2a & RMDS tiene el mejor FPR@95 en TUM+NORM & RMDS 0,128 (1.º); ViM 0,143 & RMDS 0,103 [0,097; 0,108] (1.º); MSP 0,108 [0,102; 0,116]; KNN 0,136 & No concluyente \\
+2b & RMDS falla en LYM & AUROC 0,824; FPR@95 0,992 & AUROC 0,970; FPR@95 0,097 & Cambia \\
+3a & STOOD-X destaca en STR y MUS & 1.º en los dos: STR 0,978; MUS 0,968 & 1.º en los dos: STR 0,986; MUS 0,952 & Se mantiene \\
+3b & STOOD-X destaca en NORM y DTD & 1.º en los dos: NORM 0,990; DTD 0,991 & 2.º tras KNN: NORM 0,981 (KNN 0,987); DTD 0,993 (KNN 0,997); IC sin solapamiento & Cambia \\
+4 & MSP $>$ MaxLogit $>$ Energy & se cumple en 9/9 conjuntos & se cumple en 9/9 (TUM+NORM: 0,954 $>$ 0,867 $>$ 0,833) & Se mantiene \\
+5 & ReAct, ASH y DICE no funcionan (por debajo de MSP) & por debajo de MSP en 9/9 los tres; por debajo de Energy: ReAct 1/9, ASH 9/9, DICE 8/9 & por debajo de MSP en 9/9 los tres; por debajo de Energy: ReAct 8/9, ASH 6/9, DICE 9/9; TUM+NORM: ReAct 0,830, ASH 0,828, DICE 0,616 & Se mantiene \\
+6 & LYM $\approx$ TUM/NORM & AUROC(LYM) $-$ AUROC(TUM+NORM) entre $-$0,024 y 0,000 en KNN, MDS, ViM, SHE-cos y SHE-euc; MSP $-$0,022; RMDS $-$0,130; STOOD-X $-$0,050 & entre $-$0,003 y +0,021 en los 8 (KNN $-$0,003; MDS +0,015; RMDS +0,013; ViM +0,013; SHE-cos $-$0,003; SHE-euc +0,018; STOOD-X +0,008; MSP +0,021) & Se mantiene \\
+7 & Los métodos de distancia rinden más en PANDA que en el control & AUROC(PANDA) $-$ AUROC(control) de +0,123 a +0,205 en los 6 de distancia; STOOD-X +0,001 & de +0,156 a +0,207 en los 7 (STOOD-X +0,193) & Se mantiene \\
+8 & STOOD-X no distingue PANDA del control & AUROC(control $-$, PANDA +) 0,475 [0,467; 0,482] & 0,859 [0,855; 0,864] & Cambia \\
+9 & MDS supera a KNN & MDS $-$ KNN $>$ 0 en 9/9; TUM+NORM +0,011 [+0,011; +0,012]; de +0,009 (MUS) a +0,020 (control) & MDS $-$ KNN $<$ 0 con IC sin el 0 en 7/9 (TUM+NORM $-$0,020 [$-$0,022; $-$0,018]; NORM $-$0,033; DTD $-$0,016; LYM $-$0,002 [$-$0,003; $-$0,000]); IC con el 0 en MUS +0,000 [$-$0,002; +0,002] y PANDA +0,001 [$-$0,001; +0,003] & Cambia \\
+\bottomrule
+\end{tabularx}
+\end{table}

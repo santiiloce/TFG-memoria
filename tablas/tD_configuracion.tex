@@ -1,0 +1,23 @@
+% Generado por scripts/generar_tablas.py a partir de results_ood_convnext/configuracion_convnext.csv. No editar a mano.
+\begin{table}[tbp]
+\centering
+\footnotesize
+\caption{Configuración de la evaluación OOD con ConvNeXt-S y diferencias con la del Swin-S. B y C son los espacios de características; $W'$ y $b'$, la última capa lineal con la BatchNorm plegada.}
+\label{tab:convnext-config}
+\begin{tabularx}{\textwidth}{@{}l>{\raggedright\arraybackslash}X@{}}
+\toprule
+Parámetro & Valor \\
+\midrule
+Modelo & ConvNeXt-S (fastai); mismo entrenamiento que en el \cref{sec:protocolo} \\
+Cabeza & fastai: AdaptiveConcatPool2d (1.536) $\to$ BN1d $\to$ Dropout(0,25) $\to$ Linear(1.536, 512) $\to$ ReLU $\to$ BN1d(512) $\to$ Dropout(0,5) $\to$ Linear(512, 14). Swin: Linear(768, 14) de timm sobre la red troncal \\
+Espacio principal & B, 512: salida de la ReLU, BN1d(512) plegada en W$'$, b$'$. Máx.\ $|W'B+b'-\mathrm{logits}|$ en los 11 conjuntos: $4{,}88\cdot 10^{-6}$ \\
+Espacio de sensibilidad & C, 1.536: concat pooling, antes de BN1d(1.536) \\
+Dimensión de ViM & 171 (sensibilidad: 256; Swin: 256 de 768) \\
+$K$ de \stoodx & 500 (coseno, clase predicha, 100 \% de características) \\
+Ejecución & nodo zeus, CPU (Intel Xeon Silver 4114, 2,20 GHz), 12 hilos, fp32 (Swin en GPU) \\
+Tiempo total & 8 h 56 min 12 s (extracción 7,85 h) \\
+Memoria (MaxRSS) & 6,2 GiB (6.480.436 KB) \\
+Exactitud de test & 0,96695 (12.201/12.618; fase 1: 0,9668, +2 imágenes) \\
+\bottomrule
+\end{tabularx}
+\end{table}
