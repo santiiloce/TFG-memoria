@@ -8,14 +8,24 @@
 \chapter{Aprendizaje supervisado y redes profundas}\label{cap:aprendizaje}
 
 % Capítulo de fundamentos: todo es esqueleto. Notación a fijar: espacio de entrada
-% \mathcal{X} \subseteq \R^{H \times W \times 3}, etiquetas \mathcal{Y} = \{1, \dots, C\} con C = 14,
-% distribución conjunta P(X, Y), clasificador f_\theta: \mathcal{X} \to \R^C (logits),
-% extractor de características h_\theta: \mathcal{X} \to \R^D (D = 768 en el Swin-S).
+% \mathcal{X} \subseteq \R^{H \times W \times 3}, etiquetas \mathcal{Y} = \{1, \dots, K\} con K = 14,
+% distribución conjunta P(X, Y), clasificador f(\cdot;\phi): \mathcal{X} \to \R^K (logits),
+% extractor de características h_\phi: \mathcal{X} \to \R^D (D = 768 en el Swin-S).
+
+Los resultados de esta parte proceden de fuentes con notaciones distintas. Para
+facilitar su comprensión, en este capítulo se usa una misma notación en todas las
+definiciones y resultados: $K$ es el número de clases y $k = 1,\dots,K$ su
+índice; $i = 1,\dots,I$ indexa los ejemplos de entrenamiento e
+$y_i\in\{1,\dots,K\}$ es la etiqueta del ejemplo $i$; $q$ y $p$ denotan
+distribuciones sobre las clases (en particular, $q$ es la distribución
+\emph{one-hot} de la etiqueta y $p$ la que asigna la red); $f(x;\phi)$ es la red,
+con parámetros $\phi$; y $L$ es el número de capas, con índice $\ell$.
+\revisar{párrafo añadido a petición del autor para justificar la unificación de la notación; antes, $K$ era también el número de capas ocultas (\cref{def:mlp}) y de bloques residuales (\cref{def:residual}), e $y$, $y^{LS}$ el vector \emph{one-hot} y los objetivos suavizados (\cref{def:label-smoothing}).}
 
 \section{El problema de clasificación supervisada}\label{sec:clasificacion}
 
 \begin{definicion}[Problema de clasificación]\label{def:clasificacion}
-% Muestra i.i.d. \{(x_i, y_i)\}_{i=1}^n de P(X, Y); clasificador g(x) = \argmax_k f_\theta(x)_k;
+% Muestra i.i.d. \{(x_i, y_i)\}_{i=1}^I de P(X, Y); clasificador g(x) = \argmax_k f_k(x;\phi);
 % riesgo esperado con pérdida 0-1 y riesgo empírico.
 \pendiente{definición formal}
 \end{definicion}
@@ -137,25 +147,25 @@ de Prince~\cite[sec.~4.4.1]{prince2023understanding}.
 \begin{definicion}[{Red neuronal profunda~\cite[sec.~4.4.1]{prince2023understanding}}]\label{def:mlp}
 Sea $\sigma$ una función de activación, que se aplica componente a componente a
 los vectores. Una \emph{red neuronal profunda} con entrada $x\in\R^{D_i}$, salida
-$y\in\R^{D_o}$ y $K$ capas ocultas con $D_1,\dots,D_K$ neuronas es la función
+$y\in\R^{D_o}$ y $L$ capas ocultas con $D_1,\dots,D_L$ neuronas es la función
 $y = f(x;\phi)$ dada por
 \begin{align*}
   h_1 &= \sigma\bigl(\beta_0 + \Omega_0 x\bigr),\\
-  h_k &= \sigma\bigl(\beta_{k-1} + \Omega_{k-1} h_{k-1}\bigr), \qquad k = 2,\dots,K,\\
-  y   &= \beta_K + \Omega_K h_K,
+  h_\ell &= \sigma\bigl(\beta_{\ell-1} + \Omega_{\ell-1} h_{\ell-1}\bigr), \qquad \ell = 2,\dots,L,\\
+  y   &= \beta_L + \Omega_L h_L,
 \end{align*}
-donde $h_k\in\R^{D_k}$ es el vector de \emph{unidades ocultas} de la capa $k$,
-$\beta_k$ son los vectores de sesgos y $\Omega_k$ las matrices de pesos, con
-$\Omega_0\in\R^{D_1\times D_i}$, $\Omega_k\in\R^{D_{k+1}\times D_k}$ para
-$k = 1,\dots,K-1$ y $\Omega_K\in\R^{D_o\times D_K}$. Los parámetros de la red son
-$\phi = \{\beta_k, \Omega_k\}_{k=0}^{K}$.
+donde $h_\ell\in\R^{D_\ell}$ es el vector de \emph{unidades ocultas} de la capa $\ell$,
+$\beta_\ell$ son los vectores de sesgos y $\Omega_\ell$ las matrices de pesos, con
+$\Omega_0\in\R^{D_1\times D_i}$, $\Omega_\ell\in\R^{D_{\ell+1}\times D_\ell}$ para
+$\ell = 1,\dots,L-1$ y $\Omega_L\in\R^{D_o\times D_L}$. Los parámetros de la red son
+$\phi = \{\beta_\ell, \Omega_\ell\}_{\ell=0}^{L}$.
 \end{definicion}
 
-Cada componente de $h_k$ es una neurona en el sentido de la \cref{def:neurona},
-cuyos pesos son una fila de $\Omega_{k-1}$. Equivalentemente, la red es la
+Cada componente de $h_\ell$ es una neurona en el sentido de la \cref{def:neurona},
+cuyos pesos son una fila de $\Omega_{\ell-1}$. Equivalentemente, la red es la
 composición
 \[
-  y = \beta_K + \Omega_K\,\sigma\Bigl(\beta_{K-1} + \Omega_{K-1}\,\sigma\bigl(\cdots
+  y = \beta_L + \Omega_L\,\sigma\Bigl(\beta_{L-1} + \Omega_{L-1}\,\sigma\bigl(\cdots
       \sigma(\beta_0 + \Omega_0 x)\cdots\bigr)\Bigr).
 \]
 Estas redes también se denominan \emph{redes prealimentadas} (\emph{feedforward})
@@ -202,13 +212,15 @@ Sea $H_k$ el espacio de los polinomios homogéneos de grado $k$ en $n$ variables
 \end{lema}
 
 \begin{proof}
-Los monomios $x^\alpha = x_1^{\alpha_1}\cdots x_n^{\alpha_n}$ con $|\alpha|=k$ forman una base de $H_k$. Para $p=\sum_\alpha p_\alpha x^\alpha$ y $q=\sum_\alpha q_\alpha x^\alpha$ definimos el producto escalar $\langle p,q\rangle = \sum_{|\alpha|=k}\alpha!\,p_\alpha q_\alpha$, donde $\alpha! = \alpha_1!\cdots\alpha_n!$. Por la fórmula multinomial,
+Los monomios $x^\alpha = x_1^{\alpha_1}\cdots x_n^{\alpha_n}$ con $|\alpha|=k$ forman una base de $H_k$, siendo $|\alpha|=\alpha_1+\dots+\alpha_n$, con $|\cdot|:\mathbb{N}^n\to\mathbb{N}$, conocido como el grado total del monomio. Para $p=\sum_\alpha p_\alpha x^\alpha \in H_k$ y $q=\sum_\alpha q_\alpha x^\alpha \in H_k$, con $p_\alpha, q_\alpha \in \mathbb{R}$, definimos
+\revisar{corregido: $|\cdot|$ actúa sobre los multiíndices $\alpha\in\mathbb{N}^n$, no sobre $H_k$ (antes «$|\cdot|:H_K \Rightarrow \mathbb{N}$»); los coeficientes $p_\alpha, q_\alpha$ son números reales, no vectores de $\mathbb{R}^n$; erratas «q\textbackslash alpha» y «H\_K»} el producto escalar $\langle p,q\rangle = \sum_{|\alpha|=k}\alpha!\,p_\alpha q_\alpha$, donde $\alpha! = \alpha_1!\cdots\alpha_n!$. Por la fórmula multinomial,
 \[
   (a\cdot x)^k = \sum_{|\alpha|=k}\frac{k!}{\alpha!}\,a^\alpha x^\alpha,
   \qquad\text{luego}\qquad
   \bigl\langle (a\cdot x)^k, q\bigr\rangle = \sum_{|\alpha|=k} k!\,a^\alpha q_\alpha = k!\,q(a).
 \]
-Si $q\in H_k$ es ortogonal a todos los $(a\cdot x)^k$, entonces $q(a)=0$ para todo $a\in\mathbb{R}^n$, y por tanto $q=0$. Como $H_k$ tiene dimensión finita, el complemento ortogonal del subespacio generado es trivial y se tiene la igualdad.
+Sea $W=\spn\{(a\cdot x)^k : a\in\mathbb{R}^n\}\subseteq H_k$ y sea $q\in W^\perp$. En particular, $q$ es ortogonal a cada $(a\cdot x)^k$, luego $k!\,q(a)=0$ y $q(a)=0$ para todo $a\in\mathbb{R}^n$. Un polinomio que se anula en todo $\mathbb{R}^n$ es el polinomio nulo, así que $q=0$ y $W^\perp=\{0\}$. Como $H_k$ tiene dimensión finita, $H_k=W\oplus W^\perp$: si $\pi_W$ es la proyección ortogonal sobre $W$, todo $p\in H_k$ se escribe $p=\pi_W(p)+\bigl(p-\pi_W(p)\bigr)$ con $p-\pi_W(p)\in W^\perp$. Por tanto, $H_k=W$. En dimensión infinita, $W^\perp=\{0\}$ solo garantizaría que $W$ es denso.
+\revisar{desarrollo añadido a petición del autor: se explicitan $W$, que $W^\perp=\{0\}$ y la descomposición $H_k=W\oplus W^\perp$; antes decía «Si $q$ es ortogonal a todos los $(a\cdot x)^k$, entonces $q(a)=0$ para todo $a$, y por tanto $q=0$. Como $H_k$ tiene dimensión finita, el complemento ortogonal del subespacio generado es trivial y se tiene la igualdad.»}
 \end{proof}
 
 \begin{lema}[Reducción a dimensión uno]\label{lem:reduccion}
@@ -242,7 +254,9 @@ pertenece a $\mathcal{M}(\sigma)$ y, por el teorema del valor medio para diferen
 \]
 que tiende a $0$ cuando $h\to 0$ por la continuidad uniforme de $\sigma^{(k)}$ en compactos. Luego $x^k\sigma^{(k)}(wx+b)\in\overline{\mathcal{M}(\sigma)}$, y basta tomar $w=0$.
 
-(b) Si $\sigma$ no es un polinomio, ninguna $\sigma^{(k)}$ es idénticamente nula, así que para cada $k$ existe $b_k$ con $\sigma^{(k)}(b_k)\ne 0$. Por (a), $x^k\in\overline{\mathcal{M}(\sigma)}$ para todo $k$. La clausura contiene todos los polinomios y, por el teorema de Weierstrass, es todo $C(\mathbb{R})$.
+(b) Si $\sigma$ no es un polinomio, ninguna $\sigma^{(k)}$ es idénticamente nula, así que para cada $k$ existe $b_k$ con $\sigma^{(k)}(b_k)\ne 0$. Por (a), $x^k\sigma^{(k)}(b_k)\in\overline{\mathcal{M}(\sigma)}$ y, dividiendo por $\sigma^{(k)}(b_k)\ne 0$ (la clausura es un subespacio vectorial), $x^k\in\overline{\mathcal{M}(\sigma)}$ para todo $k$.
+\revisar{añadido a petición del autor el paso intermedio: se divide por $\sigma^{(k)}(b_k)\ne 0$; antes decía «Por (a), $x^k\in\overline{\mathcal{M}(\sigma)}$ para todo $k$.»} Como la clausura es un subespacio vectorial, contiene todos los polinomios. Sean ahora $f\in C(\mathbb{R})$, $K\subset\mathbb{R}$ compacto y $\varepsilon>0$, y sea $[a,b]\supset K$. Por el teorema de Weierstrass existe un polinomio $P$ con $\sup_{[a,b]}|f-P|<\varepsilon/2$ y, como $P\in\overline{\mathcal{M}(\sigma)}$, existe $N\in\mathcal{M}(\sigma)$ con $\sup_K|P-N|<\varepsilon/2$. Por la desigualdad triangular, $\sup_K|f-N|<\varepsilon$, luego $f\in\overline{\mathcal{M}(\sigma)}$ y $\overline{\mathcal{M}(\sigma)}=C(\mathbb{R})$.
+\revisar{añadido a petición del autor el argumento de $\varepsilon/2$; antes decía «La clausura contiene todos los polinomios y, por el teorema de Weierstrass, es todo $C(\mathbb{R})$.»}
 \end{demostracion}
 
 \begin{demostracion}[Demostración del \cref{teo:aprox-universal}]
@@ -275,7 +289,7 @@ Este resultado, junto con otros análogos con hipótesis distintas sobre $\sigma
 \section{Función de pérdida: entropía cruzada y \emph{label smoothing}}\label{sec:perdida}
 
 % [agente] Texto redactado a partir de Prince, sec. 5.5 (ecs. 5.21-5.23).
-En la clasificación multiclase, la etiqueta toma valores en $\{1,\dots,K\}$ y se
+En la clasificación multiclase, la etiqueta toma valores en $\{1,\dots,K\}$, siendo $K \in \mathbb{N}$ el número de clases, y se
 modeliza con una distribución categórica, de parámetros
 $\lambda_1,\dots,\lambda_K$, que determinan la probabilidad de cada clase:
 $\Prob(y = k) = \lambda_k$. Estos parámetros deben estar entre cero y uno y sumar
@@ -300,11 +314,8 @@ clase la probabilidad
 \]
 y, si se necesita una única predicción, se toma la clase más probable,
 $\widehat{y} = \argmax_k \Prob(y = k \mid x)$
-\cite[sec.~5.5]{prince2023understanding}. Las componentes de $f(x;\phi)$ se
-llaman \emph{logits}.
-\revisar{Prince no usa el término \emph{logits} en la sec.~5.5; se ha añadido
-porque se usa en el resto de la memoria (por ejemplo, en los métodos de detección
-basados en logits)}
+\cite[sec.~5.5]{prince2023understanding}. Se denominará $f(x;\phi)$ como
+\emph{logits}.
 
 % [agente] Definición redactada a partir de Prince, sec. 5.5 (ec. 5.24) y sec. 5.7.
 \begin{definicion}[{Entropía cruzada~\cite[sec.~5.5]{prince2023understanding}}]\label{def:entropia-cruzada}
@@ -339,7 +350,7 @@ segundo sumando, cambiado de signo, $H(q,p) = -\sum_k q_k\log p_k$, es la
 \begin{proposicion}[{Entropía cruzada y divergencia KL~\cite[sec.~5.7]{prince2023understanding}}]\label{prop:ce-mv}
 En las condiciones de la \cref{def:entropia-cruzada}, sean, para cada
 $i = 1,\dots,I$, $q_i$ la distribución empírica de la etiqueta del ejemplo $i$,
-$q_{i,k} = 1$ si $k = y_i$ y $q_{i,k} = 0$ en otro caso, y
+$q_{i,k} = 1$ si $k = y_i$ y $q_{i,k} = 0$ en otro caso, para $k = 1,\dots,K$, y
 $p_i(\phi) = \softmax\bigl(f(x_i;\phi)\bigr)$ la distribución del modelo. Entonces,
 para todo $\phi$,
 \[
@@ -379,34 +390,41 @@ distribución uniforme sobre las clases. Suavizar así las etiquetas evita que l
 red se vuelva demasiado confiada~\cite{muller2019}.
 
 \begin{definicion}[{\emph{Label smoothing}~\cite[sec.~1]{muller2019}}]\label{def:label-smoothing}
-Sea $x$ una entrada con etiqueta $y$ y sea $p = (p_1,\dots,p_K)$ la
+Sea $x$ una entrada con etiqueta $y\in\{1,\dots,K\}$ (se fija un ejemplo y se omite el
+índice $i$ de la \cref{prop:ce-mv}) y sea $p = (p_1,\dots,p_K)$ la
 distribución que le asigna la red,
 \[
   p_k = \softmax_k\bigl(f(x;\phi)\bigr), \qquad k = 1,\dots,K.
 \]
 Sean
-$y_k = 1$ si $k = y$ e $y_k = 0$ en otro caso los \emph{objetivos exactos}. La
+$q_k = 1$ si $k = y$ y $q_k = 0$ en otro caso los \emph{objetivos exactos}, es decir,
+la distribución empírica $q_i$ de la \cref{prop:ce-mv}.
+\revisar{notación unificada: el vector \emph{one-hot} y los objetivos suavizados se llamaban $y$ e $y^{LS}$; ahora son $q$ y $q^{LS}$, como en la \cref{prop:ce-mv}, para que $y$ sea siempre la etiqueta (un entero). Se añade que se fija un ejemplo y se omite el índice $i$} La
 entropía cruzada entre los objetivos y la predicción es
 \[
-  H(y, p) = \sum_{k=1}^{K} -y_k \log p_k .
+  H(q, p) = \sum_{k=1}^{K} -q_k \log p_k .
 \]
 Con \emph{label smoothing} de parámetro $\varepsilon\in[0,1]$, se minimiza en su
-lugar la entropía cruzada $H(y^{LS}, p)$ entre la predicción y los objetivos
+lugar la entropía cruzada $H(q^{LS}, p)$ entre la predicción y los objetivos
 modificados
 \[
-  y^{LS}_k = y_k\,(1-\varepsilon) + \frac{\varepsilon}{K}, \qquad k = 1,\dots,K.
+  q^{LS}_k = q_k\,(1-\varepsilon) + \frac{\varepsilon}{K}, \qquad k = 1,\dots,K.
 \]
 \end{definicion}
 
-Con objetivos exactos, $H(y,p) = -\log p_y$ es el sumando correspondiente a
+Con objetivos exactos, $H(q,p) = -\log p_y$ es el sumando correspondiente a
 $(x, y)$ en la \cref{def:entropia-cruzada}, de modo que $\varepsilon = 0$ recupera
 la pérdida habitual. Con $\varepsilon > 0$, el objetivo de la clase verdadera es
 $1 - \varepsilon + \varepsilon/K$ y el de cada una de las demás, $\varepsilon/K$.
 Desarrollando la suma,
 \[
-  H(y^{LS}, p) = (1-\varepsilon)\,\bigl(-\log p_y\bigr)
-               + \frac{\varepsilon}{K}\sum_{k=1}^{K} \bigl(-\log p_k\bigr).
+  H(q^{LS}, p) = (1-\varepsilon)\sum_{k=1}^{K} q_k\bigl(-\log p_k\bigr)
+               + \frac{\varepsilon}{K}\sum_{k=1}^{K} \bigl(-\log p_k\bigr)
+             = (1-\varepsilon)\,\bigl(-\log p_y\bigr)
+               + \frac{\varepsilon}{K}\sum_{k=1}^{K} \bigl(-\log p_k\bigr),
 \]
+donde la primera suma se reduce al sumando $k=y$ porque $q_k=0$ para $k\ne y$.
+\revisar{añadido a petición del autor el paso intermedio del desarrollo y la frase que explica por qué la primera suma se reduce a $-\log p_y$}
 % En el entrenamiento se usó LabelSmoothingCrossEntropy de fastai con \varepsilon = 0,1 (valor por
 % defecto), que corresponde a esta expresión: con K = 14, objetivos 0,907 y 0,00714.
 
@@ -417,57 +435,74 @@ Para obtener el mínimo de la pérdida con \emph{label smoothing} basta una
 propiedad de la divergencia de Kullback-Leibler.
 
 \begin{lema}[{No negatividad de la divergencia KL~\cite[ap.~C.5.1]{prince2023understanding}, \cite[sec.~3.13]{goodfellow2016deep}}]\label{lem:kl-no-negativa}
-Sean $q$ y $p$ dos distribuciones sobre $\{1,\dots,K\}$ con $p_k > 0$ para todo
-$k$. Entonces $D_{\mathrm{KL}}(q\,\|\,p) \ge 0$. Si además $q_k > 0$ para todo $k$,
-la igualdad se da si y solo si $p = q$.
+Sean $q$ y $p$ dos distribuciones cualesquiera sobre $\{1,\dots,K\}$ con $p_k > 0$ para todo
+$k$. Entonces $D_{\mathrm{KL}}(q\,\|\,p) \ge 0$, y la igualdad se da si y solo si
+$p = q$.
+\revisar{enunciado generalizado a petición del autor; antes decía «Si además $q_k > 0$ para todo $k$, la igualdad se da si y solo si $p = q$»}
 \end{lema}
 \begin{demostracion}
 Sea $g(t) = -\log t - (1 - t)$ para $t > 0$. Como $g'(t) = 1 - 1/t$ es negativa en
 $(0,1)$ y positiva en $(1,\infty)$, $g$ alcanza su mínimo únicamente en $t = 1$,
 donde $g(1) = 0$. Por tanto, $-\log t \ge 1 - t$, con igualdad si y solo si
 $t = 1$~\cite[ap.~C.5.1]{prince2023understanding}. Sea
-$S = \{k : q_k > 0\}$. Aplicando la desigualdad con $t = p_k/q_k$,
+$S = \{k\in\{1,\dots,K\} : q_k > 0\}$ el conjunto de clases a las que $q$ asigna
+probabilidad positiva (el \emph{soporte} de $q$). Los sumandos con $k\notin S$
+son nulos, porque $q_k = 0$ y, por el convenio $0\log 0 = 0$, también
+$q_k\log q_k = 0$; además, para $k\in S$ el cociente $p_k/q_k$ está definido y es
+positivo. Agrupando las dos sumas de la definición con
+$\log q_k - \log p_k = -\log(p_k/q_k)$ y aplicando la desigualdad con
+$t = p_k/q_k$,
 \[
-  D_{\mathrm{KL}}(q\,\|\,p) = \sum_{k\in S} q_k\Bigl(-\log\frac{p_k}{q_k}\Bigr)
+  D_{\mathrm{KL}}(q\,\|\,p) = \sum_{k\in S} q_k\bigl(\log q_k - \log p_k\bigr)
+  = \sum_{k\in S} q_k\Bigl(-\log\frac{p_k}{q_k}\Bigr)
   \ge \sum_{k\in S} q_k\Bigl(1 - \frac{p_k}{q_k}\Bigr)
   = \sum_{k\in S} q_k - \sum_{k\in S} p_k
-  = 1 - \sum_{k\in S} p_k \ge 0.
+  = 1 - \sum_{k\in S} p_k \ge 0,
 \]
-Si $q_k > 0$ para todo $k$, entonces $S = \{1,\dots,K\}$, la última desigualdad
-es una igualdad y la primera lo es si y solo si $p_k/q_k = 1$ para todo $k$, es
-decir, si y solo si $p = q$.
+donde $\sum_{k\in S} q_k = 1$ porque $q_k = 0$ fuera de $S$, y
+$\sum_{k\in S} p_k \le \sum_{k=1}^{K} p_k = 1$ porque $p_k > 0$.
+\revisar{desarrollo añadido a petición del autor: se explica qué es $S$ (soporte de $q$, $k$ índice de clase), por qué se restringe la suma a $S$, la igualdad intermedia y de dónde salen $\sum_{k\in S} q_k = 1$ y $\sum_{k\in S} p_k \le 1$}
+Si $p = q$, todos los sumandos de la definición se anulan y
+$D_{\mathrm{KL}}(q\,\|\,p) = 0$. Recíprocamente, si $D_{\mathrm{KL}}(q\,\|\,p) = 0$,
+las dos desigualdades anteriores son igualdades. De la segunda,
+$\sum_{k\in S} p_k = 1$; como $p_k > 0$ para todo $k$, ninguna clase puede quedar
+fuera de $S$, así que $S = \{1,\dots,K\}$. De la primera, cada sumando cumple
+$-\log(p_k/q_k) = 1 - p_k/q_k$ (la diferencia entre ambos lados es una suma de
+términos no negativos, $q_k\,g(p_k/q_k)\ge 0$, que vale cero), luego $p_k/q_k = 1$
+para todo $k$, es decir, $p = q$.
+\revisar{caso de igualdad reescrito para el enunciado general; antes suponía $q_k > 0$ para todo $k$}
 \end{demostracion}
 
 \begin{proposicion}[Óptimo de la pérdida con \emph{label smoothing}]\label{prop:ls-optimo}
 Sean $\varepsilon\in(0,1]$, $y\in\{1,\dots,K\}$ la etiqueta de una entrada e
-$y^{LS}$ los objetivos suavizados de la \cref{def:label-smoothing}. Entre todas las
+$q^{LS}$ los objetivos suavizados de la \cref{def:label-smoothing}. Entre todas las
 distribuciones $p$ sobre $\{1,\dots,K\}$ con componentes positivas, la pérdida
-$H(y^{LS}, p)$ alcanza su mínimo en un único punto, $p = y^{LS}$:
+$H(q^{LS}, p)$ alcanza su mínimo en un único punto, $p = q^{LS}$:
 \[
   p_y = 1 - \varepsilon + \frac{\varepsilon}{K}, \qquad
   p_k = \frac{\varepsilon}{K} \quad (k \ne y).
 \]
 Además, este mínimo lo alcanza la red: es la softmax de cualquier vector de logits
-$z$ con $z_k = \log y^{LS}_k + c$, $c\in\R$, y en él la diferencia entre el logit de
+$z$ con $z_k = \log q^{LS}_k + c$, $c\in\R$, y en él la diferencia entre el logit de
 la clase verdadera y el de cualquier otra clase es
 \[
   z_y - z_k = \log\Bigl(1 + \frac{K(1-\varepsilon)}{\varepsilon}\Bigr), \qquad k \ne y.
 \]
 \end{proposicion}
 \begin{demostracion}
-Como $\varepsilon > 0$, todas las componentes de $y^{LS}$ son positivas. Sumando y
-restando $\sum_k y^{LS}_k \log y^{LS}_k$,
+Como $\varepsilon > 0$, todas las componentes de $q^{LS}$ son positivas. Sumando y
+restando $\sum_k q^{LS}_k \log q^{LS}_k$,
 \[
-  H(y^{LS}, p) = -\sum_{k=1}^{K} y^{LS}_k \log y^{LS}_k
-               + \sum_{k=1}^{K} y^{LS}_k \log\frac{y^{LS}_k}{p_k}
-             = H(y^{LS}, y^{LS}) + D_{\mathrm{KL}}\bigl(y^{LS}\,\|\,p\bigr).
+  H(q^{LS}, p) = -\sum_{k=1}^{K} q^{LS}_k \log q^{LS}_k
+               + \sum_{k=1}^{K} q^{LS}_k \log\frac{q^{LS}_k}{p_k}
+             = H(q^{LS}, q^{LS}) + D_{\mathrm{KL}}\bigl(q^{LS}\,\|\,p\bigr).
 \]
 El primer sumando no depende de $p$, y por el \cref{lem:kl-no-negativa} el segundo
-es no negativo y se anula si y solo si $p = y^{LS}$. Luego el mínimo es único y se
-alcanza en $p = y^{LS}$.
+es no negativo y se anula si y solo si $p = q^{LS}$. Luego el mínimo es único y se
+alcanza en $p = q^{LS}$.
 
-Si $z_k = \log y^{LS}_k + c$, entonces
-$\softmax_k(z) = e^{c}y^{LS}_k / \bigl(e^{c}\sum_{k'} y^{LS}_{k'}\bigr) = y^{LS}_k$,
+Si $z_k = \log q^{LS}_k + c$, entonces
+$\softmax_k(z) = e^{c}q^{LS}_k / \bigl(e^{c}\sum_{k'} q^{LS}_{k'}\bigr) = q^{LS}_k$,
 porque los objetivos suman uno. Por último, para $k \ne y$,
 \[
   z_y - z_k = \log\frac{1 - \varepsilon + \varepsilon/K}{\varepsilon/K}
@@ -476,7 +511,7 @@ porque los objetivos suman uno. Por último, para $k \ne y$,
 \end{demostracion}
 
 \begin{observacion}\label{obs:ls-suelo}
-Con $\varepsilon = 0$ (objetivos exactos), $H(y,p) = -\log p_y$ no tiene mínimo
+Con $\varepsilon = 0$ (objetivos exactos), $H(q,p) = -\log p_y$ no tiene mínimo
 sobre las distribuciones con componentes positivas: tiende a cero cuando $p_y \to 1$,
 lo que exige que la diferencia entre logits crezca sin límite. Con
 $\varepsilon > 0$, en cambio, el óptimo es una distribución con un «suelo»
@@ -531,7 +566,15 @@ iteración $t \ge 1$ Adam calcula
       \label{eq:adam-actualizacion}
 \end{align}
 donde $g_t^2$, la raíz cuadrada y el cociente se entienden componente a
-componente, y $\beta_1^t$, $\beta_2^t$ denotan potencias. Los valores propuestos
+componente: para $j = 1,\dots,n$,
+\[
+  \bigl(g_t^2\bigr)_j = g_{t,j}^2, \qquad
+  \bigl(\sqrt{\widehat{v}_t}\bigr)_j = \sqrt{\widehat{v}_{t,j}}, \qquad
+  \Bigl(\frac{\widehat{m}_t}{\sqrt{\widehat{v}_t} + \varepsilon}\Bigr)_j
+    = \frac{\widehat{m}_{t,j}}{\sqrt{\widehat{v}_{t,j}} + \varepsilon},
+\]
+y $\beta_1^t$, $\beta_2^t$ denotan potencias.
+\revisar{añadido a petición del autor: se escriben explícitamente las tres operaciones componente a componente} Los valores propuestos
 por defecto son $\alpha = 10^{-3}$, $\beta_1 = 0{,}9$, $\beta_2 = 0{,}999$ y
 $\varepsilon = 10^{-8}$.
 \end{definicion}
@@ -935,22 +978,22 @@ a medida que la red es más profunda, de modo que el gradiente cambia mucho de u
 ejemplo a otro (\emph{shattered gradients}).
 
 \begin{definicion}[{Conexión residual~\cite[sec.~11.2]{prince2023understanding}}]\label{def:residual}
-Sean $f_1,\dots,f_K$ funciones con parámetros $\phi_1,\dots,\phi_K$ cuya salida
+Sean $f_1,\dots,f_L$ funciones con parámetros $\phi_1,\dots,\phi_L$ cuya salida
 tiene el mismo tamaño que su entrada. La \emph{red residual} asociada es
 \begin{align*}
   h_1 &= x + f_1(x;\phi_1),\\
-  h_k &= h_{k-1} + f_k(h_{k-1};\phi_k), \qquad k = 2,\dots,K-1,\\
-  y   &= h_{K-1} + f_K(h_{K-1};\phi_K).
+  h_\ell &= h_{\ell-1} + f_\ell(h_{\ell-1};\phi_\ell), \qquad \ell = 2,\dots,L-1,\\
+  y   &= h_{L-1} + f_L(h_{L-1};\phi_L).
 \end{align*}
 El primer sumando de cada igualdad es la \emph{conexión residual}
 (\emph{residual} o \emph{skip connection}), y cada combinación aditiva de la
 entrada y de su transformación se llama \emph{bloque residual}.
 \end{definicion}
 
-Cada $f_k$ aprende, por tanto, un cambio aditivo sobre la representación
+Cada $f_\ell$ aprende, por tanto, un cambio aditivo sobre la representación
 actual. Sustituyendo las expresiones intermedias, la salida es la suma de la
-entrada y de varias redes más pequeñas; con $K$ bloques, la red puede verse como
-la combinación de $2^K$ caminos distintos desde la entrada hasta la salida
+entrada y de varias redes más pequeñas; con $L$ bloques, la red puede verse como
+la combinación de $2^L$ caminos distintos desde la entrada hasta la salida
 \cite[sec.~11.2, fig.~11.4]{prince2023understanding}.
 
 \begin{definicion}[{Normalización por lotes~\cite[sec.~11.4]{prince2023understanding}}]\label{def:batchnorm}
