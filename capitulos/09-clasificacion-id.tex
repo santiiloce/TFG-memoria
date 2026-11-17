@@ -7,18 +7,19 @@
 
 \chapter{Clasificación ID}\label{cap:clasificacion-id}
 
-\pendiente{introducción del capítulo: cinco arquitecturas preentrenadas con ajuste fino (ViT-B/16, ResNet-50, ConvNeXt-S, EfficientNetV2-S y Swin-S) y evaluación en el test ID}
+%\pendiente{introducción del capítulo: cinco arquitecturas preentrenadas con ajuste fino (ViT-B/16, ResNet-50, ConvNeXt-S, EfficientNetV2-S y Swin-S) y evaluación en el test ID}
 En este capítulo se presentan los resultados y elección del mejor modelo para el resto de la experimentación. Se mostrarán las métricas obtenidas por los distintos modelos, y la matriz de confusión
 gráficas de perdida, precisión y \textit{f1 score}. Finalmente se presentará un conclusión general de esta parte de la experimentación.
 \section{Comparación de los cinco modelos}\label{sec:comparacion-modelos}
 
 \subsection{Resultados globales}\label{sec:modelos-global}
 
-\revisar{la tabla de exactitudes de las notas (salida de \texttt{resultados.txt}) se sustituye por la \cref{tab:modelos}, generada a partir de results\_fase1, con IC; las exactitudes coinciden salvo Swin-S (0,96870 $\to$ 0,9688) y ResNet-50 (0,89634 $\to$ 0,8964), por una imagen de diferencia en la inferencia con precisión mixta}
+%\revisar{la tabla de exactitudes de las notas (salida de \texttt{resultados.txt}) se sustituye por la \cref{tab:modelos}, generada a partir de results\_fase1, con IC; las exactitudes coinciden salvo Swin-S (0,96870 $\to$ 0,9688) y ResNet-50 (0,89634 $\to$ 0,8964), por una imagen de diferencia; según results\_fase1/resumen.md, probablemente por la inferencia con precisión mixta (no comprobado)}
 
 % Cifras clave (results_fase1): exactitud Swin-S 0,9688 [0,9658; 0,9717], ConvNeXt-S 0,9668
 % [0,9635; 0,9700], EfficientNetV2-S 0,9538, ViT-B/16 0,9525, ResNet-50 0,8964. F1 macro: ConvNeXt-S
 % 0,9086 y Swin-S 0,9082. IC por lámina 2-3 veces más anchos que por imagen.
+Se aprecia como los dos mejores resultados han sido ofrecidos por las arquitecturas modernas, donde Swin-S presenta una exactitud
 \pendiente{análisis de la \cref{tab:modelos}}
 \pendiente{la comparación no es homogénea: Swin-S y los otros cuatro modelos se entrenaron con protocolos distintos (\cref{sec:learner}); explicar su efecto}
 

@@ -166,22 +166,6 @@ el efecto de la pérdida de detalle. Por último, el conjunto Textures (DTD) sir
 \textbf{PANDA (próstata de otros centros).} Biopsias del mismo órgano (próstata) y mismo tipo de tinción, pero de escáneres y hospitales distintos (Karolinska Institute / Radboud University)~\cite{bulten2022}. Se utilizan \num{10000} teselas de $128 \times 128$\,px del conjunto público preparado por iafoss~\cite{kagglepanda128}. En él, cada biopsia se lee en el nivel de menor resolución de la imagen original, se divide en teselas de $128 \times 128$\,px y se conservan las 16 con más tejido, es decir, las de menor suma de intensidades. A esta escala, cada tesela abarca una región de tejido mucho mayor que un parche ID (en ella caben decenas de glándulas). Si una biopsia no llega a 16 teselas, se completan con teselas blancas, lo que explica las 291 teselas sin tejido presentes en el conjunto. Para su evaluación, las teselas se reescalan a 224\,px.
 
 De las \num{168256} teselas del conjunto (\num{10516} biopsias con 16 teselas cada una), se seleccionaron al azar \num{10000} (muestreo uniforme sin reemplazo, sin semilla fija), procedentes de \num{6568} biopsias distintas (entre 1 y 6 teselas por biopsia; mediana 1).
-\begin{figure}[tbp]
-  \centering
-  \begin{subfigure}[b]{0.25\textwidth}
-    \centering
-    \includegraphics[width=\textwidth]{img/cap08/docx_image6.png}
-    \caption{}
-  \end{subfigure}
-  \hspace{0.04\textwidth}
-  \begin{subfigure}[b]{0.25\textwidth}
-    \centering
-    \includegraphics[width=\textwidth]{img/cap08/docx_image17.png}
-    \caption{}
-  \end{subfigure}
-  \caption{PANDA frente a nuestras imágenes ID. \revisar{figura extraída del docx, regenerar; indicar qué panel es cada conjunto}}
-  \label{fig:panda-vs-id}
-\end{figure}
 
 \subsection{Control de resolución y DTD}\label{sec:control-dtd}
 
