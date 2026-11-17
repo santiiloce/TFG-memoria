@@ -1,9 +1,9 @@
-% Generado por scripts/generar_tablas.py a partir de results_ood_convnext/tabla_principal_convnext.csv. No editar a mano.
+% Generado por scripts/generar_tablas.py a partir de results_ood_convnext/espacio_principal/tabla_principal_convnext.csv. No editar a mano.
 \begin{table}[tbp]
 \centering
 \scriptsize
 \setlength{\tabcolsep}{2.5pt}
-\caption{ConvNeXt-S, espacio B: \FPRn{95} (más bajo es mejor) de los 14 métodos en los nueve conjuntos y \CCRn{5} (más alto es mejor) en TUM+NORM. Clase positiva: OOD. En negrita, el mejor valor de cada columna. Los IC de \FPRn{95} están en \texttt{tabla\_principal\_convnext.csv}. $^{a}$Modifican la predicción: la exactitud ID baja al 96{,}5\,\% (ASH) y al 28{,}5\,\% (DICE, con el postprocesador de OpenOOD sin cambios).}
+\caption{ConvNeXt-S, espacio principal M: \FPRn{95} (más bajo es mejor) de los 14 métodos en los nueve conjuntos y \CCRn{5} (más alto es mejor) en TUM+NORM. Clase positiva: OOD. En negrita, el mejor valor de cada columna. Los IC de \FPRn{95} están en \texttt{tabla\_principal\_convnext.csv}. $^{B}$En el espacio B (512 dimensiones): requieren la capa que entra en el clasificador lineal. KNN, MDS, RMDS, SHE y \stoodx, en M (768); MSP, MaxLogit y Energy, en los logits. $^{a}$Modifican la predicción: la exactitud ID baja al 96{,}5\,\% (ASH) y al 28{,}5\,\% (DICE, con el postprocesador de OpenOOD sin cambios).}
 \label{tab:convnext-fpr}
 \begin{tabular}{lcccccccccc}
 \toprule
@@ -12,26 +12,26 @@
 Método & TUM+NORM & TUM & NORM & STR & LYM & MUS & PANDA & Control 128\,px & DTD & TUM+NORM \\
 \midrule
 \multicolumn{11}{@{}l}{\textit{Basados en logits}} \\
-MSP & 0{,}108 & 0{,}170 & 0{,}084 & 0{,}160 & \textbf{0{,}086} & 0{,}479 & 0{,}176 & 0{,}910 & 0{,}049 & 0{,}884 \\
+MSP & 0{,}108 & 0{,}170 & 0{,}084 & 0{,}160 & 0{,}086 & 0{,}479 & 0{,}176 & 0{,}910 & 0{,}049 & 0{,}884 \\
 MaxLogit & 0{,}584 & 0{,}524 & 0{,}751 & 0{,}716 & 0{,}451 & 0{,}610 & 0{,}546 & 0{,}961 & 0{,}357 & 0{,}413 \\
 Energy & 0{,}660 & 0{,}560 & 0{,}772 & 0{,}753 & 0{,}493 & 0{,}645 & 0{,}571 & 0{,}961 & 0{,}376 & 0{,}338 \\
 \midrule
 \multicolumn{11}{@{}l}{\textit{Modificación de activaciones}} \\
-ReAct & 0{,}692 & 0{,}569 & 0{,}766 & 0{,}760 & 0{,}484 & 0{,}721 & 0{,}562 & 0{,}960 & 0{,}378 & 0{,}306 \\
-ASH$^{a}$ & 0{,}715 & 0{,}713 & 0{,}718 & 0{,}668 & 0{,}922 & 0{,}922 & 0{,}972 & 0{,}969 & 0{,}379 & 0{,}281 \\
-DICE$^{a}$ & 0{,}766 & 0{,}762 & 0{,}770 & 0{,}842 & 0{,}990 & 0{,}962 & 0{,}948 & 0{,}944 & 0{,}763 & 0{,}005 \\
+ReAct$^{B}$ & 0{,}692 & 0{,}569 & 0{,}766 & 0{,}760 & 0{,}484 & 0{,}721 & 0{,}562 & 0{,}960 & 0{,}378 & 0{,}306 \\
+ASH$^{a,B}$ & 0{,}715 & 0{,}713 & 0{,}718 & 0{,}668 & 0{,}922 & 0{,}922 & 0{,}972 & 0{,}969 & 0{,}379 & 0{,}281 \\
+DICE$^{a,B}$ & 0{,}766 & 0{,}762 & 0{,}770 & 0{,}842 & 0{,}990 & 0{,}962 & 0{,}948 & 0{,}944 & 0{,}763 & 0{,}005 \\
 \midrule
 \multicolumn{11}{@{}l}{\textit{Características y distancias}} \\
-KNN & 0{,}136 & 0{,}193 & \textbf{0{,}051} & 0{,}200 & 0{,}127 & 0{,}504 & 0{,}364 & \textbf{0{,}692} & \textbf{0{,}013} & 0{,}859 \\
-MDS & 0{,}143 & 0{,}159 & 0{,}118 & 0{,}168 & 0{,}119 & 0{,}363 & 0{,}303 & 0{,}734 & 0{,}047 & 0{,}851 \\
-RMDS & \textbf{0{,}103} & \textbf{0{,}107} & 0{,}098 & 0{,}156 & 0{,}097 & 0{,}311 & 0{,}191 & 0{,}843 & 0{,}069 & \textbf{0{,}890} \\
-ViM & 0{,}193 & 0{,}209 & 0{,}162 & 0{,}207 & 0{,}161 & 0{,}400 & 0{,}411 & 0{,}802 & 0{,}066 & 0{,}803 \\
-SHE (prod.\ escalar) & 0{,}892 & 0{,}941 & 0{,}710 & 0{,}664 & 0{,}911 & 0{,}646 & 0{,}587 & 0{,}926 & 0{,}408 & 0{,}103 \\
-SHE (coseno) & 0{,}336 & 0{,}429 & 0{,}098 & 0{,}401 & 0{,}299 & 0{,}757 & 0{,}565 & 0{,}853 & 0{,}031 & 0{,}659 \\
-SHE (euclídea) & 0{,}251 & 0{,}323 & 0{,}157 & 0{,}348 & 0{,}184 & 0{,}761 & 0{,}625 & 0{,}857 & 0{,}075 & 0{,}746 \\
+KNN & 0{,}193 & 0{,}237 & 0{,}100 & 0{,}199 & 0{,}157 & 0{,}385 & 0{,}405 & 0{,}678 & 0{,}058 & 0{,}800 \\
+MDS & 0{,}167 & 0{,}203 & 0{,}102 & 0{,}137 & \textbf{0{,}061} & 0{,}394 & 0{,}431 & 0{,}688 & \textbf{0{,}004} & 0{,}821 \\
+RMDS & \textbf{0{,}096} & \textbf{0{,}116} & \textbf{0{,}079} & 0{,}154 & 0{,}264 & 0{,}305 & 0{,}243 & 0{,}842 & 0{,}047 & \textbf{0{,}894} \\
+ViM$^{B}$ & 0{,}193 & 0{,}209 & 0{,}162 & 0{,}207 & 0{,}161 & 0{,}400 & 0{,}411 & 0{,}802 & 0{,}066 & 0{,}803 \\
+SHE (prod.\ escalar) & 0{,}620 & 0{,}647 & 0{,}487 & 0{,}671 & 0{,}801 & 0{,}627 & 0{,}600 & 0{,}858 & 0{,}768 & 0{,}379 \\
+SHE (coseno) & 0{,}323 & 0{,}387 & 0{,}182 & 0{,}286 & 0{,}247 & 0{,}646 & 0{,}775 & 0{,}873 & 0{,}078 & 0{,}671 \\
+SHE (euclídea) & 0{,}361 & 0{,}443 & 0{,}220 & 0{,}312 & 0{,}207 & 0{,}726 & 0{,}853 & 0{,}908 & 0{,}055 & 0{,}632 \\
 \midrule
 \multicolumn{11}{@{}l}{\textit{STOOD-X}} \\
-STOOD-X (100\,\%) & 0{,}242 & 0{,}421 & 0{,}158 & \textbf{0{,}053} & 0{,}236 & \textbf{0{,}232} & \textbf{0{,}078} & 0{,}729 & 0{,}025 & 0{,}752 \\
+STOOD-X (100\,\%) & 0{,}624 & 0{,}711 & 0{,}266 & \textbf{0{,}053} & 0{,}691 & \textbf{0{,}160} & \textbf{0{,}140} & \textbf{0{,}673} & 0{,}005 & 0{,}373 \\
 \bottomrule
 \end{tabular}
 \end{table}

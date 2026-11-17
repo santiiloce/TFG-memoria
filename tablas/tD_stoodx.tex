@@ -1,9 +1,9 @@
-% Generado por scripts/generar_tablas.py a partir de results_ood_convnext/panda_vs_control.csv y saturacion_stoodx.csv. No editar a mano.
+% Generado por scripts/generar_tablas.py a partir de results_ood_convnext/espacio_principal/panda_vs_control.csv y saturacion_stoodx.csv. No editar a mano.
 \begin{table}[tbp]
 \centering
 \footnotesize
 \setlength{\tabcolsep}{4pt}
-\caption{\stoodx y la saturación con los dos modelos. (a) \AUROC con el control de 128\,px como clase negativa y PANDA como positiva: por encima de 0,5, la puntuación coloca PANDA como más OOD que el control. IC del 95\,\% por \emph{bootstrap} (1.000 remuestreos estratificados, semilla 0). (b) Porcentaje de imágenes con la puntuación $-z$ de \stoodx ($K=500$) saturada ($U=n_1n_2$); en C solo se calculó en el test ID, TUM y NORM.}
+\caption{\stoodx y la saturación con los dos modelos. (a) \AUROC con el control de 128\,px como clase negativa y PANDA como positiva: por encima de 0,5, la puntuación coloca PANDA como más OOD que el control; ConvNeXt-S en el espacio M. IC del 95\,\% por \emph{bootstrap} (1.000 remuestreos estratificados, semilla 0). $^{B}$En el espacio B (512 dimensiones): requieren la capa que entra en el clasificador lineal. (b) Porcentaje de imágenes con la puntuación $-z$ de \stoodx ($K=500$) saturada ($U=n_1n_2$) en cada espacio de ConvNeXt-S; en C solo se calculó en el test ID, TUM y NORM.}
 \label{tab:convnext-stoodx}
 
 \textit{(a) PANDA frente al control}\par\smallskip
@@ -17,40 +17,40 @@ MaxLogit & 0{,}617 [0{,}610; 0{,}625] & 0{,}603 [0{,}596; 0{,}610] \\
 Energy & 0{,}600 [0{,}593; 0{,}608] & 0{,}573 [0{,}566; 0{,}581] \\
 \midrule
 \multicolumn{3}{@{}l}{\textit{Modificación de activaciones}} \\
-ReAct & 0{,}639 [0{,}632; 0{,}645] & 0{,}577 [0{,}570; 0{,}585] \\
-ASH$^{a}$ & 0{,}339 [0{,}331; 0{,}346] & 0{,}435 [0{,}427; 0{,}443] \\
-DICE$^{a}$ & 0{,}580 [0{,}573; 0{,}587] & 0{,}195 [0{,}189; 0{,}201] \\
+ReAct$^{B}$ & 0{,}639 [0{,}632; 0{,}645] & 0{,}577 [0{,}570; 0{,}585] \\
+ASH$^{a,B}$ & 0{,}339 [0{,}331; 0{,}346] & 0{,}435 [0{,}427; 0{,}443] \\
+DICE$^{a,B}$ & 0{,}580 [0{,}573; 0{,}587] & 0{,}195 [0{,}189; 0{,}201] \\
 \midrule
 \multicolumn{3}{@{}l}{\textit{Características y distancias}} \\
-KNN & 0{,}731 [0{,}725; 0{,}738] & 0{,}736 [0{,}729; 0{,}742] \\
-MDS & 0{,}729 [0{,}722; 0{,}735] & 0{,}749 [0{,}742; 0{,}754] \\
-RMDS & 0{,}768 [0{,}762; 0{,}774] & 0{,}782 [0{,}776; 0{,}788] \\
-ViM & 0{,}721 [0{,}714; 0{,}727] & 0{,}673 [0{,}667; 0{,}680] \\
-SHE (prod.\ escalar) & 0{,}424 [0{,}417; 0{,}431] & 0{,}611 [0{,}604; 0{,}619] \\
-SHE (coseno) & 0{,}706 [0{,}699; 0{,}712] & 0{,}686 [0{,}679; 0{,}693] \\
-SHE (euclídea) & 0{,}726 [0{,}719; 0{,}732] & 0{,}688 [0{,}681; 0{,}695] \\
+KNN & 0{,}731 [0{,}725; 0{,}738] & 0{,}589 [0{,}581; 0{,}596] \\
+MDS & 0{,}729 [0{,}722; 0{,}735] & 0{,}656 [0{,}648; 0{,}663] \\
+RMDS & 0{,}768 [0{,}762; 0{,}774] & 0{,}758 [0{,}752; 0{,}765] \\
+ViM$^{B}$ & 0{,}721 [0{,}714; 0{,}727] & 0{,}673 [0{,}667; 0{,}680] \\
+SHE (prod.\ escalar) & 0{,}424 [0{,}417; 0{,}431] & 0{,}664 [0{,}657; 0{,}671] \\
+SHE (coseno) & 0{,}706 [0{,}699; 0{,}712] & 0{,}491 [0{,}483; 0{,}498] \\
+SHE (euclídea) & 0{,}726 [0{,}719; 0{,}732] & 0{,}444 [0{,}436; 0{,}451] \\
 \midrule
 \multicolumn{3}{@{}l}{\textit{STOOD-X}} \\
-STOOD-X (100\,\%) & 0{,}475 [0{,}467; 0{,}482] & 0{,}859 [0{,}855; 0{,}864] \\
+STOOD-X (100\,\%) & 0{,}475 [0{,}467; 0{,}482] & 0{,}803 [0{,}797; 0{,}809] \\
 \bottomrule
 \end{tabular}
 
 \bigskip
 \textit{(b) Imágenes saturadas}\par\smallskip
-\begin{tabular}{lccc}
+\begin{tabular}{lcccc}
 \toprule
-Conjunto & Swin-S & ConvNeXt-S (B) & ConvNeXt-S (C) \\
+Conjunto & Swin-S & ConvNeXt-S (M) & ConvNeXt-S (B) & ConvNeXt-S (C) \\
 \midrule
-Test ID & 0{,}6\,\% & 0{,}1\,\% & 0{,}0\,\% \\
-TUM+NORM & 66{,}3\,\% & 26{,}0\,\% & 9{,}9\,\% \\
-TUM & 59{,}0\,\% & 30{,}1\,\% & 9{,}7\,\% \\
-NORM & 78{,}2\,\% & 19{,}4\,\% & 10{,}3\,\% \\
-STR & 52{,}0\,\% & 24{,}7\,\% & -- \\
-LYM & 32{,}1\,\% & 18{,}0\,\% & -- \\
-MUS & 44{,}1\,\% & 13{,}2\,\% & -- \\
-PANDA & 19{,}4\,\% & 7{,}5\,\% & -- \\
-Control 128\,px & 19{,}0\,\% & 1{,}5\,\% & -- \\
-DTD & 76{,}3\,\% & 31{,}4\,\% & -- \\
+Test ID & 0{,}6\,\% & 0{,}1\,\% & 0{,}1\,\% & 0{,}0\,\% \\
+TUM+NORM & 66{,}3\,\% & 22{,}0\,\% & 26{,}0\,\% & 9{,}9\,\% \\
+TUM & 59{,}0\,\% & 19{,}1\,\% & 30{,}1\,\% & 9{,}7\,\% \\
+NORM & 78{,}2\,\% & 26{,}6\,\% & 19{,}4\,\% & 10{,}3\,\% \\
+STR & 52{,}0\,\% & 35{,}3\,\% & 24{,}7\,\% & -- \\
+LYM & 32{,}1\,\% & 44{,}2\,\% & 18{,}0\,\% & -- \\
+MUS & 44{,}1\,\% & 27{,}1\,\% & 13{,}2\,\% & -- \\
+PANDA & 19{,}4\,\% & 19{,}1\,\% & 7{,}5\,\% & -- \\
+Control 128\,px & 19{,}0\,\% & 2{,}6\,\% & 1{,}5\,\% & -- \\
+DTD & 76{,}3\,\% & 84{,}9\,\% & 31{,}4\,\% & -- \\
 \bottomrule
 \end{tabular}
 \end{table}

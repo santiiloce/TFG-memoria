@@ -37,3 +37,6 @@
 notas/*
 !notas/memoria2-pandoc.tex
 !notas/sin-ubicar.tex
+
+# Instrucciones para agentes, no se versionan
+/prompt_codex_memoria_cap10_corrupciones.md

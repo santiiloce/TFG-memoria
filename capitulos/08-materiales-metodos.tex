@@ -9,7 +9,7 @@
 
 \section{Conjunto de datos ID}\label{sec:conjunto-id}
 
-Como punto de partida contábamos con una base de datos de imágenes médicas clasificadas según el tipo de enfermedad que presentaban. La base contaba con las siguientes clases: \clase{Adenocarcinoma\_ductal}, \clase{Glandulas\_no\_neoplasicas}, \clase{Gleason\_4\_fusionadas}, \clase{Gleason\_5\_comedonecrosis}, \clase{No\_Cancer}, \clase{Carcinoma\_intraductal}, \clase{Gleason\_3}, \clase{Gleason\_4\_glomeruloide}, \clase{Gleason\_5\_no\_glandulas}, \clase{PIN\_de\_alto\_grado}, \clase{Estroma}, \clase{Gleason\_4\_cribiformes}, \clase{Gleason\_4\_pobremente\_formadas} e \clase{Inflamatorio}.
+El punto de partida se trata de una base de datos de imágenes médicas clasificadas según el tipo de enfermedad que presentaban. La base contaba con las siguientes clases: \clase{Adenocarcinoma\_ductal}, \clase{Glandulas\_no\_neoplasicas}, \clase{Gleason\_4\_fusionadas}, \clase{Gleason\_5\_comedonecrosis}, \clase{No\_Cancer}, \clase{Carcinoma\_intraductal}, \clase{Gleason\_3}, \clase{Gleason\_4\_glomeruloide}, \clase{Gleason\_5\_no\_glandulas}, \clase{PIN\_de\_alto\_grado}, \clase{Estroma}, \clase{Gleason\_4\_cribiformes}, \clase{Gleason\_4\_pobremente\_formadas} e \clase{Inflamatorio}.
 
 La información de este apartado procede del artículo del conjunto de datos~\cite{ayensa2026}. El muestreo tisular fue realizado por patólogos experimentados con un amplio conocimiento en hispatología del cancer de próstata.
 En definitiva nuestro conjunto de datos consiste en muestras de prostatectomía radical, durante su obtención las piezas se procesaron en un procesador automático de tejidos, se deshidrataron y se incluyeron en parafina. Se obtuvieron cortes de 3--5\,\si{\micro\metre} de grosor con un micrótomo, que se montaron en portaobjetos de vidrio, se desparafinaron y se tiñeron con hematoxilina y eosina (H\&E).
@@ -25,12 +25,14 @@ Respecto a las clases aparece cierto grado de confusión entre las siguientes ca
   \item \textbf{Gleason 3, glándulas no neoplásicas y glándulas 4 fusionadas:} Dado el conjunto de imágenes de Gleason 3 un 8,6\%  es clasificado como glándula no neoplásica y 4,7\% como Gleason 4 fusionadas.
   \item \textbf{Gleason 4 fusionadas con Gleason 3 y Gleason 4 cribiformes:} Las imágenes son clasificadas como Gleason 3 en 1,6\% de los casos y en Gleason 4 cribiformes en un 4\%.
   \item \textbf{Glomeruloides con Gleason 4 cribiformes:} Las imágenes son clasificadas en la clase incorrecta en un 32\% de los casos y un acierto de 52 \%. Cabe destacar el caso del modelo efficientnetv2\_s el cual llega a tener una clasificacion incorrecta como cribiformes del 36\% y un acierto del 48\%.
-  \item \textbf{Gleason 5 comedonecrosis con Gleason 4 cribiformes:} Este error de clasificacion es espcialmente particular, pues lo modelos de clasificar mal una muestra solo es clasificada en la clase Gleason 4 cribiformes. Todos los modelos presentan un error similar, 14,28\% de clasificacion incorrecta frente al 85,7\% de acierto. El caso más grave lo presenta el modelo Resnet50 con 23,21\% en la clase equivocada nombrada y un 66,07\% de acierto.
+  \item \textbf{Gleason 5 comedonecrosis con Gleason 4 cribiformes:} Este error de clasificacion es espcialmente particular, pues en aquellos casos en los que los modelos clasifican mal una muestra, esta solo es clasificada en la clase Gleason 4 cribiformes. Todos los modelos presentan un error similar, 14,28\% de clasificacion incorrecta frente al 85,7\% de acierto. El caso más grave lo presenta el modelo Resnet50 con 23,21\% en la clase equivocada nombrada y un 66,07\% de acierto.
 \end{itemize}
 
-G3 estan bien delimitadas y en g4 hay una organización más anormal, según la partición que haga una clasificación gleason 3 puede pertenecer a gleason 4, depende subjetividad
-
-Ambas son proliferacion tumorales de patrón cribiforme, por lo que mantienen una estructura similar lo único que difieren es en la necrósis central que presentan gleason 5 que puede ser dificil de determinar si ocupa superficie menor o si no aparece bien en el parche.
+Se ha consultado de forma auxiliar a un profesional del ámbito sanitario del hospital Virgen del Rocío (Sevilla) para tratar de entender a que se pueden deber estas confusiones. \revisar{Iván}
+\begin{itemize}
+  \item Como se ha visto antes, los modelos clasifican de forma erronea Gleason 3 como glandulas 4 fusionadas y viceversa. Esto se puede deber a que las muestras de Gleason 3 estan bien delimitadas y en Gleason 4 cribiformes hay una organización más anormal, según la partición que haga una clasificación Gleason 3 puede pertenecer a Gleason 4 cribiforme, de forma que se trata de una clasificación subjetiva.
+  \item Ambas son proliferacion tumorales de patrón cribiforme, por lo que mantienen una estructura similar lo único que difieren es en la necrósis central que presentan gleason 5 que puede ser dificil de determinar si ocupa superficie menor o si no aparece bien en el parche.
+\end{itemize}
 % En el preámbulo:
 % \usepackage{booktabs}
 % \usepackage{multirow}
@@ -78,8 +80,6 @@ Gleason 3
 \end{minipage}
 \end{table}
 
-\revisar{traducción casi literal; parafrasear y citar}
-\revisar{añadida la frase de las 85 WSI anotadas (dato del artículo, como se pidió); la primera frase atribuye el apartado al artículo, en lugar del título «información extraída del paper de Iván Sevillano» de las notas}
 % La discrepancia con los nombres de fichero (95 láminas y rejilla de 224 px) se trata en
 % \cref{sec:fuga-laminas}.
 
@@ -92,25 +92,17 @@ Gleason 3
 \section{Partición e integridad}\label{sec:particion}
 
 Inicialmente el repositorio cuenta con dos subcarpetas, \texttt{train} y \texttt{val}, con un total de \num{126109} imágenes (\num{113491} en \texttt{train} y \num{12618} en \texttt{val}), cuya distribución por clase se recoge en la \cref{tab:particion}.
-\revisar{las notas daban un total de 126.192; el real es 126.109 (113.491 + 12.618; results\_integridad)}
-\revisar{la figura de tarta de las notas se sustituye por la \cref{tab:particion}, generada a partir de results\_integridad}
 
 \input{tablas/t08_particion}
 
-El primer reto al que nos enfrentamos es el de poder crear un modelo de aprendizaje supervisado que, dada una imagen de nuestro conjunto de datos, sea capaz de clasificarla en una de las respectivas clases con la mayor precisión posible.
+El primer reto al que se enfrenta este trabajo es el de poder crear un modelo de aprendizaje supervisado que, dada una imagen de nuestro conjunto de datos, sea capaz de clasificarla en una de las respectivas clases con la mayor precisión posible.
 
-Para comenzar se necesita un conjunto de entrenamiento, uno de validación y uno de test. Así pues, dada la estructura inicial del conjunto de datos, se optó por utilizar el directorio \texttt{val}, que presentaba una menor cantidad de imágenes en comparación con \texttt{train}, para realizar el test, y a su vez \texttt{train} se dividió de forma estratificada por clase, en proporción 80/20, en dos carpetas: una mayor para el entrenamiento y una menor para la validación. Se cuenta así con un total de \num{90800} imágenes para entrenamiento, \num{22691} para validación y \num{12618} para test. El reparto se hizo sin fijar una semilla aleatoria, por lo que no es reproducible.
-\revisar{añadidos el carácter estratificado 80/20 de la división y la ausencia de semilla (results\_integridad, apartado 5)}
+Para comenzar se necesita un conjunto de entrenamiento, uno de validación y uno de test. Así pues, dada la estructura inicial del conjunto de datos, se optó por utilizar el directorio \texttt{val}, que presentaba una menor cantidad de imágenes en comparación con \texttt{train}, para realizar el test, y a su vez \texttt{train} se dividió de forma estratificada por clase, en proporción 80/20, en dos carpetas: una mayor para el entrenamiento y una menor para la validación. Se cuenta así con un total de \num{90800} imágenes para entrenamiento, \num{22691} para validación y \num{12618} para test. 
+El reparto se hizo sin fijar una semilla aleatoria, por lo que no es reproducible. \revisar{Iván, ¿hace falta que ponga lo de la semilla?}
 
 % Las notas incluían además una tabla resumen (Train ID 90.800, Validación ID 22.691, Test ID
 % 12.618), recogida en la fila Total de la \cref{tab:particion}.
 
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.7\textwidth]{img/cap08/distribution_train.jpg}
-  \caption{Distribución por clase del conjunto de entrenamiento. \revisar{pie de figura redactado por el agente; las etiquetas de la gráfica aparecen cortadas y solapadas: regenerar}}
-  \label{fig:distribucion-entrenamiento}
-\end{figure}
 
 \subsection{Verificación de la integridad}\label{sec:integridad}
 
@@ -155,55 +147,20 @@ Para comenzar se necesita un conjunto de entrenamiento, uno de validación y uno
 
 \begin{itemize}
   \item Este es un conjunto de \num{100000} parches no superpuestos de imágenes histológicas teñidas con hematoxilina y eosina (H\&E) de cáncer colorrectal humano (CRC) y tejido normal~\cite{kather2018,kather2019}.
-  \item Todas las imágenes son de $224 \times 224$ píxeles (px) a 0,5 micras por píxel (MPP). Se utiliza la versión NONORM, generada a partir de los mismos datos originales pero sin normalización de color, para no introducir un cambio artificial en la distribución~\cite{macenko2009}.
+  \item Todas las imágenes son de $224 \times 224$ píxeles (px) a 0,5 micras por píxel (MPP). Se utiliza la versión NONORM, generada a partir de los mismos datos originales pero sin normalización de color mediante el método de Macenko, para no introducir un cambio artificial en la distribución~\cite{macenko2009}.
   \item Las clases de tejido son: tejido adiposo (ADI), fondo (BACK), desechos (DEB), linfocitos (LYM), moco (MUC), músculo liso (MUS), mucosa normal del colon (NORM), estroma asociado al cáncer (STR) y epitelio de adenocarcinoma colorrectal (TUM).
-  \item Estas imágenes se extrajeron manualmente de $N = 86$ portaobjetos de tejido de cáncer humano teñidos con H\&E, de muestras embebidas en parafina y fijadas en formalina (FFPE) del NCT Biobank (Centro Nacional de Enfermedades Tumorales, Heidelberg, Alemania) y del archivo de patología UMM (University Medical Center Mannheim, Mannheim, Alemania). Las muestras de tejido contenían portaobjetos tumorales primarios de CRC y tejido tumoral de metástasis hepáticas de CRC; las clases de tejido normal se aumentaron con regiones no tumorales de muestras de gastrectomía para aumentar la variabilidad.
+  \item Estas imágenes se extrajeron manualmente de $N = 86$ portaobjetos de tejido de cáncer humano teñidos con H\&E, de muestras embebidas en parafina y fijadas en formalina (FFPE) del NCT Biobank (Centro Nacional de Enfermedades Tumorales, Heidelberg, Alemania) y del archivo de patología UMM (University Medical Center Mannheim, Mannheim, Alemania).
+   Las muestras de tejido contenían portaobjetos tumorales primarios de CRC y tejido tumoral de metástasis hepáticas de CRC; las clases de tejido normal se aumentaron con regiones no tumorales de muestras de gastrectomía para aumentar la variabilidad. Es el parecido en la metodología del proceso de obtención de muestras lo que ha determinado que este conjunto de datos haya sido usado en esta fase de experimentación.
 \end{itemize}
-\revisar{traducción casi literal; parafrasear y citar}
-\revisar{la referencia que acompañaba a NONORM en las notas (DOI 10.1109/ISBI.2009.5193250) es el método de normalización de Macenko, que se aplica a la versión normalizada NCT-CRC-HE-100K y no a NONORM: reubicar la cita}
-\revisar{el enlace al conjunto de datos (Zenodo) de las notas se sustituye por la cita a Kather et al.}
 
-El control interno consiste en evaluar el detector con distintas clases de un mismo conjunto de datos, NCT-CRC-HE-100K~\cite{kather2019}. Todas sus imágenes proceden del mismo centro y presentan, por tanto, el mismo \emph{covariate shift} respecto a los datos ID, pero solo TUM y NORM son tejido 
-de otro órgano (\emph{semantic shift}). Las clases consideradas son TUM (epitelio de adenocarcinoma colorrectal), NORM (mucosa colónica normal), STR (estroma asociado al cáncer, que cabría esperar que se parezca a la clase ID de estroma, HS), LYM (linfocitos, que cabría esperar que se parezcan 
+El control interno consiste en evaluar el detector con distintas clases de un mismo conjunto de datos, NCT-CRC-HE-100K~\cite{kather2019}. Todas sus imágenes proceden del mismo centro y presentan, por tanto, el mismo \emph{covariate shift} respecto a los datos ID. Las clases utilizadas en nuestra experimentación son TUM (epitelio de adenocarcinoma colorrectal), 
+NORM (mucosa colónica normal), STR (estroma asociado al cáncer, que cabría esperar que se parezca a la clase ID de estroma, HS), LYM (linfocitos, que cabría esperar que se parezcan 
 a la clase ID Inflamatorio) y MUS (músculo liso, que también podría parecerse al estroma ID, ya que el estroma prostático contiene músculo liso). Si el detector rechaza las imágenes de STR, LYM y MUS con la misma capacidad que las de TUM y NORM, aunque se parezcan más a las clases ID, esto indicaría
-que es sensible principalmente al \emph{covariate shift}. Las imágenes de PANDA son del mismo órgano, pero proceden de otros centros y se adquirieron a una escala muy distinta, por lo que combinan varios cambios respecto a los datos ID; el control de imágenes ID a 128\,px permite valorar únicamente 
-el efecto de la pérdida de detalle. Por último, el conjunto Textures (DTD) sirve como referencia de que el detector funciona correctamente.
+que presenta cierta sensibilidad al \emph{covariate shift}, no podemos argumentar más allá de una mera suposición porque todas las imágenes presentan también \emph{semantic shift}, a pesar de que algunos puedan ser más cercanas al conjunto $ID$. Las imágenes de PANDA son del mismo órgano, pero proceden de otros centros, y se adquirieron a una escala muy distinta, por lo que combinan varios cambios respecto a los datos ID; el control de imágenes ID a 128\,px permite valorar únicamente 
+el efecto de la pérdida de detalle. Por último, el conjunto Textures (DTD) sirve como referencia de que el detector funciona correctamente, ya que son las muestras que presentan una mayor diferencia con lo aprendido por el modelo.
 
 
-\begin{figure}[tbp]
-  \centering
-  \begin{subfigure}[b]{0.3\textwidth}
-    \centering
-    \includegraphics[width=\textwidth]{img/cap08/docx_image11.png}
-    \caption{}
-  \end{subfigure}
-  \hspace{0.04\textwidth}
-  \begin{subfigure}[b]{0.3\textwidth}
-    \centering
-    \includegraphics[width=\textwidth]{img/cap08/docx_image10.png}
-    \caption{}
-  \end{subfigure}
-  \caption{Comparativa del adenocarcinoma colorrectal frente al adenocarcinoma ductal del conjunto ID. \revisar{figura extraída del docx, regenerar; indicar qué panel es cada tejido}}
-  \label{fig:nct-tum-vs-id}
-\end{figure}
-
-\begin{figure}[tbp]
-  \centering
-  \begin{subfigure}[b]{0.3\textwidth}
-    \centering
-    \includegraphics[width=\textwidth]{img/cap08/docx_image12.png}
-    \caption{STR}
-  \end{subfigure}
-  \hspace{0.04\textwidth}
-  \begin{subfigure}[b]{0.3\textwidth}
-    \centering
-    \includegraphics[width=\textwidth]{img/cap08/docx_image13.png}
-    \caption{LYM}
-  \end{subfigure}
-  \caption{Ejemplos de imágenes de STR y LYM. \revisar{figura extraída del docx, regenerar; comprobar el orden de los paneles}}
-  \label{fig:nct-str-lym}
-\end{figure}
-
+\revisar{Iván, como consideras añadir aquí un par de imágenes LYM y de ID de esntroma para ver le parecido mencionado}
 \subsection{PANDA}\label{sec:panda}
 
 \textbf{PANDA (próstata de otros centros).} Biopsias del mismo órgano (próstata) y mismo tipo de tinción, pero de escáneres y hospitales distintos (Karolinska Institute / Radboud University)~\cite{bulten2022}. Se utilizan \num{10000} teselas de $128 \times 128$\,px del conjunto público preparado por iafoss~\cite{kagglepanda128}. En él, cada biopsia se lee en el nivel de menor resolución de la imagen original, se divide en teselas de $128 \times 128$\,px y se conservan las 16 con más tejido, es decir, las de menor suma de intensidades. A esta escala, cada tesela abarca una región de tejido mucho mayor que un parche ID (en ella caben decenas de glándulas). Si una biopsia no llega a 16 teselas, se completan con teselas blancas, lo que explica las 291 teselas sin tejido presentes en el conjunto. Para su evaluación, las teselas se reescalan a 224\,px.
@@ -263,7 +220,8 @@ De las \num{168256} teselas del conjunto (\num{10516} biopsias con 16 teselas ca
 % 7. Diseño pareado: ID = limpias, OOD = sus versiones corruptas en cada celda; referencias de los
 %    detectores = las del resto del cap. 10 (train limpio), sin reajuste.
 % 8. Métricas: exactitud por celda; AUROC y FPR@95 por celda con IC 95 % por bootstrap pareado por
-%    imagen (1.000 réplicas, semilla 0); CEC; % de saturación de STOOD-X; Spearman entre la caída de
+%    imagen (1.000 réplicas, semilla 0); CEC; % de saturación de STOOD-X (K = 500; no se repitió con
+%    K = 144, \cref{sec:stoodx-seleccion-k}); Spearman entre la caída de
 %    exactitud y el AUROC sobre las 27 celdas.
 % 9. Muestra: test completo; la regla de recursos (<= 6 h) daba una submuestra estratificada de
 %    3.000 (test completo estimado en ~14 h en CPU); cambio decidido por el autor antes de ver
@@ -292,7 +250,8 @@ Se usó el test completo. La regla de recursos fijada de antemano daba una submu
 \revisar{fin del borrador del agente}
 
 \section{Entorno de ejecución}\label{sec:entorno}
-
+\revisar{Iván: Considero que no aporta nada añadir los entornos que he usado y las cosas que tengo
+instalados en ellos porque cada poco suelen cambiar, entonces algo que igual he usado yo, para un par de meses deja de servir}
 Vamos a usar el repositorio OpenOOD~\cite{openood} para continuar con nuestro análisis de resultados.
 \revisar{el enlace a GitHub se sustituye por la cita; el enlace al cuaderno de Colab con la explicación de uso y su captura de pantalla no van a la memoria}
 
@@ -313,46 +272,40 @@ Vamos a usar el repositorio OpenOOD~\cite{openood} para continuar con nuestro an
 % - Detección OOD con ConvNeXt-S (\cref{ap:convnext}; results_ood_convnext/resumen.md y decisiones.md): nodo zeus,
 %   solo CPU (Intel Xeon Silver 4114 a 2,20 GHz), 12 hilos, fp32, entorno fastai_env_ood; trabajo SLURM 192107:
 %   8 h 56 min (8 h 56 min 12 s); MaxRSS 6,2 GiB (6.480.436 KB). El Swin-S se evaluó en GPU.
+%   Espacio principal M (results_ood_convnext/espacio_principal/decisiones.md y configuracion_convnext.csv):
+%   trabajos 192990 (preparación, 2 min 21 s), 192991 (detectores, 26 min 12 s; MaxRSS 3,0 GiB) y 192992
+%   (tablas, 7 min 40 s), en zeus, solo CPU, 12 hilos, fp32; total 36 min (36 min 13 s).
 \pendiente{hardware y software}
 
 \section{Protocolo de entrenamiento}\label{sec:protocolo}
 
 \subsection{DataLoader}\label{sec:dataloader}
-
-Para una primera aproximación del modelo hemos decidido crear un conjunto de imágenes menor a partir del original, el cual sirve para pruebas y para comprobar el funcionamiento correcto de nuestro modelo antes de pasar a entrenar con el conjunto de datos original. Este, al igual que el conjunto de datos original, cuenta con tres carpetas: inicialmente se seleccionaron 10 imágenes de cada carpeta de la estructura original del conjunto de datos para crear uno nuevo, pero con un número mucho más reducido de imágenes. Posteriormente se aplicó el mismo procedimiento de separar \texttt{train} en dos nuevas carpetas de \texttt{train} y \texttt{val}, y el \texttt{val} original pasó a ser test. Debido a esto, el resultado final ha sido una estructura de tres carpetas: \texttt{train} con 139 imágenes, \texttt{val} con 55 y test con 167.
-\revisar{la figura de tarta del conjunto reducido de las notas no se incluye; las cifras quedan en el texto}
-
-Cada imagen se redimensiona a 224\,px con \texttt{Resize(224, method='squish')}, que la estira sin recortarla. Durante el entrenamiento se aplica aumento de datos por lotes con \texttt{aug\_transforms()} de fastai 2.7.19~\cite{howard2020fastai}, con sus valores por defecto: volteo horizontal con probabilidad 0,5 (sin volteo vertical); rotación de hasta $\pm 10^\circ$, ampliación entre 1,0 y 1,1 y deformación de perspectiva de magnitud máxima 0,2, con probabilidad 0,75; y variación de brillo y contraste de magnitud máxima 0,2, con probabilidad 0,75. Los huecos de las transformaciones geométricas se rellenan por reflexión y no hay recorte aleatorio. Al final se normaliza con la media y la desviación típica de ImageNet. No se aplican cambios de tono ni de saturación, así que el color solo varía en brillo y contraste.
-\revisar{redactado por el agente por indicación del autor}
-\revisar{ConvNeXt-S se entrena a 256\,px: \texttt{clasificador.py} llama a \texttt{Resize(int(output), method='squish')} con \texttt{outputs\_to\_train = [224, 224, 256, 224]}; indicar la excepción}
-
+\textcolor{green}{
+Para una primera aproximación del modelo se decididió crear un conjunto de imágenes menor a partir del original, el cual sirve para pruebas y para comprobar el funcionamiento correcto de los distintos modelos antes de pasar a entrenar con el conjunto de datos original. Este, al igual que el conjunto de datos original, cuenta con tres carpetas: inicialmente se seleccionaron 10 imágenes de cada carpeta de la estructura original del conjunto de datos para crear uno nuevo, pero con un número mucho más reducido de imágenes. Posteriormente se aplicó el mismo procedimiento de separar \texttt{train} en dos nuevas carpetas de \texttt{train} y \texttt{val}, y el \texttt{val} original pasó a ser test. Debido a esto, el resultado final ha sido una estructura de tres carpetas: \texttt{train} con 139 imágenes, \texttt{val} con 55 y test con 167.
+Cada imagen se redimensiona a 224\,px (excepto ConvNeXt-S donde las imágenes tienen que ser de 256) con \texttt{Resize(224, method='squish')}, que la estira sin recortarla. Durante el entrenamiento se aplica aumento de datos por lotes con \texttt{aug\_transforms()} de fastai 2.7.19~\cite{howard2020fastai}, con sus valores por defecto: volteo horizontal con probabilidad 0,5 (sin volteo vertical); rotación de hasta $\pm 10^\circ$, ampliación entre 1,0 y 1,1 y deformación de perspectiva de magnitud máxima 0,2, con probabilidad 0,75; y variación de brillo y contraste de magnitud máxima 0,2, con probabilidad 0,75. Los huecos de las transformaciones geométricas se rellenan por reflexión y no hay recorte aleatorio. Al final se normaliza con la media y la desviación típica de ImageNet. No se aplican cambios de tono ni de saturación, así que el color solo varía en brillo y contraste.
+}
 \subsection{Learner}\label{sec:learner}
 
-En cuanto al optimizador, vamos a usar AdamW (Loshchilov y Hutter~\cite{loshchilov2019}), pues se trata de una versión mejorada del optimizador Adam (Kingma y Ba~\cite{kingma2014}) con la mejora añadida de que cuenta con \emph{weight decay} (\cref{sec:adamw}). En la implementación de fastai es cierto que el nombre asociado es el de Adam, pero es debido a una decisión de fastai de adoptar la versión mejorada del optimizador bajo el nombre de la original.
-\revisar{las notas citaban solo a Kingma y Ba (Adam); para AdamW la cita correcta es Loshchilov y Hutter (2019)}
+En cuanto al optimizador, se usa AdamW (Loshchilov y Hutter~\cite{loshchilov2019}), pues se trata de una versión mejorada del optimizador Adam (Kingma y Ba~\cite{kingma2014}) con la mejora añadida de que cuenta con \emph{weight decay} (\cref{sec:adamw}). En la implementación de fastai es cierto que el nombre asociado es el de Adam, pero es debido a una decisión de fastai de adoptar la versión mejorada del optimizador bajo el nombre de la original.
 
+\textcolor{green}{
 Debido a la complejidad del problema, no tardó en aparecer el error de memoria \emph{CUDA out of memory}. Para manejar este problema sin alterar la arquitectura del modelo \pendiente{sustituir por fuente académica} se optó por reducir el tamaño del lote a la mitad, pasando así de 128 imágenes por lote a 64. Las otras medidas tomadas fueron adaptar el \emph{learner} para trabajar con precisión de 16 bits~\cite{micikevicius2018}, ahorrando así memoria, liberar la caché de la memoria al iniciar la ejecución y, por último, reducir el número de \emph{workers} de 8 a 4, planteando la posibilidad de que la creación de hebras separadas para el tratamiento del problema pudiera estar influyendo en una mayor lentitud de ejecución del modelo.
-\revisar{«infiriendo» corregido a «influyendo»}
-\revisar{añadida la cita a Micikevicius et al. (2018) para la precisión mixta}
+}
+Respecto al resto de configuraciones para el entrenamiento de optaron por las siguientes.
+\begin{itemize}
+  \item \textbf{Preprocesado:} Redimensionado al tamaño de entrada mediante \nolinkurl{method='squish'} ($224\text{ px}$; ConvNeXt-S a $256\text{ px}$), aumentación de datos con \nolinkurl{aug_transforms()} de fastai y normalización usando las estadísticas de ImageNet.
+  \item \textbf{Función de pérdida:} \texttt{LabelSmoothing\allowbreak CrossEntropy} ($\varepsilon = 0{,}1$, \cref{def:label-smoothing}).
+  \item \textbf{Optimizador (común a los cinco):} Adam de fastai con decaimiento desacoplado (AdamW) y \texttt{wd = 0.1}.
+  \item \textbf{Gestión de memoria:} Tamaño de lote de $64$ y precisión mixta mediante \nolinkurl{to_fp16()}.
+  \item \textbf{Parada temprana:} \texttt{EarlyStopping\allowbreak Callback} monitorizando \nolinkurl{valid_loss} (\nolinkurl{min_delta = 0.005}, \nolinkurl{patience = 10}).
+  \item \textbf{ViT-B/16, ResNet-50, ConvNeXt-S y EfficientNetV2-S}: Instanciados con \nolinkurl{vision_learner} (\texttt{ps = 0.5}), búsqueda de tasa de aprendizaje con \nolinkurl{lr_find} (\textit{valley}) y entrenamiento mediante \nolinkurl{fine_tune} ($10$ épocas iniciales congeladas seguidas de hasta $90$ épocas descongeladas).
+  \item \textbf{Swin-S}: Instanciado directamente con \texttt{Learner} sobre el modelo de \texttt{timm} y entrenado sin congelación previa mediante \nolinkurl{fit_one_cycle} ($25$ épocas, $\text{lr}_{\max} = 10^{-4}$).
+\end{itemize}
+\begin{quote}
+\small \textbf{Justificación del protocolo de Swin-S:} A diferencia del resto de arquitecturas evaluadas ---entrenadas mediante el protocolo estándar \texttt{fine\_tune} en dos fases ($10$ épocas iniciales con el \textit{backbone} congelado para estabilizar la cabeza clasificadora y un posterior ajuste fino global)---, el modelo \textbf{Swin-S} se entrenó directamente de extremo a extremo mediante \texttt{fit\_one\_cycle} sin congelación previa. En arquitecturas basadas en \textit{Vision Transformers} jerárquicos, el bloqueo inicial de los bloques de autoatención puede limitar la adaptación conjunta de las representaciones globales a las particularidades del dominio; el calentamiento progresivo (\textit{warm-up}) propio de la política \textit{1cycle} resulta suficiente para amortiguar los gradientes iniciales sin degradar los pesos preentrenados.
+\end{quote}
 
-% Configuración real del entrenamiento, para completar este apartado:
-% - Preprocesado: Resize al tamaño de entrada con method='squish' (224 px; ConvNeXt-S a 256 px),
-%   aug_transforms() de fastai y normalización con las estadísticas de ImageNet.
-% - Pérdida: LabelSmoothingCrossEntropy (\varepsilon = 0,1, \cref{def:label-smoothing}).
-% - Común a los cinco: Adam de fastai (decaimiento desacoplado, es decir, AdamW), wd = 0,1,
-%   sqr_mom = 0,99, eps = 1e-5, moms = (0,95; 0,85; 0,95), lote de 64, to_fp16(), y
-%   EarlyStoppingCallback sobre valid_loss (min_delta = 0,005, patience = 10).
-% - ViT-B/16, ResNet-50, ConvNeXt-S y EfficientNetV2-S (clasificador.py): vision_learner con ps = 0,5,
-%   lr_find (valley) y fine_tune(epochs = 90, freeze_epochs = 10, base_lr = lr_valley). Tras las 10
-%   épocas congeladas, la parada temprana dejó 28, 22, 40 y 51 épocas. lr máxima de la cabeza,
-%   reconstruida del optimizador guardado en el .pth: 6,01e-4, 5,00e-4, 4,16e-4 y 7,23e-4; la del
-%   cuerpo es 100 veces menor.
-% - Swin-S (clasificador_svim.py): Learner sobre el modelo de timm, sin congelar, y
-%   fit_one_cycle(25, lr_max = 1e-4). La parada temprana no se activó: 25 de 25 épocas.
-% - Versiones: entrenamiento con PyTorch 1.12.1 y fastai 2.7.19; explicabilidad con torch 2.8.
-% - La validación se usó para elegir la época (relevante para la predicción conforme, \cref{cap:conforme}).
-\pendiente{completar la configuración del entrenamiento (preprocesado, pérdida con \emph{label smoothing}, política de entrenamiento y parada temprana)}
-\pendiente{explicar la diferencia de protocolo: Swin-S con \texttt{fit\_one\_cycle} sin congelar; los otros cuatro modelos con \texttt{fine\_tune}}
+%\pendiente{explicar la diferencia de protocolo: Swin-S con \texttt{fit\_one\_cycle} sin congelar; los otros cuatro modelos con \texttt{fine\_tune}}
 
 Llegados a este punto, solo queda probar con diversos modelos ya preentrenados, hacerles un ajuste fino (\emph{fine tuning}) y analizar cuál genera mejores resultados, que será por tanto con el que sigamos trabajando a lo largo del proyecto (\cref{cap:clasificacion-id}).
 

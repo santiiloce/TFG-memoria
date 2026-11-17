@@ -1,9 +1,9 @@
-% Generado por scripts/generar_tablas.py a partir de results_ood/faseC_2026-10-20/tabla_principal.csv. No editar a mano.
+% Generado por scripts/generar_tablas.py a partir de results_ood/faseC_K144/tabla_principal.csv. No editar a mano.
 \begin{table}[tbp]
 \centering
 \footnotesize
 \setlength{\tabcolsep}{4pt}
-\caption{Far-OOD (DTD): \AUROC y \CCRn{5} (más alto es mejor) y \FPRn{95} (más bajo es mejor) de los 16 métodos. IC del 95\,\% por \emph{bootstrap} (1.000 remuestreos estratificados, semilla 0). Clase positiva: OOD. En negrita, el mejor valor entre los métodos no exploratorios. $^{a}$ASH reduce la exactitud ID al 68{,}3\,\%. $^{\dagger}$Variante exploratoria ($K_c=\min(500,\lfloor n_c/2\rfloor)$), propuesta tras ver datos OOD; no es el método principal.}
+\caption{Far-OOD (DTD): \AUROC y \CCRn{5} (más alto es mejor) y \FPRn{95} (más bajo es mejor) de los 17 métodos. IC del 95\,\% por \emph{bootstrap} (1.000 remuestreos estratificados, semilla 0). Clase positiva: OOD. En negrita, el mejor valor entre los métodos no exploratorios. $^{a}$ASH reduce la exactitud ID al 68{,}3\,\%. $^{\dagger}$Variante exploratoria ($K_c=\min(500,\lfloor n_c/2\rfloor)$), propuesta tras ver datos OOD; no es el método principal. $^{\ddagger}$100\,\% de las características y $K=144$, elegido solo con la validación ID (\cref{sec:stoodx-seleccion-k}); el resto de filas de \stoodx usan $K=500$, el valor del artículo.}
 \label{tab:ood-far}
 \begin{tabular}{lccc}
 \toprule
@@ -29,7 +29,8 @@ SHE (coseno) & 0{,}898 [0{,}894; 0{,}902] & 0{,}387 [0{,}369; 0{,}407] & 0{,}611
 SHE (euclídea) & 0{,}899 [0{,}895; 0{,}903] & 0{,}422 [0{,}397; 0{,}443] & 0{,}576 \\
 \midrule
 \multicolumn{4}{@{}l}{\textit{STOOD-X}} \\
-STOOD-X (100\,\%) & \textbf{0{,}991} [0{,}989; 0{,}992] & \textbf{0{,}028} [0{,}024; 0{,}033] & \textbf{0{,}949} \\
+STOOD-X (100\,\%) & 0{,}991 [0{,}989; 0{,}992] & 0{,}028 [0{,}024; 0{,}033] & 0{,}949 \\
+STOOD-X ($K=144$)$^{\ddagger}$ & \textbf{0{,}993} [0{,}992; 0{,}994] & \textbf{0{,}020} [0{,}018; 0{,}023] & \textbf{0{,}955} \\
 STOOD-X (87,5\,\%) & 0{,}990 [0{,}989; 0{,}992] & 0{,}030 [0{,}025; 0{,}034] & 0{,}948 \\
 STOOD-X $K_c$$^{\dagger}$ & 0{,}989 [0{,}988; 0{,}990] & 0{,}033 [0{,}028; 0{,}038] & 0{,}946 \\
 \bottomrule

@@ -7,10 +7,9 @@
 
 \chapter{Clasificación ID}\label{cap:clasificacion-id}
 
-% Patrón de los capítulos de resultados: tabla o figura -> análisis breve -> conclusión parcial;
-% el capítulo termina con una discusión global.
 \pendiente{introducción del capítulo: cinco arquitecturas preentrenadas con ajuste fino (ViT-B/16, ResNet-50, ConvNeXt-S, EfficientNetV2-S y Swin-S) y evaluación en el test ID}
-
+En este capítulo se presentan los resultados y elección del mejor modelo para el resto de la experimentación. Se mostrarán las métricas obtenidas por los distintos modelos, y la matriz de confusión
+gráficas de perdida, precisión y \textit{f1 score}. Finalmente se presentará un conclusión general de esta parte de la experimentación.
 \section{Comparación de los cinco modelos}\label{sec:comparacion-modelos}
 
 \subsection{Resultados globales}\label{sec:modelos-global}
@@ -35,72 +34,72 @@
 Pérdida en test: 0,6788; exactitud en test: 0,9525.
 \pendiente{análisis}
 
-\begin{figure}[tbp]
-  \centering
-  \includegraphics[width=\textwidth]{img/cap09/curvas_vit_base_patch16_224.jpg}
-  \caption{ViT-B/16 (\texttt{vit\_base\_patch16\_224}): curvas de entrenamiento.}
-  \label{fig:curvas-vit}
-\end{figure}
+%\begin{figure}[tbp]
+%  \centering
+%  \includegraphics[width=\textwidth]{img/cap09/curvas_vit_base_patch16_224.jpg}
+%  \caption{ViT-B/16 (\texttt{vit\_base\_patch16\_224}): curvas de entrenamiento.}
+%  \label{fig:curvas-vit}
+%\end{figure}
 
-\begin{figure}[tbp]
-  \centering
-  \includegraphics[width=\textwidth]{img/cap09/confusion_test_vit_base_patch16_224.jpg}
-  \caption{ViT-B/16 (\texttt{vit\_base\_patch16\_224}): matriz de confusión en el test.}
-  \label{fig:confusion-vit}
-\end{figure}
+%\begin{figure}[tbp]
+%  \centering
+%  \includegraphics[width=\textwidth]{img/cap09/confusion_test_vit_base_patch16_224.jpg}
+%  \caption{ViT-B/16 (\texttt{vit\_base\_patch16\_224}): matriz de confusión en el test.}
+%  \label{fig:confusion-vit}
+%\end{figure}
 
 Pérdida en test: 0,8892; exactitud en test: 0,8964.
-\revisar{las notas daban 0,8963 (\texttt{resultados.txt}); se usa el valor de results\_fase1}
+%\revisar{las notas daban 0,8963 (\texttt{resultados.txt}); se usa el valor de results\_fase1}
 \pendiente{análisis}
 
-\begin{figure}[tbp]
-  \centering
-  \includegraphics[width=\textwidth]{img/cap09/curvas_resnet50.jpg}
-  \caption{ResNet-50 (\texttt{resnet50}): curvas de entrenamiento.}
-  \label{fig:curvas-resnet}
-\end{figure}
+%\begin{figure}[tbp]
+%  \centering
+%  \includegraphics[width=\textwidth]{img/cap09/curvas_resnet50.jpg}
+%  \caption{ResNet-50 (\texttt{resnet50}): curvas de entrenamiento.}
+%  \label{fig:curvas-resnet}
+%\end{figure}
 
-\begin{figure}[tbp]
-  \centering
-  \includegraphics[width=\textwidth]{img/cap09/confusion_test_resnet50.jpg}
-  \caption{ResNet-50 (\texttt{resnet50}): matriz de confusión en el test.}
-  \label{fig:confusion-resnet}
-\end{figure}
+%\begin{figure}[tbp]
+%  \centering
+%  \includegraphics[width=\textwidth]{img/cap09/confusion_test_resnet50.jpg}
+%  \caption{ResNet-50 (\texttt{resnet50}): matriz de confusión en el test.}
+%  \label{fig:confusion-resnet}
+%\end{figure}
 
 Pérdida en test: 0,6424; exactitud en test: 0,9668.
 \pendiente{análisis}
 
-\begin{figure}[tbp]
-  \centering
-  \includegraphics[width=\textwidth]{img/cap09/curvas_convnext_small.jpg}
-  \caption{ConvNeXt-S (\texttt{convnext\_small}, entrenado y evaluado a 256\,px): curvas de entrenamiento.}
-  \label{fig:curvas-convnext}
-\end{figure}
+%\begin{figure}[tbp]
+%  \centering
+%  \includegraphics[width=\textwidth]{img/cap09/curvas_convnext_small.jpg}
+%  \caption{ConvNeXt-S (\texttt{convnext\_small}, entrenado y evaluado a 256\,px): curvas de entrenamiento.}
+%  \label{fig:curvas-convnext}
+%\end{figure}
 
-\begin{figure}[tbp]
-  \centering
-  \includegraphics[width=\textwidth]{img/cap09/confusion_test_convnext_small.jpg}
-  \caption{ConvNeXt-S (\texttt{convnext\_small}, entrenado y evaluado a 256\,px): matriz de confusión en el test.}
-  \label{fig:confusion-convnext}
-\end{figure}
+%\begin{figure}[tbp]
+%  \centering
+%  \includegraphics[width=\textwidth]{img/cap09/confusion_test_convnext_small.jpg}
+%  \caption{ConvNeXt-S (\texttt{convnext\_small}, entrenado y evaluado a 256\,px): matriz de confusión en el test.}
+%  \label{fig:confusion-convnext}
+%\end{figure}
 
 % Las notas no daban la pérdida ni la exactitud de este modelo («Modelo 4»); valores de
 % resultados.txt (param3): pérdida 0,6757; exactitud 0,9538.
 \pendiente{análisis (pérdida en test: 0,6757; exactitud en test: 0,9538)}
 
-\begin{figure}[tbp]
-  \centering
-  \includegraphics[width=\textwidth]{img/cap09/curvas_tf_efficientnetv2_s.jpg}
-  \caption{EfficientNetV2-S (\texttt{tf\_efficientnetv2\_s}): curvas de entrenamiento.}
-  \label{fig:curvas-efficientnet}
-\end{figure}
+%\begin{figure}[tbp]
+%  \centering
+%  \includegraphics[width=\textwidth]{img/cap09/curvas_tf_efficientnetv2_s.jpg}
+%  \caption{EfficientNetV2-S (\texttt{tf\_efficientnetv2\_s}): curvas de entrenamiento.}
+%  \label{fig:curvas-efficientnet}
+%\end{figure}
 
-\begin{figure}[tbp]
-  \centering
-  \includegraphics[width=\textwidth]{img/cap09/confusion_test_tf_efficientnetv2_s.jpg}
-  \caption{EfficientNetV2-S (\texttt{tf\_efficientnetv2\_s}): matriz de confusión en el test.}
-  \label{fig:confusion-efficientnet}
-\end{figure}
+%\begin{figure}[tbp]
+%  \centering
+%  \includegraphics[width=\textwidth]{img/cap09/confusion_test_tf_efficientnetv2_s.jpg}
+%  \caption{EfficientNetV2-S (\texttt{tf\_efficientnetv2\_s}): matriz de confusión en el test.}
+%  \label{fig:confusion-efficientnet}
+%\end{figure}
 
 % Las gráficas del Swin faltaban en las notas. resultados.txt (param4): pérdida en test 0,6356;
 % entrenamiento de 583,6 min en una TITAN Xp. Confusiones más frecuentes: Glándulas no

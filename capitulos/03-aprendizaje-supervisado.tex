@@ -774,28 +774,25 @@ En el contexto de las redes convolucionales, $x$ recibe el nombre de
 
 En la práctica, la entrada y el núcleo son tensores de valores finitos y se
 suponen nulos fuera de las posiciones almacenadas, de modo que la suma
-infinita de \cref{eq:conv-discreta} se reduce a una suma finita, siempre y cuando la entrada o
-el núcleo tengan soporte finito. Para una
-imagen bidimensional $I$ y un núcleo bidimensional $K$, la convolución es
+infinita de \cref{eq:conv-discreta} se reduce a una suma finita siempre y cuando la entrada o
+el núcleo tengan soporte finito. En el procesamiento de imágenes digitales se emplea habitualmente un núcleo bidimensional $K$ de dimensiones impares $(2k+1) \times (2k+1)$ centrado en el origen, con índices $m, n \in \{-k, \dots, k\}$ \cite{mesejo2026vision}. Para una imagen bidimensional $I$, la convolución discreta se expresa como
 \begin{equation}\label{eq:conv-2d}
-  S(i,j) = (I * K)(i,j) = \sum_{m}\sum_{n} I(m,n)\, K(i-m,\, j-n),
+  S(i,j) = (I * K)(i,j) = \sum_{m=-k}^{k}\sum_{n=-k}^{k} I(m,n)\, K(i-m,\, j-n),
 \end{equation}
-y, por ser conmutativa,
+y, al tratarse de una operación conmutativa (así como asociativa), resulta equivalente a
 \begin{equation}\label{eq:conv-2d-conmutativa}
-  S(i,j) = (K * I)(i,j) = \sum_{m}\sum_{n} I(i-m,\, j-n)\, K(m,n).
+  S(i,j) = (K * I)(i,j) = \sum_{m=-k}^{k}\sum_{n=-k}^{k} I(i-m,\, j-n)\, K(m,n).
 \end{equation}
-La conmutatividad se debe a que el núcleo aparece \emph{volteado (flipped)} respecto de
-la entrada: al crecer $m$, el índice de la entrada crece y el del núcleo
-decrece. Esta propiedad es útil en las demostraciones, pero no es relevante
-para la implementación de una red \cite[sec.~9.1]{goodfellow2016deep}.
+Esta propiedad se debe a que el núcleo aparece \emph{volteado (flipped)} respecto de
+la entrada tanto horizontal como verticalmente ---lo que equivale geométricamente a rotarlo $180^{\circ}$---: al crecer $m$ y $n$, los índices de la entrada crecen mientras que los del núcleo decrecen \cite{goodfellow2016deep, mesejo2026vision}. Aunque la conmutatividad y la asociatividad son útiles en demostraciones teóricas y para precombinar filtros lineales, el volteo del núcleo no resulta relevante para el aprendizaje de parámetros en una red convolucional \cite[sec.~9.1]{goodfellow2016deep}.
 
 \begin{definicion}[Correlación cruzada]\label{def:correlacion-cruzada}
-La \emph{correlación cruzada} de una imagen $I$ con un núcleo $K$ es
+Sea $I$ una imagen bidimensional y $K$ un núcleo de tamaño $(2k+1) \times (2k+1)$. La \emph{correlación cruzada} de $I$ con $K$ se define como
 \begin{equation}\label{eq:correlacion-cruzada}
-  S(i,j) = (K \star I)(i,j) = \sum_{m}\sum_{n} I(i+m,\, j+n)\, K(m,n).
+  S(i,j) = (K \star I)(i,j) = \sum_{m=-k}^{k}\sum_{n=-k}^{k} I(i+m,\, j+n)\, K(m,n).
 \end{equation}
+A diferencia de la convolución, esta operación no voltea el núcleo (por lo que no es conmutativa ni asociativa) y puede interpretarse directamente como el producto escalar entre el núcleo y la vecindad local centrada en cada píxel $(i,j)$ \cite{mesejo2026vision}.
 \end{definicion}
-
 \begin{figure}[tbp]
   \centering
   \includegraphics[width=0.6\textwidth]{img/91_CNN.png}

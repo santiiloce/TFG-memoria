@@ -1,32 +1,32 @@
-% Generado por scripts/generar_tablas.py a partir de results_ood_convnext/diferencias_auroc.csv. No editar a mano.
+% Generado por scripts/generar_tablas.py a partir de results_ood_convnext/espacio_principal/diferencias_auroc.csv. No editar a mano.
 \begin{table}[tbp]
 \centering
 \footnotesize
 \setlength{\tabcolsep}{2.5pt}
-\caption{Diferencia de \AUROC ConvNeXt-S $-$ Swin-S (positiva: mejor ConvNeXt-S) en los métodos principales, con su IC debajo. IC del 95\,\% por \emph{bootstrap} pareado por imagen (1.000 remuestreos estratificados ID/OOD, semilla 0). Los demás métodos están en \texttt{diferencias\_auroc.csv}.}
+\caption{Diferencia de \AUROC ConvNeXt-S $-$ Swin-S (positiva: mejor ConvNeXt-S) en los métodos principales, con su IC debajo; ConvNeXt-S en el espacio M. IC del 95\,\% por \emph{bootstrap} pareado por imagen (1.000 remuestreos estratificados ID/OOD, semilla 0). $^{B}$En el espacio B (512 dimensiones): requieren la capa que entra en el clasificador lineal. Los demás métodos están en \texttt{diferencias\_auroc.csv}.}
 \label{tab:convnext-diferencias}
 \begin{tabular}{lcccccc}
 \toprule
-Conjunto & MSP & KNN & MDS & RMDS & ViM & STOOD-X (100\,\%) \\
+Conjunto & MSP & KNN & MDS & RMDS & ViM$^{B}$ & STOOD-X (100\,\%) \\
 \midrule
-TUM+NORM & +0{,}078 & +0{,}016 & $-$0{,}015 & +0{,}004 & $-$0{,}031 & $-$0{,}004 \\
-& {\scriptsize [+0{,}074; +0{,}082]} & {\scriptsize [+0{,}014; +0{,}018]} & {\scriptsize [$-$0{,}017; $-$0{,}013]} & {\scriptsize [+0{,}002; +0{,}007]} & {\scriptsize [$-$0{,}033; $-$0{,}028]} & {\scriptsize [$-$0{,}006; $-$0{,}002]} \\[2pt]
-TUM & +0{,}066 & +0{,}011 & $-$0{,}012 & +0{,}007 & $-$0{,}031 & $-$0{,}001 \\
-& {\scriptsize [+0{,}061; +0{,}072]} & {\scriptsize [+0{,}009; +0{,}013]} & {\scriptsize [$-$0{,}014; $-$0{,}010]} & {\scriptsize [+0{,}004; +0{,}011]} & {\scriptsize [$-$0{,}034; $-$0{,}029]} & {\scriptsize [$-$0{,}004; +0{,}002]} \\[2pt]
-NORM & +0{,}097 & +0{,}024 & $-$0{,}019 & $-$0{,}001 & $-$0{,}030 & $-$0{,}009 \\
-& {\scriptsize [+0{,}091; +0{,}103]} & {\scriptsize [+0{,}022; +0{,}026]} & {\scriptsize [$-$0{,}022; $-$0{,}017]} & {\scriptsize [$-$0{,}004; +0{,}001]} & {\scriptsize [$-$0{,}033; $-$0{,}028]} & {\scriptsize [$-$0{,}011; $-$0{,}008]} \\[2pt]
-STR & +0{,}126 & +0{,}029 & +0{,}005 & +0{,}005 & $-$0{,}015 & +0{,}008 \\
-& {\scriptsize [+0{,}119; +0{,}132]} & {\scriptsize [+0{,}026; +0{,}031]} & {\scriptsize [+0{,}002; +0{,}007]} & {\scriptsize [+0{,}002; +0{,}008]} & {\scriptsize [$-$0{,}018; $-$0{,}013]} & {\scriptsize [+0{,}006; +0{,}010]} \\[2pt]
-LYM & +0{,}120 & +0{,}021 & +0{,}001 & +0{,}147 & $-$0{,}018 & +0{,}054 \\
-& {\scriptsize [+0{,}115; +0{,}125]} & {\scriptsize [+0{,}019; +0{,}024]} & {\scriptsize [$-$0{,}001; +0{,}003]} & {\scriptsize [+0{,}141; +0{,}153]} & {\scriptsize [$-$0{,}020; $-$0{,}016]} & {\scriptsize [+0{,}051; +0{,}057]} \\[2pt]
-MUS & +0{,}150 & $-$0{,}006 & $-$0{,}015 & $-$0{,}013 & $-$0{,}039 & $-$0{,}015 \\
-& {\scriptsize [+0{,}144; +0{,}157]} & {\scriptsize [$-$0{,}010; $-$0{,}003]} & {\scriptsize [$-$0{,}017; $-$0{,}012]} & {\scriptsize [$-$0{,}017; $-$0{,}010]} & {\scriptsize [$-$0{,}042; $-$0{,}036]} & {\scriptsize [$-$0{,}018; $-$0{,}013]} \\[2pt]
-PANDA & +0{,}083 & $-$0{,}007 & $-$0{,}025 & +0{,}009 & $-$0{,}079 & +0{,}079 \\
-& {\scriptsize [+0{,}077; +0{,}088]} & {\scriptsize [$-$0{,}010; $-$0{,}003]} & {\scriptsize [$-$0{,}028; $-$0{,}022]} & {\scriptsize [+0{,}005; +0{,}013]} & {\scriptsize [$-$0{,}083; $-$0{,}075]} & {\scriptsize [+0{,}075; +0{,}084]} \\[2pt]
-Control 128\,px & +0{,}003 & $-$0{,}042 & $-$0{,}070 & $-$0{,}039 & $-$0{,}112 & $-$0{,}112 \\
-& {\scriptsize [$-$0{,}006; +0{,}011]} & {\scriptsize [$-$0{,}047; $-$0{,}037]} & {\scriptsize [$-$0{,}074; $-$0{,}066]} & {\scriptsize [$-$0{,}045; $-$0{,}034]} & {\scriptsize [$-$0{,}116; $-$0{,}108]} & {\scriptsize [$-$0{,}117; $-$0{,}107]} \\[2pt]
-DTD & +0{,}112 & +0{,}060 & +0{,}025 & +0{,}027 & +0{,}018 & +0{,}002 \\
-& {\scriptsize [+0{,}106; +0{,}118]} & {\scriptsize [+0{,}057; +0{,}064]} & {\scriptsize [+0{,}023; +0{,}027]} & {\scriptsize [+0{,}024; +0{,}030]} & {\scriptsize [+0{,}016; +0{,}021]} & {\scriptsize [+0{,}001; +0{,}004]} \\[2pt]
+TUM+NORM & +0{,}078 & $-$0{,}021 & $-$0{,}019 & +0{,}007 & $-$0{,}031 & $-$0{,}045 \\
+& {\scriptsize [+0{,}074; +0{,}082]} & {\scriptsize [$-$0{,}024; $-$0{,}018]} & {\scriptsize [$-$0{,}021; $-$0{,}017]} & {\scriptsize [+0{,}004; +0{,}009]} & {\scriptsize [$-$0{,}033; $-$0{,}028]} & {\scriptsize [$-$0{,}048; $-$0{,}042]} \\[2pt]
+TUM & +0{,}066 & $-$0{,}029 & $-$0{,}026 & +0{,}006 & $-$0{,}031 & $-$0{,}060 \\
+& {\scriptsize [+0{,}061; +0{,}072]} & {\scriptsize [$-$0{,}032; $-$0{,}026]} & {\scriptsize [$-$0{,}029; $-$0{,}024]} & {\scriptsize [+0{,}003; +0{,}009]} & {\scriptsize [$-$0{,}034; $-$0{,}029]} & {\scriptsize [$-$0{,}064; $-$0{,}056]} \\[2pt]
+NORM & +0{,}097 & $-$0{,}008 & $-$0{,}007 & +0{,}008 & $-$0{,}030 & $-$0{,}021 \\
+& {\scriptsize [+0{,}091; +0{,}103]} & {\scriptsize [$-$0{,}011; $-$0{,}005]} & {\scriptsize [$-$0{,}009; $-$0{,}005]} & {\scriptsize [+0{,}005; +0{,}010]} & {\scriptsize [$-$0{,}033; $-$0{,}028]} & {\scriptsize [$-$0{,}023; $-$0{,}018]} \\[2pt]
+STR & +0{,}126 & +0{,}012 & +0{,}027 & +0{,}020 & $-$0{,}015 & +0{,}008 \\
+& {\scriptsize [+0{,}119; +0{,}132]} & {\scriptsize [+0{,}010; +0{,}015]} & {\scriptsize [+0{,}025; +0{,}029]} & {\scriptsize [+0{,}017; +0{,}022]} & {\scriptsize [$-$0{,}018; $-$0{,}013]} & {\scriptsize [+0{,}006; +0{,}009]} \\[2pt]
+LYM & +0{,}120 & $-$0{,}008 & +0{,}017 & +0{,}114 & $-$0{,}018 & $-$0{,}042 \\
+& {\scriptsize [+0{,}115; +0{,}125]} & {\scriptsize [$-$0{,}011; $-$0{,}005]} & {\scriptsize [+0{,}016; +0{,}019]} & {\scriptsize [+0{,}108; +0{,}120]} & {\scriptsize [$-$0{,}020; $-$0{,}016]} & {\scriptsize [$-$0{,}045; $-$0{,}038]} \\[2pt]
+MUS & +0{,}150 & $-$0{,}006 & +0{,}004 & +0{,}002 & $-$0{,}039 & $-$0{,}002 \\
+& {\scriptsize [+0{,}144; +0{,}157]} & {\scriptsize [$-$0{,}010; $-$0{,}003]} & {\scriptsize [+0{,}001; +0{,}007]} & {\scriptsize [$-$0{,}001; +0{,}005]} & {\scriptsize [$-$0{,}042; $-$0{,}036]} & {\scriptsize [$-$0{,}004; +0{,}000]} \\[2pt]
+PANDA & +0{,}083 & $-$0{,}103 & $-$0{,}079 & $-$0{,}000 & $-$0{,}079 & +0{,}066 \\
+& {\scriptsize [+0{,}077; +0{,}088]} & {\scriptsize [$-$0{,}108; $-$0{,}098]} & {\scriptsize [$-$0{,}083; $-$0{,}074]} & {\scriptsize [$-$0{,}004; +0{,}004]} & {\scriptsize [$-$0{,}083; $-$0{,}075]} & {\scriptsize [+0{,}062; +0{,}070]} \\[2pt]
+Control 128\,px & +0{,}003 & $-$0{,}049 & $-$0{,}062 & $-$0{,}025 & $-$0{,}112 & $-$0{,}085 \\
+& {\scriptsize [$-$0{,}006; +0{,}011]} & {\scriptsize [$-$0{,}054; $-$0{,}044]} & {\scriptsize [$-$0{,}066; $-$0{,}057]} & {\scriptsize [$-$0{,}030; $-$0{,}020]} & {\scriptsize [$-$0{,}116; $-$0{,}108]} & {\scriptsize [$-$0{,}090; $-$0{,}081]} \\[2pt]
+DTD & +0{,}112 & +0{,}046 & +0{,}043 & +0{,}041 & +0{,}018 & +0{,}007 \\
+& {\scriptsize [+0{,}106; +0{,}118]} & {\scriptsize [+0{,}043; +0{,}049]} & {\scriptsize [+0{,}041; +0{,}046]} & {\scriptsize [+0{,}038; +0{,}044]} & {\scriptsize [+0{,}016; +0{,}021]} & {\scriptsize [+0{,}006; +0{,}008]} \\[2pt]
 \bottomrule
 \end{tabular}
 \end{table}

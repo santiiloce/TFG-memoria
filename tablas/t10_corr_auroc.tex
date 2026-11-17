@@ -1,0 +1,49 @@
+% Generado por scripts/generar_tablas.py a partir de results_corrupciones/metricas_celda.csv. No editar a mano.
+\begin{table}[tbp]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\caption{\AUROC (más alto es mejor) de los seis detectores principales en cada corrupción y nivel de severidad. ID: las imágenes limpias del test; OOD: sus versiones corruptas. En negrita, el mejor valor de cada fila. Las demás configuraciones y los IC del 95\,\% están en la \cref{tab:apc-corr-auroc}.}
+\label{tab:ood-corr-auroc}
+\begin{tabular}{llcccccc}
+\toprule
+Corrupción & Nivel & MSP & MDS & KNN & ViM & RMDS & STOOD-X (100\,\%) \\
+\midrule
+Brillo & 1 & 0{,}532 & 0{,}528 & 0{,}529 & 0{,}530 & 0{,}521 & \textbf{0{,}546} \\
+ & 3 & 0{,}668 & 0{,}710 & 0{,}703 & 0{,}718 & 0{,}682 & \textbf{0{,}793} \\
+ & 5 & 0{,}777 & 0{,}853 & 0{,}835 & 0{,}861 & 0{,}828 & \textbf{0{,}922} \\
+\addlinespace[2pt]
+Saturación & 1 & 0{,}574 & 0{,}606 & 0{,}592 & 0{,}610 & 0{,}574 & \textbf{0{,}658} \\
+ & 3 & 0{,}693 & 0{,}775 & 0{,}756 & 0{,}782 & 0{,}742 & \textbf{0{,}853} \\
+ & 5 & 0{,}794 & 0{,}873 & 0{,}851 & 0{,}879 & 0{,}853 & \textbf{0{,}932} \\
+\addlinespace[2pt]
+Tono & 1 & 0{,}576 & 0{,}595 & 0{,}594 & 0{,}601 & 0{,}598 & \textbf{0{,}675} \\
+ & 3 & 0{,}713 & 0{,}777 & 0{,}781 & 0{,}782 & 0{,}793 & \textbf{0{,}865} \\
+ & 5 & 0{,}756 & 0{,}831 & 0{,}832 & 0{,}837 & 0{,}850 & \textbf{0{,}925} \\
+\addlinespace[2pt]
+Marcas & 1 & 0{,}472 & 0{,}518 & 0{,}522 & 0{,}522 & 0{,}524 & \textbf{0{,}539} \\
+ & 3 & 0{,}503 & 0{,}647 & 0{,}630 & 0{,}661 & 0{,}658 & \textbf{0{,}741} \\
+ & 5 & 0{,}575 & 0{,}762 & 0{,}733 & 0{,}777 & 0{,}763 & \textbf{0{,}878} \\
+\addlinespace[2pt]
+Burbujas & 1 & 0{,}528 & 0{,}522 & 0{,}520 & 0{,}525 & 0{,}517 & \textbf{0{,}535} \\
+ & 3 & 0{,}591 & 0{,}796 & 0{,}782 & 0{,}804 & 0{,}800 & \textbf{0{,}891} \\
+ & 5 & 0{,}627 & 0{,}857 & 0{,}842 & 0{,}866 & 0{,}870 & \textbf{0{,}959} \\
+\addlinespace[2pt]
+JPEG & 1 & 0{,}690 & 0{,}781 & 0{,}782 & 0{,}787 & 0{,}798 & \textbf{0{,}897} \\
+ & 3 & 0{,}740 & 0{,}826 & 0{,}824 & 0{,}830 & 0{,}850 & \textbf{0{,}936} \\
+ & 5 & 0{,}827 & 0{,}909 & 0{,}899 & 0{,}913 & 0{,}911 & \textbf{0{,}983} \\
+\addlinespace[2pt]
+Pixelado & 1 & 0{,}636 & 0{,}755 & 0{,}743 & 0{,}767 & 0{,}737 & \textbf{0{,}868} \\
+ & 3 & 0{,}729 & 0{,}846 & 0{,}829 & 0{,}856 & 0{,}841 & \textbf{0{,}951} \\
+ & 5 & 0{,}974 & \textbf{0{,}993} & 0{,}986 & \textbf{0{,}993} & 0{,}977 & 0{,}992 \\
+\addlinespace[2pt]
+Desenfoque & 1 & 0{,}826 & 0{,}923 & 0{,}907 & 0{,}927 & 0{,}917 & \textbf{0{,}970} \\
+ & 3 & 0{,}930 & 0{,}982 & 0{,}971 & 0{,}983 & 0{,}965 & \textbf{0{,}985} \\
+ & 5 & 0{,}962 & \textbf{0{,}994} & 0{,}987 & \textbf{0{,}994} & 0{,}980 & 0{,}991 \\
+\addlinespace[2pt]
+Movimiento & 1 & 0{,}664 & 0{,}784 & 0{,}755 & 0{,}795 & 0{,}748 & \textbf{0{,}883} \\
+ & 3 & 0{,}840 & 0{,}943 & 0{,}925 & 0{,}947 & 0{,}926 & \textbf{0{,}974} \\
+ & 5 & 0{,}900 & 0{,}975 & 0{,}961 & 0{,}977 & 0{,}954 & \textbf{0{,}981} \\
+\bottomrule
+\end{tabular}
+\end{table}

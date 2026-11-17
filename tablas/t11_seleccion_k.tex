@@ -1,0 +1,20 @@
+% Generado por scripts/generar_tablas.py a partir de results_ood/stoodx_seleccion_k/seleccion_k_loco.csv y seleccion_k_loco_por_clase.csv. No editar a mano.
+\begin{table}[tbp]
+\centering
+\footnotesize
+\caption{Selección de $K$ de \stoodx (100\,\% de las características, puntuación $-z$) por validación \emph{leave-one-class-out} en la validación ID: cada una de las 14 clases ID hace por turno de pseudo-OOD frente al resto de la validación, sin sus imágenes en la referencia de entrenamiento y con su logit anulado. \AUROC (más alto es mejor) y \FPRn{95} (más bajo es mejor) medios sobre las 14 clases, y número de clases retenidas en las que cada $K$ obtiene el mayor \AUROC. En negrita, el $K$ elegido. No se usa ningún dato de test ni OOD.}
+\label{tab:stoodx-seleccion-k}
+\begin{tabular}{cccc}
+\toprule
+$K$ & \AUROC medio $\uparrow$ & \FPRn{95} medio $\downarrow$ & Clases en que es el mejor \\
+\midrule
+9 & 0{,}844 & 0{,}418 & 0 \\
+18 & 0{,}898 & 0{,}310 & 0 \\
+36 & 0{,}929 & 0{,}235 & 1 \\
+72 & 0{,}949 & 0{,}178 & 0 \\
+\textbf{144} & \textbf{0{,}961} & 0{,}145 & 10 \\
+288 & 0{,}946 & 0{,}325 & 2 \\
+500 & 0{,}934 & 0{,}415 & 1 \\
+\bottomrule
+\end{tabular}
+\end{table}

@@ -1,0 +1,23 @@
+% Generado por scripts/generar_tablas.py a partir de results_ood/faseB_paper_K144/empates_saturacion.csv. No editar a mano.
+\begin{table}[tbp]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\caption{Saturación de la puntuación $-z$ de \stoodx (100\,\%, $K=144$) por separación completa: proporción de imágenes con $U=n_1n_2$ y cotas de su efecto en el \AUROC (más alto es mejor), forzando el peor y el mejor orden entre las imágenes ID y OOD saturadas. \FPRn{95} y \CCRn{5} no cambian en ningún conjunto.}
+\label{tab:stoodx-saturacion-k144}
+\begin{tabular}{lccccc}
+\toprule
+Conjunto & Saturadas test ID & Saturadas OOD & \AUROC & \AUROC peor caso & \AUROC mejor caso \\
+\midrule
+TUM+NORM & 1{,}2\,\% & 86{,}4\,\% & 0{,}991 & 0{,}985 & 0{,}996 \\
+TUM & 1{,}2\,\% & 84{,}1\,\% & 0{,}990 & 0{,}985 & 0{,}995 \\
+NORM & 1{,}2\,\% & 90{,}3\,\% & 0{,}992 & 0{,}986 & 0{,}998 \\
+STR & 1{,}2\,\% & 69{,}8\,\% & 0{,}982 & 0{,}977 & 0{,}985 \\
+LYM & 1{,}2\,\% & 64{,}9\,\% & 0{,}966 & 0{,}961 & 0{,}969 \\
+MUS & 1{,}2\,\% & 62{,}8\,\% & 0{,}977 & 0{,}973 & 0{,}981 \\
+PANDA & 1{,}2\,\% & 30{,}1\,\% & 0{,}939 & 0{,}938 & 0{,}942 \\
+Control 128\,px & 1{,}2\,\% & 39{,}4\,\% & 0{,}935 & 0{,}932 & 0{,}936 \\
+DTD & 1{,}2\,\% & 90{,}0\,\% & 0{,}993 & 0{,}986 & 0{,}997 \\
+\bottomrule
+\end{tabular}
+\end{table}

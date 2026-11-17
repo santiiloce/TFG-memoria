@@ -1,9 +1,9 @@
-% Generado por scripts/generar_tablas.py a partir de results_ood/faseC_2026-10-20/tabla_principal.csv. No editar a mano.
+% Generado por scripts/generar_tablas.py a partir de results_ood/faseC_K144/tabla_principal.csv. No editar a mano.
 \begin{table}[tbp]
 \centering
 \scriptsize
 \setlength{\tabcolsep}{2.5pt}
-\caption{\AUPRin (clase positiva: ID) de los 16 métodos en los nueve conjuntos (más alto es mejor). $^{a}$ASH reduce la exactitud ID al 68{,}3\,\%. $^{\dagger}$Variante exploratoria ($K_c=\min(500,\lfloor n_c/2\rfloor)$), propuesta tras ver datos OOD; no es el método principal.}
+\caption{\AUPRin (clase positiva: ID) de los 17 métodos en los nueve conjuntos (más alto es mejor). $^{a}$ASH reduce la exactitud ID al 68{,}3\,\%. $^{\dagger}$Variante exploratoria ($K_c=\min(500,\lfloor n_c/2\rfloor)$), propuesta tras ver datos OOD; no es el método principal. $^{\ddagger}$100\,\% de las características y $K=144$, elegido solo con la validación ID (\cref{sec:stoodx-seleccion-k}); el resto de filas de \stoodx usan $K=500$, el valor del artículo.}
 \label{tab:aupr-in}
 \begin{tabular}{lccccccccc}
 \toprule
@@ -30,6 +30,7 @@ SHE (euclídea) & 0{,}916 & 0{,}937 & 0{,}967 & 0{,}923 & 0{,}939 & 0{,}846 & 0{
 \midrule
 \multicolumn{10}{@{}l}{\textit{STOOD-X}} \\
 STOOD-X (100\,\%) & 0{,}910 & 0{,}914 & 0{,}993 & 0{,}982 & 0{,}897 & 0{,}968 & 0{,}919 & 0{,}888 & 0{,}996 \\
+STOOD-X ($K=144$)$^{\ddagger}$ & 0{,}990 & 0{,}992 & 0{,}996 & 0{,}986 & 0{,}967 & 0{,}979 & 0{,}958 & 0{,}933 & 0{,}997 \\
 STOOD-X (87,5\,\%) & 0{,}909 & 0{,}913 & 0{,}993 & 0{,}982 & 0{,}896 & 0{,}967 & 0{,}919 & 0{,}887 & 0{,}996 \\
 STOOD-X $K_c$$^{\dagger}$ & 0{,}897 & 0{,}904 & 0{,}989 & 0{,}981 & 0{,}848 & 0{,}966 & 0{,}941 & 0{,}891 & 0{,}995 \\
 \bottomrule

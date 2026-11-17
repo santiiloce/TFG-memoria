@@ -1,0 +1,32 @@
+% Generado por scripts/generar_tablas.py a partir de results_corrupciones/cec.csv. No editar a mano.
+\begin{table}[tbp]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\caption{CEC global (más bajo es mejor) de las 15 configuraciones de detectores, de menor a mayor, sobre las nueve corrupciones y los niveles 0, 1, 3 y 5. IC del 95\,\% por \emph{bootstrap} pareado por imagen (1.000 réplicas, semilla 0). Pares empatados: porcentaje de pares de niveles con la misma puntuación.}
+\label{tab:ood-corr-cec}
+\begin{tabular}{lccc}
+\toprule
+Detector & CEC $\downarrow$ & IC 95\,\% & Pares empatados (\%) \\
+\midrule
+ViM & 0{,}106 & [0{,}105; 0{,}108] & 0{,}000 \\
+MDS & 0{,}109 & [0{,}107; 0{,}111] & 0{,}000 \\
+KNN & 0{,}121 & [0{,}119; 0{,}123] & 0{,}000 \\
+STOOD-X (100\,\%)$^{\ast}$ & 0{,}128 & -- & 7{,}30$^{\ast\ast}$ \\
+STOOD-X (87,5\,\%)$^{\ast}$ & 0{,}128 & -- & 7{,}57$^{\ast\ast}$ \\
+RMDS & 0{,}159 & [0{,}157; 0{,}162] & 0{,}000 \\
+SHE (coseno) & 0{,}192 & [0{,}190; 0{,}195] & 0{,}000 \\
+SHE (euclídea) & 0{,}196 & [0{,}193; 0{,}198] & 0{,}000 \\
+SHE (prod.\ escalar) & 0{,}209 & [0{,}207; 0{,}211] & 0{,}000 \\
+MSP & 0{,}284 & [0{,}281; 0{,}286] & 0{,}001 \\
+MaxLogit & 0{,}311 & [0{,}309; 0{,}313] & 0{,}001 \\
+Energy & 0{,}314 & [0{,}312; 0{,}316] & 0{,}000 \\
+ReAct & 0{,}322 & [0{,}320; 0{,}325] & 0{,}001 \\
+DICE & 0{,}408 & [0{,}404; 0{,}411] & 0{,}000 \\
+ASH & 0{,}447 & [0{,}445; 0{,}450] & 0{,}010 \\
+\bottomrule
+\end{tabular}
+
+\smallskip
+\parbox{\linewidth}{\scriptsize 0 = ordenación monótona; 0,5 = azar. La CEC de MSP es la métrica de Zhang et al.~\cite{zhang2022corruptions} adaptada a nuestros niveles. $^{\ast}$Los pares en los que los dos niveles tienen la puntuación saturada cuentan como empate; con empates exactos, la CEC es 0{,}138 [0{,}136; 0{,}139] (100\,\%) y 0{,}138 [0{,}136; 0{,}140] (87,5\,\%). $^{\ast\ast}$Pares con los dos niveles saturados.}
+\end{table}

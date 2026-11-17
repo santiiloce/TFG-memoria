@@ -1,0 +1,25 @@
+% Generado por scripts/generar_tablas.py a partir de results_ood/faseB_paper_K144/comparacion_K144_vs_K500.csv (comparar_k144_k500.py). No editar a mano.
+\begin{table}[tbp]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\caption{\stoodx (100\,\% de las características, puntuación $-z$) con $K=500$ (valor del artículo) y con $K=144$ (elegido solo con la validación ID, \cref{tab:stoodx-seleccion-k}), sobre las mismas imágenes. \AUROC y \CCRn{5}: más alto es mejor; \FPRn{95}: más bajo es mejor. Diferencia: \AUROC($K=144$) $-$ \AUROC($K=500$), con IC y $p$ por \emph{bootstrap} pareado (1.000 remuestreos, semilla 0); $p<0{,}001$: ninguna réplica cruzó el cero. Clase positiva: OOD.}
+\label{tab:stoodx-k144-k500}
+\begin{tabular}{lcccccccc}
+\toprule
+& \multicolumn{4}{c}{\AUROC $\uparrow$} & \multicolumn{2}{c}{\FPRn{95} $\downarrow$} & \multicolumn{2}{c}{\CCRn{5} $\uparrow$} \\
+\cmidrule(lr){2-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}
+Conjunto & $K=500$ & $K=144$ & Diferencia [IC 95\,\%] & $p$ & $K=500$ & $K=144$ & $K=500$ & $K=144$ \\
+\midrule
+TUM+NORM & 0{,}953 & 0{,}991 & +0{,}038 [0{,}036; 0{,}040] & $<0{,}001$ & 0{,}349 & 0{,}026 & 0{,}646 & 0{,}951 \\
+TUM & 0{,}931 & 0{,}990 & +0{,}059 [0{,}057; 0{,}062] & $<0{,}001$ & 0{,}440 & 0{,}029 & 0{,}557 & 0{,}949 \\
+NORM & 0{,}990 & 0{,}992 & +0{,}002 [0{,}001; 0{,}003] & $<0{,}001$ & 0{,}022 & 0{,}020 & 0{,}954 & 0{,}955 \\
+STR & 0{,}978 & 0{,}982 & +0{,}004 [0{,}003; 0{,}005] & $<0{,}001$ & 0{,}083 & 0{,}061 & 0{,}901 & 0{,}921 \\
+LYM & 0{,}903 & 0{,}966 & +0{,}063 [0{,}060; 0{,}066] & $<0{,}001$ & 0{,}531 & 0{,}170 & 0{,}467 & 0{,}818 \\
+MUS & 0{,}968 & 0{,}977 & +0{,}009 [0{,}008; 0{,}010] & $<0{,}001$ & 0{,}159 & 0{,}093 & 0{,}830 & 0{,}891 \\
+PANDA & 0{,}895 & 0{,}939 & +0{,}044 [0{,}041; 0{,}047] & $<0{,}001$ & 0{,}427 & 0{,}226 & 0{,}569 & 0{,}764 \\
+Control 128\,px & 0{,}894 & 0{,}935 & +0{,}041 [0{,}039; 0{,}043] & $<0{,}001$ & 0{,}497 & 0{,}339 & 0{,}500 & 0{,}656 \\
+DTD & 0{,}991 & 0{,}993 & +0{,}002 [0{,}001; 0{,}003] & $<0{,}001$ & 0{,}028 & 0{,}020 & 0{,}949 & 0{,}955 \\
+\bottomrule
+\end{tabular}
+\end{table}

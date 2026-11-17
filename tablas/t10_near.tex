@@ -1,9 +1,9 @@
-% Generado por scripts/generar_tablas.py a partir de results_ood/faseC_2026-10-20/tabla_principal.csv. No editar a mano.
+% Generado por scripts/generar_tablas.py a partir de results_ood/faseC_K144/tabla_principal.csv. No editar a mano.
 \begin{table}[tbp]
 \centering
 \footnotesize
 \setlength{\tabcolsep}{4pt}
-\caption{Near-OOD principal (\nctcrc, TUM+NORM): \AUROC y \CCRn{5} (más alto es mejor) y \FPRn{95} (más bajo es mejor) de los 16 métodos. IC del 95\,\% por \emph{bootstrap} (1.000 remuestreos estratificados, semilla 0). Clase positiva: OOD. En negrita, el mejor valor entre los métodos no exploratorios. $^{a}$ASH reduce la exactitud ID al 68{,}3\,\%. $^{\dagger}$Variante exploratoria ($K_c=\min(500,\lfloor n_c/2\rfloor)$), propuesta tras ver datos OOD; no es el método principal.}
+\caption{Near-OOD principal (\nctcrc, TUM+NORM): \AUROC y \CCRn{5} (más alto es mejor) y \FPRn{95} (más bajo es mejor) de los 17 métodos. IC del 95\,\% por \emph{bootstrap} (1.000 remuestreos estratificados, semilla 0). Clase positiva: OOD. En negrita, el mejor valor entre los métodos no exploratorios. $^{a}$ASH reduce la exactitud ID al 68{,}3\,\%. $^{\dagger}$Variante exploratoria ($K_c=\min(500,\lfloor n_c/2\rfloor)$), propuesta tras ver datos OOD; no es el método principal. $^{\ddagger}$100\,\% de las características y $K=144$, elegido solo con la validación ID (\cref{sec:stoodx-seleccion-k}); el resto de filas de \stoodx usan $K=500$, el valor del artículo.}
 \label{tab:ood-near}
 \begin{tabular}{lccc}
 \toprule
@@ -22,14 +22,15 @@ DICE & 0{,}592 [0{,}585; 0{,}598] & 0{,}744 [0{,}737; 0{,}753] & 0{,}254 \\
 \multicolumn{4}{@{}l}{\textit{Características y distancias}} \\
 KNN & 0{,}956 [0{,}954; 0{,}958] & 0{,}173 [0{,}165; 0{,}180] & 0{,}825 \\
 MDS & 0{,}968 [0{,}966; 0{,}969] & 0{,}152 [0{,}144; 0{,}160] & 0{,}844 \\
-RMDS & 0{,}954 [0{,}951; 0{,}956] & \textbf{0{,}128} [0{,}121; 0{,}134] & \textbf{0{,}868} \\
-ViM & \textbf{0{,}969} [0{,}968; 0{,}971] & 0{,}143 [0{,}136; 0{,}150] & 0{,}853 \\
+RMDS & 0{,}954 [0{,}951; 0{,}956] & 0{,}128 [0{,}121; 0{,}134] & 0{,}868 \\
+ViM & 0{,}969 [0{,}968; 0{,}971] & 0{,}143 [0{,}136; 0{,}150] & 0{,}853 \\
 SHE (prod.\ escalar) & 0{,}795 [0{,}790; 0{,}800] & 0{,}837 [0{,}768; 0{,}955] & 0{,}162 \\
 SHE (coseno) & 0{,}938 [0{,}935; 0{,}940] & 0{,}255 [0{,}246; 0{,}263] & 0{,}743 \\
 SHE (euclídea) & 0{,}942 [0{,}940; 0{,}944] & 0{,}255 [0{,}246; 0{,}265] & 0{,}742 \\
 \midrule
 \multicolumn{4}{@{}l}{\textit{STOOD-X}} \\
 STOOD-X (100\,\%) & 0{,}953 [0{,}951; 0{,}955] & 0{,}349 [0{,}335; 0{,}360] & 0{,}646 \\
+STOOD-X ($K=144$)$^{\ddagger}$ & \textbf{0{,}991} [0{,}990; 0{,}992] & \textbf{0{,}026} [0{,}023; 0{,}028] & \textbf{0{,}951} \\
 STOOD-X (87,5\,\%) & 0{,}953 [0{,}951; 0{,}955] & 0{,}352 [0{,}338; 0{,}363] & 0{,}644 \\
 STOOD-X $K_c$$^{\dagger}$ & 0{,}943 [0{,}941; 0{,}945] & 0{,}461 [0{,}453; 0{,}471] & 0{,}535 \\
 \bottomrule

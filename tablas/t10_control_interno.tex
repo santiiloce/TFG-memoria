@@ -1,9 +1,9 @@
-% Generado por scripts/generar_tablas.py a partir de results_ood/faseC_2026-10-20/tabla_principal.csv. No editar a mano.
+% Generado por scripts/generar_tablas.py a partir de results_ood/faseC_K144/tabla_principal.csv. No editar a mano.
 \begin{table}[tbp]
 \centering
 \scriptsize
 \setlength{\tabcolsep}{2.5pt}
-\caption{Control interno con las clases de \nctcrc: tejido glandular de colon (TUM y NORM) frente a tejidos análogos a clases ID (STR, LYM y MUS). \AUROC (más alto es mejor) y \FPRn{95} (más bajo es mejor). Clase positiva: OOD. $^{a}$ASH reduce la exactitud ID al 68{,}3\,\%. $^{\dagger}$Variante exploratoria ($K_c=\min(500,\lfloor n_c/2\rfloor)$), propuesta tras ver datos OOD; no es el método principal.}
+\caption{Control interno con las clases de \nctcrc: tejido glandular de colon (TUM y NORM) frente a tejidos análogos a clases ID (STR, LYM y MUS). \AUROC (más alto es mejor) y \FPRn{95} (más bajo es mejor). Clase positiva: OOD. $^{a}$ASH reduce la exactitud ID al 68{,}3\,\%. $^{\dagger}$Variante exploratoria ($K_c=\min(500,\lfloor n_c/2\rfloor)$), propuesta tras ver datos OOD; no es el método principal. $^{\ddagger}$100\,\% de las características y $K=144$, elegido solo con la validación ID (\cref{sec:stoodx-seleccion-k}); el resto de filas de \stoodx usan $K=500$, el valor del artículo.}
 \label{tab:ood-control-interno}
 \begin{tabular}{lcccccccccc}
 \toprule
@@ -32,6 +32,7 @@ SHE (euclídea) & 0{,}937 & 0{,}950 & 0{,}902 & 0{,}928 & 0{,}845 & 0{,}267 & 0{
 \midrule
 \multicolumn{11}{@{}l}{\textit{STOOD-X}} \\
 STOOD-X (100\,\%) & 0{,}931 & 0{,}990 & 0{,}978 & 0{,}903 & 0{,}968 & 0{,}440 & 0{,}022 & 0{,}083 & 0{,}531 & 0{,}159 \\
+STOOD-X ($K=144$)$^{\ddagger}$ & 0{,}990 & 0{,}992 & 0{,}982 & 0{,}966 & 0{,}977 & 0{,}029 & 0{,}020 & 0{,}061 & 0{,}170 & 0{,}093 \\
 STOOD-X (87,5\,\%) & 0{,}930 & 0{,}990 & 0{,}978 & 0{,}903 & 0{,}967 & 0{,}444 & 0{,}022 & 0{,}082 & 0{,}533 & 0{,}164 \\
 STOOD-X $K_c$$^{\dagger}$ & 0{,}917 & 0{,}985 & 0{,}977 & 0{,}799 & 0{,}966 & 0{,}461 & 0{,}023 & 0{,}101 & 0{,}411 & 0{,}158 \\
 \bottomrule

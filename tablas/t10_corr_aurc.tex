@@ -1,0 +1,27 @@
+% Generado por scripts/generar_tablas.py a partir de results_corrupciones/fase8b/aurc.csv. No editar a mano.
+\begin{table}[tbp]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\caption{Área bajo la curva riesgo-cobertura (AURC; más bajo es mejor) conjunta de las imágenes limpias y las 27 celdas (\num{353304} imágenes; tasa de error global 0{,}258), al aceptar las imágenes de mayor a menor puntuación. Oráculo: rechaza primero los errores; azar: riesgo constante. IC del 95\,\% por \emph{bootstrap} por imagen original (cada réplica arrastra sus 28 versiones).}
+\label{tab:ood-corr-aurc}
+\begin{tabular}{lcc}
+\toprule
+Detector & AURC $\downarrow$ & IC 95\,\% \\
+\midrule
+Oráculo & 0{,}037 & [0{,}036; 0{,}038] \\
+\midrule
+KNN & 0{,}072 & [0{,}070; 0{,}074] \\
+MDS & 0{,}074 & [0{,}072; 0{,}075] \\
+ViM & 0{,}074 & [0{,}072; 0{,}076] \\
+RMDS & 0{,}079 & [0{,}077; 0{,}081] \\
+STOOD-X (100\,\%)$^{\ast}$ & 0{,}108 & [0{,}106; 0{,}111] \\
+MSP & 0{,}124 & [0{,}121; 0{,}127] \\
+\midrule
+Azar & 0{,}258 & [0{,}255; 0{,}262] \\
+\bottomrule
+\end{tabular}
+
+\smallskip
+\parbox{\linewidth}{\scriptsize $^{\ast}$Imágenes saturadas con la misma puntuación (empate real); con la puntuación original, 0{,}113 [0{,}110; 0{,}115].}
+\end{table}

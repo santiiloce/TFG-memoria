@@ -294,6 +294,34 @@
   \label{fig:muestras-azar}
 \end{figure}
 
+\section{Corrupciones sintéticas}\label{sec:apc-corrupciones}
+
+% Complementa la \cref{sec:ood-corrupciones}: tablas completas de AUROC y FPR@95 (15 configuraciones,
+% con IC), CEC por detector y corrupción, umbral fijo en todas las celdas y dispersión caída de exactitud
+% frente a AUROC (Spearman por celdas).
+\pendiente{presentación}
+\revisar{tablas completas en el apéndice C: confirmar ubicación}
+
+\input{tablas/tC_corr_auroc}
+
+\input{tablas/tC_corr_fpr95}
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=\textwidth]{img/cap10/corr_d_cec_mapa.pdf}
+  \caption{CEC (más bajo es mejor; 0 = ordenación monótona, 0,5 = azar) de cada detector en cada corrupción, sobre los niveles 0, 1, 3 y 5.}
+  \label{fig:apc-corr-cec-mapa}
+\end{figure}
+
+\input{tablas/tC_corr_umbral}
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=\textwidth]{img/cap10/corr_f_dispersion_caida_auroc.pdf}
+  \caption{Caída de exactitud del clasificador frente al \AUROC de detección en las 27 celdas, un panel por detector principal (color: corrupción; marcador: nivel), con la correlación $\rho$ de Spearman (\cref{def:spearman}).}
+  \label{fig:apc-corr-dispersion}
+\end{figure}
+
 % Otro posible material complementario (decidir):
 % - Variantes de las agrupaciones clínicas (opción b ISUP y PIN no maligno; results_agrupaciones).
 % - Histogramas de puntuaciones por método y conjunto (fig3_histogramas de la fase C).

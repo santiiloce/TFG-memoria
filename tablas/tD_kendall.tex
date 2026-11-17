@@ -1,9 +1,9 @@
-% Generado por scripts/generar_tablas.py a partir de results_ood_convnext/kendall.csv. No editar a mano.
+% Generado por scripts/generar_tablas.py a partir de results_ood_convnext/espacio_principal/kendall.csv. No editar a mano.
 \begin{table}[tbp]
 \centering
 \footnotesize
 \setlength{\tabcolsep}{5pt}
-\caption{$\tau$ de Kendall entre las ordenaciones de los métodos por \AUROC con Swin-S y con ConvNeXt-S, en cada conjunto ($\tau=1$: misma ordenación). Valores $p$ sin corregir por comparaciones múltiples.}
+\caption{$\tau$ de Kendall entre las ordenaciones de los métodos por \AUROC con Swin-S y con ConvNeXt-S, en cada conjunto ($\tau=1$: misma ordenación); ConvNeXt-S en el espacio M (ViM, ReAct, ASH y DICE en B). Valores $p$ sin corregir por comparaciones múltiples.}
 \label{tab:convnext-kendall}
 \begin{tabular}{lcccc}
 \toprule
@@ -11,15 +11,15 @@
 \cmidrule(lr){2-3}\cmidrule(lr){4-5}
 Conjunto & $\tau$ & $p$ & $\tau$ & $p$ \\
 \midrule
-TUM+NORM & 0{,}604 & 0{,}0020 & 0{,}515 & 0{,}0210 \\
-TUM & 0{,}670 & 0{,}0005 & 0{,}606 & 0{,}0054 \\
-NORM & 0{,}429 & 0{,}0356 & 0{,}303 & 0{,}1969 \\
-STR & 0{,}604 & 0{,}0020 & 0{,}545 & 0{,}0138 \\
-LYM & 0{,}385 & 0{,}0617 & 0{,}333 & 0{,}1526 \\
+TUM+NORM & 0{,}670 & 0{,}0005 & 0{,}606 & 0{,}0054 \\
+TUM & 0{,}604 & 0{,}0020 & 0{,}515 & 0{,}0210 \\
+NORM & 0{,}626 & 0{,}0012 & 0{,}545 & 0{,}0138 \\
+STR & 0{,}692 & 0{,}0003 & 0{,}667 & 0{,}0018 \\
+LYM & 0{,}582 & 0{,}0030 & 0{,}606 & 0{,}0054 \\
 MUS & 0{,}780 & $<0{,}0001$ & 0{,}727 & 0{,}0005 \\
-PANDA & 0{,}648 & 0{,}0008 & 0{,}576 & 0{,}0088 \\
-Control 128\,px & 0{,}846 & $<0{,}0001$ & 0{,}818 & $<0{,}0001$ \\
-DTD & 0{,}538 & 0{,}0067 & 0{,}455 & 0{,}0447 \\
+PANDA & 0{,}473 & 0{,}0193 & 0{,}333 & 0{,}1526 \\
+Control 128\,px & 0{,}802 & $<0{,}0001$ & 0{,}758 & 0{,}0002 \\
+DTD & 0{,}648 & 0{,}0008 & 0{,}606 & 0{,}0054 \\
 \bottomrule
 \end{tabular}
 \end{table}

@@ -3,18 +3,25 @@
 
 \chapter{Detección OOD con ConvNeXt-S}\label{ap:convnext}
 
-% Fuentes: OpenOOD/results_ood_convnext (resumen.md, decisiones.md y CSV). Tablas generadas por
-% scripts/generar_tablas.py (tD_*).
+% Fuentes: OpenOOD/results_ood_convnext/espacio_principal (resumen.md, decisiones.md y CSV, con columna
+% `espacio`); B y C, de la fase 9 (results_ood_convnext). Tablas generadas por scripts/generar_tablas.py (tD_*).
 % Puntos de la introducción:
 % - Se repite la tabla principal del \cref{cap:deteccion-ood} con ConvNeXt-S, con los mismos conjuntos,
 %   detectores, referencias y bootstrap, para comprobar qué conclusiones dependen del modelo.
 % - No se repiten la fuga por lámina, la predicción conforme, Mondrian, el anexo NCT ni las corrupciones.
 % - Las cabezas no son equivalentes: en el Swin, las 768 características salen de la red troncal y entran
 %   directamente en la única capa lineal; en ConvNeXt, la cabeza de fastai tiene dos capas lineales.
-% - Espacio principal B: salida de la ReLU, 512 dimensiones, entrada de la última lineal, con la BatchNorm
-%   plegada (exacta en evaluación). Es lo que exigen ViM y ReAct, y coincide con la hipótesis post-ReLU de
-%   ReAct, ASH y DICE.
-% - ViM con dimensión 171, la misma proporción 1/3 que 256/768 en el Swin.
+% - Espacio principal M (768 dimensiones): salida del pooling medio de la red troncal antes de la cabeza
+%   (media espacial de stages.3.blocks.2 = C[:, 768:]), como en la implementación de STOOD-X: avgpool antes
+%   de fc (S-STOOD-X, src/STOODX/feature_extractor.py:94-116; tests/_openood_adapter/test_postProcessor_*.py).
+%   En el Swin, el vector equivalente lleva una LayerNorm antes del pooling; en ConvNeXt no (fastai no usa la
+%   head.norm de timm). Comprobado con un hook: máx. |media espacial - C[:, 768:]| = 0,0 en 100 imágenes.
+%   Se usa en KNN, MDS, RMDS, SHE y STOOD-X; MSP, MaxLogit y Energy solo usan los logits.
+% - Sensibilidad: B (512, salida de la ReLU dentro de la cabeza de fastai, entrada de la última lineal, con la
+%   BatchNorm plegada) y C (1.536, concat pooling [max, avg]).
+% - ViM, ReAct, ASH y DICE se evalúan en B por definición: requieren la capa que entra en el clasificador
+%   lineal. Por eso la tabla principal, a diferencia de la del Swin, no comparte un único espacio.
+% - ViM con dimensión 171 en B, la misma proporción 1/3 que 256/768 en el Swin.
 % - ConvNeXt evaluado en CPU (fp32) y el Swin en GPU. Exactitud de test 0,96695: 2 imágenes más que en la
 %   fase 1 (0,9668).
 % - Cabeza de fastai y entrada de 256 px: \cref{sec:protocolo}.
@@ -24,11 +31,14 @@
 
 \input{tablas/tD_configuracion}
 
-% Cifras clave (configuracion_convnext.csv; comprobacion_hw.json; config_detectores.json):
-% - máx. |W'B + b' - logits| = 4,88e-6 (id_train); < 1e-4 en los 11 conjuntos.
+% Cifras clave (espacio_principal/configuracion_convnext.csv y comprobacion_M.json; fase 9:
+% comprobacion_hw.json y config_detectores.json):
+% - M: máx. |media espacial (hook) - C[:, 768:]| = 0,0 (bit a bit) en 100 imágenes de id_test.
+% - B: máx. |W'B + b' - logits| = 4,88e-6 (id_train); < 1e-4 en los 11 conjuntos.
 % - Exactitud de test 0,96695 (12.201/12.618); fase 1: 0,9668.
 % - Exactitud por detector: igual salvo ReAct 0,9667, ASH 0,9649 y DICE 0,2845.
-% - zeus, CPU, 12 hilos, fp32; 8 h 56 min 12 s (extracción 7,85 h); MaxRSS 6,2 GiB.
+% - zeus, CPU, 12 hilos, fp32. Fase 9 (B y C): 8 h 56 min 12 s (extracción 7,85 h); MaxRSS 6,2 GiB.
+%   M: 36 min 13 s (trabajos 192990-192992), MaxRSS 3,0 GiB; no se pasó ninguna imagen más por la red.
 \pendiente{comentario breve}
 
 \section{Resultados}\label{sec:apd-resultados}
@@ -37,13 +47,13 @@
 
 \input{tablas/tD_fpr95_ccr}
 
-% Cifras clave (tabla_principal_convnext.csv):
-% - TUM+NORM, AUROC: KNN 0,972 [0,971; 0,974] (1.º), RMDS 0,958, MSP 0,954, MDS 0,953, STOOD-X 0,949;
-%   ViM 0,939 (8.º).
-% - Mejor AUROC por conjunto: KNN en TUM+NORM, TUM (0,963), NORM (0,987) y DTD (0,997); STOOD-X en STR
-%   (0,986), MUS (0,952), PANDA (0,975) y control (0,782); MSP en LYM (0,974).
-% - TUM+NORM, FPR@95: RMDS 0,103 [0,097; 0,108], MSP 0,108 [0,102; 0,116], KNN 0,136.
-% - TUM+NORM, CCR@FPR5: RMDS 0,890, MSP 0,884, KNN 0,859.
+% Cifras clave (espacio_principal/tabla_principal_convnext.csv):
+% - TUM+NORM, AUROC: RMDS 0,960 [0,958; 0,963] (1.º), MSP 0,954, MDS 0,949, ViM (B) 0,939, KNN 0,935;
+%   STOOD-X 0,908 (6.º).
+% - Mejor AUROC por conjunto: RMDS en TUM+NORM y TUM (0,954); MSP en NORM (0,977); MDS en LYM (0,984) y
+%   DTD (0,999); STOOD-X en STR (0,986), MUS (0,966), PANDA (0,961) y control (0,809).
+% - TUM+NORM, FPR@95: RMDS 0,096 [0,090; 0,102], MSP 0,108 [0,102; 0,116] (IC solapados), MDS 0,167.
+% - TUM+NORM, CCR@FPR5: RMDS 0,894, MSP 0,884, MDS 0,821.
 % - DICE colapsa: AUROC 0,209 en LYM y 0,211 en PANDA (exactitud ID 0,2845).
 \pendiente{comentario breve}
 
@@ -55,24 +65,33 @@
 
 \input{tablas/tD_kendall}
 
-% Cifras clave (diferencias_auroc.csv, conclusiones_swin.csv, kendall.csv, mds_menos_knn.csv):
-% - ConvNeXt - Swin en TUM+NORM: MSP +0,078 [+0,074; +0,082]; KNN +0,016; MDS -0,015; ViM -0,031;
-%   RMDS +0,004; STOOD-X -0,004. RMDS en LYM: +0,147 [+0,141; +0,153].
-% - MDS - KNN en TUM+NORM: Swin +0,011 [+0,011; +0,012]; ConvNeXt -0,020 [-0,022; -0,018].
-% - Kendall (14 métodos): de 0,385 (LYM, p = 0,0617) a 0,846 (control, p < 0,0001); TUM+NORM 0,604
-%   (p = 0,0020). Sin ASH ni DICE: NORM 0,303 (p = 0,1970) y LYM 0,333 (p = 0,1526).
-% - Conclusiones: se mantienen 4, 5, 6, 7 y 3a (STR, MUS); cambian 1, 2b, 3b (NORM, DTD), 8 y 9;
-%   2a, no concluyente.
+% Cifras clave (espacio_principal: diferencias_auroc.csv, conclusiones_swin.csv, kendall.csv,
+% mds_menos_knn.csv):
+% - ConvNeXt (M) - Swin en TUM+NORM: MSP +0,078 [+0,074; +0,082]; KNN -0,021 [-0,024; -0,018];
+%   MDS -0,019 [-0,022; -0,017]; RMDS +0,007 [+0,004; +0,009]; ViM (B) -0,031 [-0,033; -0,028];
+%   STOOD-X -0,045 [-0,048; -0,042]. RMDS en LYM: +0,114 [+0,108; +0,120].
+%   Las diferencias mezclan modelo y espacio (M no lleva la LayerNorm del Swin).
+% - MDS - KNN en TUM+NORM: Swin +0,011 [+0,011; +0,012]; ConvNeXt +0,013 [+0,012; +0,015]; IC sin el 0 en
+%   los 9 conjuntos.
+% - Kendall (14 métodos): de 0,473 (PANDA, p = 0,0193) a 0,802 (control, p < 0,0001); TUM+NORM 0,670
+%   (p = 0,0005); todos con p < 0,02. Sin ASH ni DICE: PANDA 0,333 (p = 0,1526); el resto, p < 0,03.
+% - Conclusiones con M: se mantienen 3a (STR, MUS), 4, 5, 6 y 9; cambian 1, 2b, 3b (NORM, DTD), 7 (SHE
+%   coseno y euclídea) y 8; 2a, no concluyente. Respecto a B, cambian de estado la 7 (se mantenía) y la 9
+%   (cambiaba).
 \pendiente{comentario breve}
 
 \section{\texorpdfstring{\stoodx}{STOOD-X} y la saturación}\label{sec:apd-stoodx}
 
 \input{tablas/tD_stoodx}
 
-% Cifras clave (panda_vs_control.csv, saturacion_stoodx.csv):
-% - PANDA frente al control, STOOD-X: Swin 0,475 [0,467; 0,482]; ConvNeXt 0,859 [0,855; 0,864].
-% - Saturadas: TUM+NORM 66,3 % (Swin) -> 26,0 % (B) -> 9,9 % (C); control 19,0 % -> 1,5 %;
-%   DTD 76,3 % -> 31,4 %; test ID 0,6 % -> 0,1 %.
+% Las cifras de STOOD-X de este apéndice son con K = 500 en los dos modelos; la selección de K = 144
+% (\cref{sec:stoodx-seleccion-k}) solo se hizo con el Swin-S.
+% Cifras clave (espacio_principal: panda_vs_control.csv, saturacion_stoodx.csv):
+% - PANDA frente al control, STOOD-X: Swin 0,475 [0,467; 0,482]; ConvNeXt (M) 0,803 [0,797; 0,809]
+%   (en B era 0,859). MSP 0,803, RMDS 0,758, MDS 0,656, KNN 0,589.
+% - Saturadas (Swin -> ConvNeXt M; B y C entre paréntesis): TUM+NORM 66,3 % -> 22,0 % (26,0 %; 9,9 %);
+%   control 19,0 % -> 2,6 % (1,5 %); DTD 76,3 % -> 84,9 % (31,4 %); LYM 32,1 % -> 44,2 % (18,0 %);
+%   test ID 0,6 % -> 0,1 %.
 % - El -z mínimo teórico (-38,6911 con K = 500) se alcanza en todos los conjuntos de los dos modelos.
 % - En ConvNeXt no se repitió el análisis de empates (en el Swin acotó el efecto en el AUROC a <= 0,0031).
 \pendiente{comentario breve}
@@ -81,38 +100,49 @@
 
 \input{tablas/tD_sensibilidad}
 
-% Cifras clave (sensibilidad_pareada.csv):
-% - C - B en TUM+NORM: KNN -0,016 [-0,018; -0,014]; MDS -0,019 [-0,021; -0,017];
-%   RMDS +0,005 [+0,003; +0,006]; STOOD-X -0,041 [-0,043; -0,039].
-% - Cambios en los dos sentidos: MDS en DTD +0,017; RMDS en LYM -0,016 y en PANDA -0,022.
-% - ViM 256 - 171: de -0,001 (NORM) a +0,020 (PANDA); TUM+NORM +0,002.
+% Cifras clave (espacio_principal/sensibilidad_pareada.csv):
+% - M - B en TUM+NORM: KNN -0,037 [-0,040; -0,035]; MDS -0,004; RMDS +0,003 [+0,001; +0,004];
+%   SHE coseno -0,043; SHE euclídea -0,048; SHE producto escalar +0,066; STOOD-X -0,041 [-0,043; -0,039].
+% - M - C en TUM+NORM: KNN -0,021; MDS +0,015; RMDS -0,002; SHE producto escalar +0,296 (en C colapsa,
+%   0,495); STOOD-X -0,000 (mismo AUROC, 0,908).
+% - PANDA es el conjunto más sensible (M - B: KNN -0,096; SHE euclídea -0,261).
+% - Fase 9 (results_ood_convnext/sensibilidad_pareada.csv), ViM en B: 256 - 171 de -0,001 (NORM) a +0,020
+%   (PANDA); TUM+NORM +0,002. No está en la tabla.
 \pendiente{comentario breve}
 
 \section{Conclusión}\label{sec:apd-conclusion}
 
-% [propuesta] Lo que se mantiene en los dos modelos:
+% [propuesta] Lo que se mantiene en los dos modelos (ConvNeXt en el espacio M):
 % [propuesta] - MSP > MaxLogit > Energy en 9 de 9 conjuntos.
 % [propuesta] - ReAct, ASH y DICE por debajo de MSP en 9 de 9.
-% [propuesta] - LYM ~ TUM/NORM: AUROC(LYM) - AUROC(TUM+NORM) entre -0,003 y +0,021 en ConvNeXt (8 métodos).
-%   El control interno apunta a las condiciones de adquisición en los dos modelos. Es la conclusión más
-%   robusta del \cref{cap:deteccion-ood}.
-% [propuesta] - Los métodos de distancia rinden más en PANDA que en el control (+0,156 a +0,207 en ConvNeXt).
+% [propuesta] - LYM ~ TUM/NORM: AUROC(LYM) - AUROC(TUM+NORM) entre -0,047 (STOOD-X) y +0,036 (MDS) en
+%   ConvNeXt (8 métodos). El control interno apunta a las condiciones de adquisición en los dos modelos.
+% [propuesta] - MDS > KNN en 9 de 9 con M (IC sin el 0; TUM+NORM +0,013 [+0,012; +0,015]); la inversión
+%   que se veía con B (KNN > MDS en 7 de 9) era propia del espacio.
 % [propuesta] Lo que depende del modelo:
-% [propuesta] - El mejor método: ViM y MDS en el Swin; KNN en ConvNeXt (0,972 en TUM+NORM).
-% [propuesta] - MDS > KNN se invierte: KNN > MDS en 7 de 9 (IC sin el 0); en MUS y PANDA, el IC contiene el 0.
-% [propuesta] - El fallo de RMDS en LYM es propio del Swin (ConvNeXt 0,970).
-% [propuesta] - De los cuatro conjuntos en que STOOD-X era el primero con el Swin, sigue siéndolo en STR y MUS
-%   y queda segundo, tras KNN, en NORM y DTD.
-%   OJO: con ConvNeXt, STOOD-X también es el primero en PANDA (0,975) y en el control (0,782); «el primero
-%   solo en STR y MUS» no es cierto sobre los nueve conjuntos.
-% [propuesta] - MSP mucho mejor en ConvNeXt (+0,078 [+0,074; +0,082] en TUM+NORM): la ventaja de los métodos
-%   basados en características sobre los logits es menor en este modelo (MSP 0,954 frente a MDS 0,953).
-% [propuesta] - STOOD-X: la saturación es mucho menor en ConvNeXt (TUM+NORM 66,3 % -> 26,0 %; control
-%   19,0 % -> 1,5 %) y sí distingue PANDA del control (0,859 frente a 0,475 en el Swin). Refuerza que la
-%   coincidencia del Swin en PANDA y el control se debía a la saturación (\cref{sec:ood-panda}). La
-%   saturación depende del espacio de características, no solo del método (en C, 9,9 % en TUM+NORM).
+% [propuesta] - El mejor método en TUM+NORM: ViM (0,969) y MDS (0,968) en el Swin; RMDS (0,960) en ConvNeXt,
+%   con MSP segundo (0,954).
+% [propuesta] - MSP mucho mejor en ConvNeXt (+0,078 [+0,074; +0,082] en TUM+NORM): la ventaja de los
+%   métodos de características sobre los logits no se ve en este modelo (solo RMDS supera a MSP).
+% [propuesta] - El fallo de RMDS en LYM se atenúa en ConvNeXt (0,938; Swin 0,824).
+% [propuesta] STOOD-X:
+% [propuesta] - Es el primero en STR (0,986), MUS (0,966), PANDA (0,961) y control (0,809); 2.º en DTD
+%   y 6.º en TUM+NORM (0,908).
+% [propuesta] - Distingue PANDA del control (0,803 [0,797; 0,809] frente a 0,475 [0,467; 0,482] en el
+%   Swin). En ConvNeXt la saturación es del 22,0 % en TUM+NORM y del 2,6 % en el control (Swin: 66,3 % y
+%   19,0 %), pero del 84,9 % en DTD. Refuerza que la coincidencia del Swin en PANDA y el control se debía a
+%   la saturación (\cref{sec:ood-panda}).
+% [propuesta] Sensibilidad al espacio:
+% [propuesta] - KNN, SHE (coseno y euclídea) y STOOD-X rinden unas 0,04 más en B que en M en TUM+NORM:
+%   KNN 0,972 -> 0,935 (M - B = -0,037 [-0,040; -0,035]); SHE coseno 0,942 -> 0,899 (-0,043
+%   [-0,046; -0,040]); SHE euclídea 0,939 -> 0,891 (-0,048 [-0,051; -0,045]); STOOD-X 0,949 -> 0,908
+%   (-0,041 [-0,043; -0,039]). La excepción es SHE con producto escalar, que rinde más en M (0,725 -> 0,791;
+%   +0,066 [+0,059; +0,072]). RMDS no cambia (0,958 -> 0,960; +0,003 [+0,001; +0,004]).
 % [propuesta] Limitaciones:
-% [propuesta] - Espacios no equivalentes: en C cambian algunos AUROC (STOOD-X -0,041 en TUM+NORM).
+% [propuesta] - Espacio mixto: ViM, ReAct, ASH y DICE en B, el resto en M; y M no lleva la LayerNorm que
+%   el Swin aplica antes del pooling, así que las diferencias con el Swin mezclan modelo y espacio.
+% [propuesta] - STOOD-X con activaciones, como en CIFAR e ImageNet-200; en ImageNet-1K el artículo usa
+%   relevancias LRP (atribut=True).
 % [propuesta] - DICE colapsa en ConvNeXt (exactitud 0,2845 con el postprocesador de OpenOOD sin cambios).
 % [propuesta] - CPU (ConvNeXt) frente a GPU (Swin).
 % [propuesta] - Valores p sin corregir por comparaciones múltiples.
