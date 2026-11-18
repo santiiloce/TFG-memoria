@@ -51,11 +51,23 @@ corrobar estadísticamente las distribuciones que siguen las muestras. Siendo as
 % (Virtanen et al., 2020).
 \pendiente{introducción al test (Mann y Whitney~\cite{mann1947}; Wilcoxon~\cite{wilcoxon1945}; Canavos~\cite{canavos2003})}
 
+% Fuente: Canavos (2003), sec. 15.2.1 «Prueba de Mann-Whitney», pp. 574-575: muestras independientes de
+% poblaciones continuas; U a partir de la suma de rangos R_1 de la muestra 1 en la muestra combinada,
+% ec. (15.2): U = n_1 n_2 + n_1(n_1+1)/2 - R_1; con empates, rango medio (final de la p. 575).
+% Aquí se usa la orientación opuesta, U = R_1 - n_1(n_1+1)/2 = n_1 n_2 - U_{Canavos}, que cuenta los pares
+% en que la muestra 1 queda por encima (la de STOOD-X: U = n_1 n_2 con separación completa).
 \begin{definicion}[Estadístico $U$ de Mann-Whitney]\label{def:estadistico-u}
-% Muestras X_1, ..., X_{n_1} e Y_1, ..., Y_{n_2}; U = \sum_i \sum_j [\Ind(X_i > Y_j) + 1/2 \Ind(X_i = Y_j)].
-% Expresión equivalente con rangos: U = R_1 - n_1(n_1+1)/2 (convención de SciPy).
-\pendiente{definición}
+Sean $X_1, \dots, X_{n_1}$ e $Y_1, \dots, Y_{n_2}$ muestras aleatorias independientes de dos poblaciones. El estadístico $U$ de Mann-Whitney de la primera muestra frente a la segunda es el número de pares $(X_i, Y_j)$ en los que la observación de la primera muestra es mayor, contando cada empate como $\tfrac{1}{2}$:
+\[
+  U = \sum_{i=1}^{n_1} \sum_{j=1}^{n_2} \Bigl[\Ind(X_i > Y_j) + \tfrac{1}{2}\,\Ind(X_i = Y_j)\Bigr].
+\]
 \end{definicion}
+
+Equivalentemente, si se ordenan las $n_1 + n_2$ observaciones conjuntamente, se les asignan rangos de 1 a $n_1 + n_2$ (con el rango medio en caso de empate) y $R_1$ es la suma de los rangos de la primera muestra~\cite[sec.~15.2.1]{canavos2003},
+\[
+  U = R_1 - \frac{n_1(n_1 + 1)}{2}.
+\]
+En efecto, el rango de $X_i$ es $1$ más el número de observaciones menores que ella, más $\tfrac{1}{2}$ por cada otra observación igual. Al sumar en $i$, las comparaciones de cada $X_i$ consigo misma y con las demás observaciones de su muestra aportan $n_1 + \binom{n_1}{2} = n_1(n_1+1)/2$, porque cada par de la misma muestra suma exactamente 1, y las comparaciones con la segunda muestra aportan $U$. Canavos define el estadístico con la orientación opuesta, $n_1 n_2 + n_1(n_1+1)/2 - R_1 = n_1 n_2 - U$~\cite[ec.~(15.2)]{canavos2003}, que cuenta los pares en que la primera muestra queda por debajo; ambas versiones dan el mismo test.
 
 \begin{proposicion}[Media y varianza de $U$ bajo la hipótesis nula]\label{prop:u-momentos}
 % E[U] = n_1 n_2 / 2; Var(U) = n_1 n_2 (n_1 + n_2 + 1) / 12 sin empates.
@@ -72,12 +84,10 @@ corrobar estadísticamente las distribuciones que siguen las muestras. Siendo as
 \end{teorema}
 
 \begin{proposicion}[Relación entre $U$ y el AUROC]\label{prop:auroc-u}
-% \widehat{AUROC} = U / (n_1 n_2) = \hat P(S_{ID} > S_{OOD}) (con empates contados como 1/2).
-% Enlaza con la definición de AUROC del capítulo de métricas (\cref{...}).
-\pendiente{enunciado}
+Si la primera muestra son las puntuaciones de $n_1$ imágenes ID y la segunda, las de $n_2$ imágenes OOD, entonces $\widehat{\AUROC} = U/(n_1 n_2)$.
 \end{proposicion}
 \begin{demostracion}
-\pendiente{demostración}
+Es el \cref{cor:auroc-u}.
 \end{demostracion}
 
 % - Corrección por empates de la varianza.

@@ -140,7 +140,6 @@ Puede ser interpretado como la probabilidad de que el detector separe correctame
 
 % Nota de las notas: «puedes citar este párrafo [de Yang et al.], o directamente a Fawcett (2006)
 % para la curva ROC, al explicar tus métricas».
-\pendiente{citar a Fawcett~\cite{fawcett2006} para la curva ROC}
 
 \begin{table}[H]
   \centering
@@ -164,30 +163,83 @@ Al contrastar las predicciones de un test diagnóstico con el valor verdadero se
 
 \begin{definicion}[Curva ROC]\label{def:roc}
 % TPR(\tau) y FPR(\tau) como funciones del umbral; curva paramétrica (Fawcett, 2006).
-Un gráfico de curva ROC muestra en el eje X el valor $1 - \text{especificidad}$ y en el eje Y la sensibilidad, mostrando ambas propiedades para cada posible punto de corte de un test diagnóstico cuya escala de medición es continua. Ambos ejes toman valores desde 0 hasta 1 (0\,\% y 100\,\%). También se traza la diagonal correspondiente a la ecuación $y = x$, llamada \emph{diagonal de referencia} o \emph{línea de no-discriminación}~\cite{cerda2012roc}.
+Un gráfico de curva ROC muestra en el eje X el valor $1 - \text{especificidad}$ y en el eje Y la sensibilidad, mostrando ambas propiedades para cada posible punto de corte de un test diagnóstico cuya escala de medición es continua. Ambos ejes toman valores desde 0 hasta 1 (0\,\% y 100\,\%). También se traza la diagonal correspondiente a la ecuación $y = x$, llamada \emph{diagonal de referencia} o \emph{línea de no-discriminación}~\cite{cerda2012roc,fawcett2006}.
 \end{definicion}
 
-En la detección OOD, con la clase OOD como positiva (\cref{def:detector}), una muestra se predice positiva cuando $s(x) < \tau$, y cada umbral $\tau$ da un punto de la curva. La sensibilidad es la tasa de verdaderos positivos, $\mathrm{TPR}(\tau)$, es decir, la proporción de muestras OOD con $s(x) < \tau$; y $1 - \text{especificidad}$ es la tasa de falsos positivos, $\mathrm{FPR}(\tau)$, la proporción de muestras ID con $s(x) < \tau$. La curva ROC es entonces el conjunto de puntos $\bigl\{\bigl(\mathrm{FPR}(\tau), \mathrm{TPR}(\tau)\bigr) : \tau \in \R\bigr\}$.
+En la detección OOD, con la clase OOD como positiva (\cref{def:detector}), una muestra se predice positiva cuando $s(x) < \tau$, y cada umbral $\tau$ da un punto de la curva. La sensibilidad es la tasa de verdaderos positivos, $\mathrm{TPR}(\tau)$, es decir, la proporción de muestras OOD con $s(x) < \tau$; y $1 - \text{especificidad}$ es la tasa de falsos positivos, $\mathrm{FPR}(\tau)$, la proporción de muestras ID con $s(x) < \tau$. La curva ROC es entonces el conjunto de puntos $\bigl\{\bigl(\mathrm{FPR}(\tau), \mathrm{TPR}(\tau)\bigr) : \tau \in \R\bigr\}$~\cite[sec.~4]{fawcett2006}.
 
 \begin{definicion}[Punto de corte de una escala continua que determina la sensibilidad y especificidad más altas]\label{def:youden}
 Se trata de aquel punto de corte que presenta el mayor índice de Youden, calculado según la fórmula $\text{sensibilidad} + \text{especificidad} - 1$~\cite{cerda2012roc}.
 \end{definicion}
 
+% Fuente del enunciado: Fawcett (2006), sec. 7 «Area under an ROC curve (AUC)», p. 868, segundo párrafo:
+% «the AUC of a classifier is equivalent to the probability that the classifier will rank a randomly
+% chosen positive instance higher than a randomly chosen negative instance». Con la OOD como positiva y
+% s orientada a «más alto = más ID», «puntuar más alto como positivo» es tener menor s.
+% Con empates (puntuaciones discretas) el AUROC vale \Prob(<) + 1/2 \Prob(=): versión empírica en
+% \cref{cor:auroc-u}.
 \begin{teorema}[Interpretación probabilística del AUROC]\label{teo:auroc-prob}
-% \AUROC = \Prob(s(X_{OOD}) < s(X_{ID})) (+ 1/2 \Prob(empate)), con X_{ID} y X_{OOD} independientes
-% y la puntuación s orientada a «más alto = más ID».
-\pendiente{enunciado}
+Sean $X_{\mathrm{ID}} \sim \mathcal{D}_{\mathrm{ID}}$ y $X_{\mathrm{OOD}} \sim \mathcal{D}_{\mathrm{OOD}}$ independientes y sea $s$ una función de puntuación como en la \cref{def:detector}. Supongamos que $s(X_{\mathrm{ID}})$ y $s(X_{\mathrm{OOD}})$ son variables aleatorias continuas, con densidad $f_{\mathrm{ID}}$ la primera y función de distribución $F_{\mathrm{OOD}}$ la segunda. Para cada umbral $\tau$ sean
+\[
+  \mathrm{TPR}(\tau) = \Prob\bigl(s(X_{\mathrm{OOD}}) < \tau\bigr), \qquad
+  \mathrm{FPR}(\tau) = \Prob\bigl(s(X_{\mathrm{ID}}) < \tau\bigr),
+\]
+y sea el AUROC el área bajo la curva ROC $\bigl\{\bigl(\mathrm{FPR}(\tau), \mathrm{TPR}(\tau)\bigr) : \tau \in \R\bigr\}$ (\cref{def:roc}),
+\[
+  \AUROC = \int_{-\infty}^{\infty} \mathrm{TPR}(\tau)\, d\,\mathrm{FPR}(\tau).
+\]
+Entonces
+\[
+  \AUROC = \Prob\bigl(s(X_{\mathrm{OOD}}) < s(X_{\mathrm{ID}})\bigr),
+\]
+es decir, el AUROC es la probabilidad de que el detector asigne a una muestra OOD elegida al azar una puntuación más propia de OOD que a una muestra ID elegida al azar~\cite{fawcett2006}.
 \end{teorema}
 \begin{demostracion}
-\pendiente{demostración}
+Como $s(X_{\mathrm{ID}})$ y $s(X_{\mathrm{OOD}})$ son continuas, $\mathrm{FPR}(\tau) = \Prob\bigl(s(X_{\mathrm{ID}}) \le \tau\bigr)$ es la función de distribución de $s(X_{\mathrm{ID}})$ y $\mathrm{TPR}(\tau) = F_{\mathrm{OOD}}(\tau)$. Al recorrer $\tau$ de $-\infty$ a $\infty$, $\mathrm{FPR}$ crece de 0 a 1 y $d\,\mathrm{FPR}(\tau) = f_{\mathrm{ID}}(\tau)\, d\tau$, luego
+\[
+  \AUROC = \int_{-\infty}^{\infty} F_{\mathrm{OOD}}(\tau)\, f_{\mathrm{ID}}(\tau)\, d\tau .
+\]
+Por la independencia de $X_{\mathrm{ID}}$ y $X_{\mathrm{OOD}}$, condicionando al valor de $s(X_{\mathrm{ID}})$,
+\[
+  \Prob\bigl(s(X_{\mathrm{OOD}}) < s(X_{\mathrm{ID}})\bigr)
+  = \int_{-\infty}^{\infty} \Prob\bigl(s(X_{\mathrm{OOD}}) < \tau\bigr)\, f_{\mathrm{ID}}(\tau)\, d\tau
+  = \int_{-\infty}^{\infty} F_{\mathrm{OOD}}(\tau)\, f_{\mathrm{ID}}(\tau)\, d\tau ,
+\]
+donde se ha usado de nuevo que $\Prob\bigl(s(X_{\mathrm{OOD}}) < \tau\bigr) = F_{\mathrm{OOD}}(\tau)$ por ser $s(X_{\mathrm{OOD}})$ continua. Ambas expresiones coinciden, lo que prueba el teorema.
 \end{demostracion}
 
+% Fuentes: Fawcett (2006), sec. 5, p. 867 y fig. 6 (con puntuaciones empatadas, la curva representa el
+% rendimiento esperado uniendo los puntos con la diagonal del rectángulo); algoritmo 2, p. 869 (área por
+% trapecios); sec. 7, p. 868 (equivalencia con el test de rangos de Wilcoxon).
 \begin{corolario}[AUROC empírico y estadístico $U$]\label{cor:auroc-u}
-% \widehat{\AUROC} = U / (n_1 n_2), con U el estadístico de Mann-Whitney (\cref{sec:mann-whitney}).
-\pendiente{enunciado}
+Sean $u_1, \dots, u_{n_1}$ las puntuaciones de $n_1$ muestras ID y $v_1, \dots, v_{n_2}$ las de $n_2$ muestras OOD. Para cada umbral $\tau$ sean
+\[
+  \widehat{\mathrm{TPR}}(\tau) = \frac{1}{n_2}\,\#\{j : v_j < \tau\}, \qquad
+  \widehat{\mathrm{FPR}}(\tau) = \frac{1}{n_1}\,\#\{i : u_i < \tau\},
+\]
+donde $\#$ denota el número de elementos de un conjunto, y sea $\widehat{\AUROC}$ el área bajo la curva ROC empírica que une sus puntos con segmentos rectos, también cuando varias puntuaciones empatan~\cite[sec.~5 y alg.~2]{fawcett2006}. Entonces
+\[
+  \widehat{\AUROC} = \frac{U}{n_1 n_2}, \qquad
+  U = \sum_{i=1}^{n_1} \sum_{j=1}^{n_2} \Bigl[\Ind(v_j < u_i) + \tfrac{1}{2}\,\Ind(v_j = u_i)\Bigr],
+\]
+donde $U$ es el estadístico de Mann-Whitney de la muestra ID frente a la OOD (\cref{def:estadistico-u}). Es decir, $\widehat{\AUROC}$ es la proporción de pares (ID, OOD) en los que la muestra ID recibe mayor puntuación, contando los empates como $\tfrac{1}{2}$: la versión empírica del \cref{teo:auroc-prob}, equivalente al test de rangos de Wilcoxon~\cite[sec.~7]{fawcett2006}.
 \end{corolario}
 \begin{demostracion}
-\pendiente{demostración}
+Sean $w_1 < w_2 < \dots < w_K$ los valores distintos entre todas las puntuaciones y, para cada $k$, $a_k = \#\{i : u_i = w_k\}$ y $b_k = \#\{j : v_j = w_k\}$. Las funciones $\widehat{\mathrm{FPR}}$ y $\widehat{\mathrm{TPR}}$ solo cambian cuando $\tau$ supera algún $w_k$: al pasar de $\tau \le w_k$ a $\tau > w_k$, $\widehat{\mathrm{FPR}}$ aumenta en $a_k/n_1$ y $\widehat{\mathrm{TPR}}$ en $b_k/n_2$. La curva empírica es, por tanto, la poligonal que une los puntos $(F_k, T_k)$, $k = 0, \dots, K$, con
+\[
+  F_k = \frac{1}{n_1}\sum_{l \le k} a_l, \qquad T_k = \frac{1}{n_2}\sum_{l \le k} b_l,
+\]
+desde $(F_0, T_0) = (0, 0)$ hasta $(F_K, T_K) = (1, 1)$. El área bajo el segmento $k$-ésimo es la de un trapecio de anchura $a_k/n_1$ y alturas $T_{k-1}$ y $T_{k-1} + b_k/n_2$:
+\[
+  A_k = \frac{a_k}{n_1}\Bigl(T_{k-1} + \frac{1}{2}\,\frac{b_k}{n_2}\Bigr)
+      = \frac{a_k}{n_1 n_2}\Bigl(\#\{j : v_j < w_k\} + \frac{1}{2}\,\#\{j : v_j = w_k\}\Bigr).
+\]
+Cada uno de los $a_k$ valores $u_i = w_k$ aporta lo mismo, luego, sumando en $k$ y agrupando por $i$,
+\[
+  \widehat{\AUROC} = \sum_{k=1}^{K} A_k
+  = \frac{1}{n_1 n_2} \sum_{i=1}^{n_1} \Bigl(\#\{j : v_j < u_i\} + \frac{1}{2}\,\#\{j : v_j = u_i\}\Bigr)
+  = \frac{U}{n_1 n_2}. \qedhere
+\]
 \end{demostracion}
 
 \subsection{FPR@95}\label{sec:fpr95}
@@ -211,12 +263,21 @@ son rechazadas por error como OOD con el umbral fijo en un punto. De esta forma 
 \subsection{CCR@FPR$x$}\label{sec:ccr}
 
 \textbf{CCR@FPR$x$}: se fija el umbral de modo que solo se acepte un $x$\,\% de las imágenes OOD, y se mide la proporción de imágenes del test ID que son aceptadas y además correctamente clasificadas. Se calcula solo sobre el test ID; su máximo es la exactitud del clasificador.
-
+~\cite{dhamija2018} ~\cite{yang2024}
+% Fuente: Dhamija et al. (2018), sec. 4 «Approach», párrafo «Our Evaluation Approach», p. 8, ec. (3):
+% CCR(\theta) y FPR(\theta) con la probabilidad máxima del softmax como puntuación. Aquí se generaliza a
+% cualquier puntuación s. Implementación: OpenOOD/metricas_ood.py (umbral_fpr y ccr_fpr): \tau_x es la
+% \lceil x n_2 \rceil-ésima puntuación OOD más alta y se acepta si s \geq \tau_x.
 \begin{definicion}[CCR@FPR$x$]\label{def:ccr}
-% Dhamija et al. (2018). Implementación: \tau con el 5 % de OOD aceptado (s \geq \tau);
-% CCR = #(ID con s \geq \tau y bien clasificada) / #ID.
-\pendiente{definición}
+Sean $\mathcal{D}^{\mathrm{test}}_{\mathrm{ID}}$ un conjunto de $n_1$ imágenes ID etiquetadas $(x, y)$ y $\mathcal{D}^{\mathrm{test}}_{\mathrm{OOD}}$ uno de $n_2$ imágenes OOD, $\hat y(x)$ la clase predicha por el clasificador y $s$ una función de puntuación con su detector $G_\tau$ (\cref{def:detector}), que acepta una imagen como ID si $s(x) \geq \tau$. Para cada umbral $\tau$ se definen
+\[
+  \mathrm{FPR}(\tau) = \frac{\#\{x \in \mathcal{D}^{\mathrm{test}}_{\mathrm{OOD}} : s(x) \geq \tau\}}{n_2}, \qquad
+  \mathrm{CCR}(\tau) = \frac{\#\{(x, y) \in \mathcal{D}^{\mathrm{test}}_{\mathrm{ID}} : \hat y(x) = y,\ s(x) \geq \tau\}}{n_1},
+\]
+es decir, la fracción de imágenes OOD aceptadas y la fracción de imágenes ID que son aceptadas y, además, están bien clasificadas~\cite[sec.~4, ec.~(3)]{dhamija2018}. El CCR@FPR$x$ es el valor de $\mathrm{CCR}(\tau_x)$ para el umbral $\tau_x$ con el que se acepta una fracción $x$ de las imágenes OOD; en la práctica, $\tau_x$ es la $\lceil x\, n_2 \rceil$-ésima puntuación OOD más alta.
 \end{definicion}
+
+En la definición original, la puntuación es la probabilidad máxima del softmax; aquí puede ser la de cualquier detector. La FPR de esta métrica es la de Dhamija et al.: la fracción de imágenes OOD aceptadas como ID. Con la convención del resto del capítulo, en la que la clase positiva es OOD, esa fracción es $1 - \mathrm{TPR}$. Para el umbral más bajo se aceptan todas las imágenes y el CCR coincide con la exactitud del clasificador~\cite[sec.~4]{dhamija2018}; por eso el CCR@FPR$x$ nunca la supera.
 
 \subsection{Estabilidad de la ordenación por severidad (CEC)}\label{sec:cec}
 
