@@ -73,12 +73,6 @@ cambios de apariencia que degradan el clasificador.
 \revisar{las cifras de \stoodx de esta sección son con $K = 500$; la detección conforme no se ha repetido con $K = 144$ (\cref{sec:stoodx-seleccion-k})}
 % Fuente: tabla tab:conforme-ood (results_conforme/deteccion_ood_conforme.csv).
 
-\paragraph{Conclusión parcial.} La calibración conforme convierte cualquier
-puntuación de detección en un detector con una tasa de falsas alarmas controlada,
-que en el test ID se cumple para todos los métodos y niveles evaluados. Con ese
-control, \stoodx es el detector que más muestras OOD señala en casi todos los
-conjuntos, mientras que ViM y MDS destacan en LYM.
-
 \section{Conjuntos de predicción APS y RAPS}\label{sec:conforme-aps}
 
 Los conjuntos de predicción se calculan con las puntuaciones APS y RAPS de las
@@ -175,13 +169,6 @@ aquí, el tamaño APS funciona como una señal de que la entrada es OOD. Con RAP
 señal desaparece, porque la penalización mantiene el tamaño cerca de 1 en todos
 los conjuntos (entre 0,99 y 1,05 con $\alpha = 0{,}05$).
 % Fuente: tabla tab:conforme-tamano-ood; angelopoulos2021, §1, p. 5.
-
-\paragraph{Conclusión parcial.} En el test ID, APS y RAPS dan una cobertura
-compatible con $1-\alpha$ y conjuntos de tamaño cercano a 1, pero la garantía es
-marginal: las clases pequeñas y difíciles quedan por debajo del objetivo. APS
-reacciona a la incertidumbre con conjuntos más grandes en esas clases y fuera de
-distribución, mientras que RAPS, con la regularización elegida, pierde esa
-información. Ninguno mantiene la cobertura en el control de resolución.
 
 \section{Predicción conforme Mondrian}\label{sec:conforme-mondrian}
 
@@ -295,7 +282,22 @@ menos 0,012 y aparece en el 2,3\,\% de los conjuntos.
 % Fuente: results_conforme/mondrian/label_smoothing.json (eps/K = 0,00714; mediana 0,00682; 98,1 %
 % entre eps/(2K) y 2 eps/K); por_clase.csv (q_y = 0,9881 con alfa 0,10); resumen.md, l. 101 (2,3 %).
 
-\paragraph{Conclusión parcial.} La versión Mondrian corrige la infracobertura de
+\section{Discusión}\label{sec:conforme-discusion}
+
+La calibración conforme convierte cualquier
+puntuación de detección en un detector con una tasa de falsas alarmas controlada,
+que en el test ID se cumple para todos los métodos y niveles evaluados. Con ese
+control, \stoodx es el detector que más muestras OOD señala en casi todos los
+conjuntos, mientras que ViM y MDS destacan en LYM.
+
+En el test ID, APS y RAPS dan una cobertura
+compatible con $1-\alpha$ y conjuntos de tamaño cercano a 1, pero la garantía es
+marginal: las clases pequeñas y difíciles quedan por debajo del objetivo. APS
+reacciona a la incertidumbre con conjuntos más grandes en esas clases y fuera de
+distribución, mientras que RAPS, con la regularización elegida, pierde esa
+información. Ninguno mantiene la cobertura en el control de resolución.
+
+La versión Mondrian corrige la infracobertura de
 las clases pequeñas sin cambiar la cobertura global, y dentro de la validación se
 comporta como predice la teoría. Tiene dos costes: con clases muy pequeñas, su
 umbral depende de una sola imagen y, combinado con el \emph{label smoothing},
@@ -303,8 +305,6 @@ puede duplicar el tamaño de los conjuntos; y, con LAC, es más frágil ante el
 desplazamiento de covariables. Las clases en las que no alcanza la cobertura en el
 test son las mismas en las que la validación y el test no parecen
 intercambiables.
-
-\section{Discusión}\label{sec:conforme-discusion}
 
 La predicción conforme aporta al sistema garantías que no dependen del modelo:
 calibrada con la validación ID, la detección OOD controla la tasa de falsas alarmas

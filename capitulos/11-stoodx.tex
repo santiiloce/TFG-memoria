@@ -81,7 +81,6 @@ Con $K = 144$, la saturación no desaparece, pero no afecta a las conclusiones. 
 % Cifras: z máximo 38,69 con K = 500; saturadas el 0,6 % del test ID y el 66 % de TUM+NORM, 32 % de
 % LYM, 19 % de PANDA y 76 % de DTD. Entre imágenes saturadas el orden lo decide solo el término de
 % empates de la varianza (rango de z < 1e-4).
-\pendiente{conclusión parcial}
 
 \section{Resultados}\label{sec:stoodx-resultados}
 
@@ -111,7 +110,6 @@ Frente al resto de métodos, con $K = 144$ \stoodx obtiene el mayor \AUROC en oc
 % OJO: el diagnóstico K/n_c de RESUMEN_STOODX.md (3c) cubre LYM, PANDA y TUM+NORM; el control de
 % resolución (+0,041) no se analizó por clase predicha.
 % Coste K = 144: 0,82-0,88 ms/imagen en CPU + 0,03-0,05 ms en GPU (slurm-stoodx-paper-192888.out).
-\pendiente{conclusión parcial}
 
 \section{Calibración}\label{sec:stoodx-calibracion}
 
@@ -129,7 +127,6 @@ Aunque el método propone el $p$-valor como medida de pertenencia, con $K = 500$
 
 % Cifras: KS D = 0,80 frente a U(0,1); p = 0 en el 8,1 % y p = 1 en el 7,3 %. Las únicas clases
 % con p menos extremo son las pequeñas (comedonecrosis, n_c = 399; glomeruloide, n_c = 173).
-\pendiente{conclusión parcial}
 
 \section{Sensibilidad a $K$}\label{sec:stoodx-k}
 
@@ -148,7 +145,6 @@ En un análisis de sensibilidad sobre un subconjunto (\cref{tab:stoodx-barrido-k
 % Cifras: con K = 500, p = 0 exacto en el 89 % de TUM+NORM, el 98 % de DTD y el 9 % del test ID
 % (subconjunto), y p pierde hasta 0,05 de AUROC frente a -z. K_c: TUM+NORM 0,943 frente a 0,953 y
 % LYM 0,799 frente a 0,903, aunque mejora PANDA (0,917 frente a 0,895).
-\pendiente{conclusión parcial}
 
 \section{Explicaciones por ejemplos}\label{sec:stoodx-ejemplos}
 
@@ -170,7 +166,7 @@ En cada figura, la primera columna es la imagen evaluada y las cinco siguientes,
 
 \section{Discusión}\label{sec:stoodx-discusion}
 
-% Integrar las conclusiones parciales: competitivo en AUROC en el near-OOD y el mejor en far-OOD,
+% Puntos para la discusión del capítulo: competitivo en AUROC en el near-OOD y el mejor en far-OOD,
 % pero con peor FPR@95 en el near-OOD, muy sensible a la resolución, saturación acotada,
 % p-valores no calibrados (solo sirven para ordenar), degradación con K cercano a n_c y resultado
 % negativo de K_c. Con K = 144 (elegido solo con ID): mejor AUROC en 8 de 9 conjuntos (no en LYM),

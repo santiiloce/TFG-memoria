@@ -49,9 +49,9 @@ Ficheros: `capitulos/NN-nombre.tex`, `apendices/X-nombre.tex`, figuras en `img/<
 
 ## Estructura de los capítulos de resultados (9 a 12)
 
-- No se ponen todas las tablas juntas. Cada sección sigue el patrón **tabla o figura → análisis breve de esa tabla → conclusión parcial**.
+- No se ponen todas las tablas juntas. Cada sección sigue el patrón **tabla o figura → análisis breve de esa tabla**, sin conclusiones parciales (decisión del autor, 2026-11-18).
 - Debajo de cada tabla va el párrafo de análisis del autor que le corresponde. Donde falte, `\pendiente{análisis}` con las cifras clave en comentarios `%`.
-- Cada capítulo termina con una sección de **discusión global** que integra las conclusiones parciales.
+- Cada capítulo termina con una sección de **discusión global** que integra lo hallado en el capítulo. Las conclusiones de toda la experimentación van al capítulo 15.
 - Capítulo 10: la tabla principal OOD se divide en una tabla por bloque: near-OOD principal (TUM+NORM); control interno (TUM, NORM, STR, LYM, MUS: tabla compacta de AUROC y FPR@95, más `fig5_control_interno_nct`); cambio de centro y resolución (PANDA frente al control, más `fig4_panda_vs_control`); far-OOD (DTD); comparación de familias de métodos (logits y modificación de activaciones). El párrafo «Conclusión» del autor abre la discusión global.
 - Al apéndice solo van las tablas de AUPR-In/AUPR-Out y el anexo NCT-CRC (ADI, BACK, DEB, MUC). El apéndice D contiene la repetición de la detección OOD con ConvNeXt-S (`results_ood_convnext`), solo con tablas generadas y una conclusión breve; en el capítulo 10 solo hay una remisión a él.
 

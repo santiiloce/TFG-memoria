@@ -144,66 +144,7 @@ Se considera esta aproximación adecuada tanto para $np > 5$ como para $p<= 1/2$
 \]
 
 \end{teorema}
-\paragraph{Aplicación en el estudio.} Se ha usado para comprobar si realmente existe una diferencia entre los modelos Swin-S y ConvNeXt-S, evaluados sobre las mismas \num{12618} imágenes del test ID (\cref{tab:mcnemar-swin-convnext}). Denotamos por $a$ el número de imágenes en las que ambos aciertan (\num{12045}), por $b$ aquellas en las que solo acierta Swin-S (179), por $c$ aquellas en las que solo acierta ConvNeXt-S (154) y por $d$ aquellas en las que ambos fallan (240).
-
-\begin{table}[tbp]
-  \centering
-  \caption{Tabla de contingencia del test de McNemar entre Swin-S y ConvNeXt-S sobre las \num{12618} imágenes del test ID. En negrita, los pares discordantes.}
-  \label{tab:mcnemar-swin-convnext}
-  \begin{tabular}{lcc}
-    \toprule
-    & ConvNeXt-S acierta & ConvNeXt-S falla \\
-    \midrule
-    Swin-S acierta & \num{12045} & \textbf{179} \\
-    Swin-S falla   & \textbf{154} & 240 \\
-    \bottomrule
-  \end{tabular}
-\end{table}
-
-\textbf{Hipótesis:}
-\begin{itemize}
-  \item $H_0$: ambos modelos presentan la misma capacidad de acierto. Cuando discrepan, cada uno tiene una probabilidad de $\tfrac{1}{2}$ de ser el que acierta.
-  \item $H_1$: dicha probabilidad es distinta de $\tfrac{1}{2}$.
-\end{itemize}
-
-Bajo $H_0$, y condicionando al número de pares discordantes, $n = b + c = 179 + 154 = 333$, el número de pares favorables a Swin-S sigue una distribución binomial (\cref{prop:mcnemar}):
-\[
-  b \sim \mathrm{Bin}\left(333, \tfrac{1}{2}\right), \qquad
-  \E[b] = \frac{333}{2} = 166{,}5, \qquad
-  \Var(b) = 333 \cdot \frac{1}{2}\left(1 - \frac{1}{2}\right) = 83{,}25.
-\]
-
-% --- CONTINUACIÓN (nuevo) ---
-\textbf{Versión exacta.} El $p$-valor bilateral es la probabilidad, bajo $H_0$, de obtener un reparto al menos tan desequilibrado como el observado:
-\[
-  p = 2\,\Prob(X \geq 179) = 0{,}188, \qquad X \sim \mathrm{Bin}\left(333, \tfrac{1}{2}\right).
-\]
-% --- FIN DE LA CONTINUACIÓN; sigue tu texto ---
-
-\textbf{Aproximación normal.} Una binomial es una suma de $n$ variables de Bernoulli independientes. Por el teorema central del límite, que en el caso de la binomial es el teorema de De Moivre-Laplace~\cite{canavos2003}, para un valor de $n$ lo suficientemente grande es aproximadamente normal. Tipificando se tiene:
-\[
-  Z = \frac{b - n/2}{\sqrt{n/4}} \;\overset{\text{aprox.}}{\sim}\; N(0, 1).
-\]
-Sustituyendo $n = b + c$, se tiene $b - \frac{n}{2} = \frac{b - c}{2}$ y $\sqrt{n/4} = \frac{\sqrt{b + c}}{2}$, de modo que
-\[
-  Z = \frac{b - c}{\sqrt{b + c}} = \frac{179 - 154}{\sqrt{333}} = \frac{25}{18{,}248} = 1{,}370.
-\]
-Al trabajar con la normal, que es continua, se obtiene un resultado más aproximado aplicando la corrección de continuidad, debido a la naturaleza discreta de los datos:
-\[
-  Z_c = \frac{|b - c| - 1}{\sqrt{b + c}} = \frac{24}{18{,}248} = 1{,}315.
-\]
-
-
-El $p$-valor bilateral es entonces
-\[
-  p = 2\left(1 - \Phi(1{,}315)\right) = 2 \cdot 0{,}0942 = 0{,}188,
-\]
-que coincide con el exacto. Sin la corrección se obtendría $p = 0{,}171$, que subestima el $p$-valor. Equivalentemente, $\chi^2_c = Z_c^2 = 1{,}730$ sigue aproximadamente una distribución $\chi^2_1$, y $\Prob(\chi^2_1 \geq 1{,}730) = 0{,}188$.
-
-\textbf{Decisión.} Con un nivel de significación $\alpha = 0{,}05$, como $p = 0{,}188 > \alpha$, no se rechaza la hipótesis nula: no hay evidencia de que Swin-S y ConvNeXt-S difieran en exactitud. Para rechazarla, la región crítica $\chi^2_c > \chi^2_{1;\,0{,}95} = 3{,}841$ exigiría $|b - c| \geq 37$. Un caso podría ser por ejemplo que Swin-S ganara 185 de los 333 pares discordantes en lugar de 179.
-
-\textbf{Limitación.} El test supone que los pares discordantes son independientes. Esta hipótesis no se cumple del todo, porque las imágenes de una misma lámina están relacionadas (\cref{cap:fuga}). Por ello, el resultado se ha contrastado con un \emph{bootstrap} pareado por lámina (\cref{sec:bootstrap}), que conduce a la misma conclusión: la diferencia de exactitud es de $+0{,}0020$ [$-0{,}0013$; $+0{,}0049$], un intervalo que contiene el cero.
-% --- FIN ---
+\paragraph{Aplicación en el estudio.} Se ha usado para comprobar si realmente existe una diferencia entre los modelos Swin-S y ConvNeXt-S, evaluados sobre las mismas \num{12618} imágenes del test ID (\cref{tab:mcnemar-swin-convnext}).
 
 %=======================================================
 \section{Intervalos de confianza \emph{bootstrap}}\label{sec:bootstrap}
@@ -219,15 +160,16 @@ que coincide con el exacto. Sin la corrección se obtendría $p = 0{,}171$, que 
 % - En el trabajo: 1000 remuestras, semilla 0.
 \pendiente{planteamiento}
 
-Dada una muestra $(x_1, \dots, x_n)$, el método \emph{bootstrap} consiste en:
+Dada una muestra $(x_1, \dots, x_n)$, el método \emph{bootstrap}~\cite{pena2008fundamentos} consiste en:
 
 \begin{enumerate}
   \item Consideramos la muestra de partida como una variable que presenta los $n$ valores posibles,
   teniendo una probabilidad de $1/n$ de tomar cada valor; es decir, su distribución es la
   distribución empírica
   \[
-    F_n(t) = \frac{1}{n} \sum_{i=1}^{n} \Ind(x_i \le t).
+    F_n(t) = \frac{1}{n} \sum_{i=1}^{n} \Ind(x_i \le t),
   \]
+  donde $\Ind(\cdot)$ es la función indicadora, que vale 1 si se cumple la condición entre paréntesis y 0 en caso contrario.
   Mediante el método de Montecarlo tomamos una muestra de tamaño $n$ de esta distribución. Esto
   equivaldría a tomar una muestra aleatoria con reemplazamiento de los valores observados. Así pues,
   se obtiene la muestra
@@ -263,7 +205,7 @@ por percentiles de nivel $1 - \alpha$ para $\theta$ es
   \Bigl[\, \hat\theta^*_{(\lceil B \times \alpha/2 \rceil)},\ \hat\theta^*_{(\lceil B \times (1-\alpha/2) \rceil)} \,\Bigr].
 \]
 
-donde [ ] indica redondear al entero más próximo.   ~\cite{pena2008fundamentos}
+donde $\lceil\cdot\rceil$ indica redondear al entero superior.   ~\cite{pena2008fundamentos}
 \end{definicion}
 
 \begin{observacion}[Bootstrap estratificado, pareado y por lámina]\label{obs:bootstrap-variantes}

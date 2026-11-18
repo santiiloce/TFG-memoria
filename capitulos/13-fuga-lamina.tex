@@ -20,14 +20,14 @@
 %   Evidencias: los 126.109 ficheros tienen 4 campos; el último es siempre 224; x e y son siempre
 %   \equiv 1 (mód 224); el número de prefijos por clase coincide con el número de pacientes de la
 %   tabla I del artículo en 7 de las 14 clases y es menor (nunca mayor) en las otras 7.
-% - Discrepancias con el artículo: 95 prefijos distintos frente a 85 imágenes anotadas, y
+% - Discrepancias con el artículo: el número de prefijos distintos no coincide con las 85 imágenes anotadas, y
 %   coordenadas en una rejilla de 224 px frente al paso de 256 px descrito (\cref{sec:conjunto-id}).
 % - Parches por lámina: mediana 288 en entrenamiento, 73 en validación y 38 en test; varias clases
 %   dependen de muy pocas láminas (PIN: 80 % de los parches en una lámina; No_Cancer: 6 láminas).
 \pendiente{identificación de las láminas a partir de los nombres de fichero}
-\revisar{deducción a partir de los nombres de fichero: 95 láminas y rejilla de 224\,px, frente a las 85 WSI y el paso de 256\,px del artículo}
+\revisar{deducción a partir de los nombres de fichero: identificación de las láminas y rejilla de 224\,px, frente a las 85 WSI y el paso de 256\,px del artículo}
 
-% Cifras: las 95 láminas aparecen en todas las particiones; el 99,5 % del val original tiene un
+% Cifras: todas las láminas aparecen en todas las particiones; el 99,5 % del val original tiene un
 % parche contiguo en el train original (la fuga ya está en la partición de los autores); nuestro
 % test, el 99,0 % respecto a nuestro entrenamiento.
 \pendiente{análisis de la \cref{tab:fuga-contiguidad}}

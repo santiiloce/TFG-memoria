@@ -313,6 +313,11 @@ def t09_mcnemar(R, S):
              'results_fase1/swin_vs_convnext.json')
 
 
+def media(filas, columnas):
+    """Media aritmética de cada columna sobre los cinco modelos de MODELOS."""
+    return {c: sum(float(filas[m][c]) for m in MODELOS) / len(MODELOS) for c in columnas}
+
+
 def t09_agrupaciones(R, S):
     m5 = {f['modelo']: f for f in leer_csv(os.path.join(R, 'results_agrupaciones/metricas_5clases.csv'))
           if f['variante'] == 'a'}
@@ -321,11 +326,15 @@ def t09_agrupaciones(R, S):
     cuerpo = ['\\toprule', '& \\multicolumn{2}{c}{5 categorías} & \\multicolumn{4}{c}{Binario} \\\\',
               '\\cmidrule(lr){2-3}\\cmidrule(lr){4-7}',
               'Modelo & Exactitud (\\%) & BA & Exactitud (\\%) & Sens. & Esp. & BA \\\\', '\\midrule']
-    for m, nombre in MODELOS.items():
-        a, b = m5[m], mb[m]
-        cuerpo.append('%s & %s & %s & %s & %s & %s & %s \\\\' % (
+    def fila(nombre, a, b):
+        return '%s & %s & %s & %s & %s & %s & %s \\\\' % (
             nombre, pct(a['exactitud'], 2), n(a['balanced_accuracy']), pct(b['exactitud'], 2),
-            n(b['sensibilidad_TPR']), n(b['especificidad_TNR']), n(b['balanced_accuracy'])))
+            n(b['sensibilidad_TPR']), n(b['especificidad_TNR']), n(b['balanced_accuracy']))
+
+    for m, nombre in MODELOS.items():
+        cuerpo.append(fila(nombre, m5[m], mb[m]))
+    cuerpo += ['\\midrule', fila('Media (5 modelos)', media(m5, ['exactitud', 'balanced_accuracy']),
+                                  media(mb, ['exactitud', 'sensibilidad_TPR', 'especificidad_TNR', 'balanced_accuracy']))]
     A = ARTICULO
     cuerpo += ['\\midrule', 'XCiT-M (artículo) & %s & -- & %s & %s & %s & %s \\\\' % (
         pct(A['acc_5'], 2), pct(A['acc_bin'], 2), n(A['tpr']), n(A['tnr']), n((A['tpr'] + A['tnr']) / 2)),
@@ -335,7 +344,7 @@ def t09_agrupaciones(R, S):
            'G5 y NT (PIN de alto grado, carcinoma intraductal, adenocarcinoma ductal). Binario: maligno = '
            'G3 + G4 + G5 + NT. Sens.: sensibilidad; Esp.: especificidad; BA: \\emph{balanced accuracy}. '
            'Referencia: XCiT-Medium del artículo del conjunto de datos~\\cite{ayensa2026}, con otro reparto de '
-           'NM y NT (su BA se calcula como la media de Sens. y Esp.).')
+           'NM y NT (su BA se calcula como la media de Sens. y Esp.). Media: media aritmética de los cinco modelos.')
     escribir(S, 't09_agrupaciones.tex',
              tabla(cap, 'tab:agrupaciones', 'lcccccc', cuerpo, '\\footnotesize', '4pt'),
              'results_agrupaciones/metricas_5clases.csv y metricas_binario.csv')
@@ -351,12 +360,15 @@ def t09_sensibilidad_gleason(R, S):
         f = filas[m]
         cuerpo.append('%s & %s & %s & %s \\\\' % (nombre, n(f['sensibilidad_G3']), n(f['sensibilidad_G4']),
                                                   n(f['sensibilidad_G5'])))
+    mg = media(filas, ['sensibilidad_G3', 'sensibilidad_G4', 'sensibilidad_G5'])
+    cuerpo += ['\\midrule', 'Media (5 modelos) & %s & %s & %s \\\\' % (
+        n(mg['sensibilidad_G3']), n(mg['sensibilidad_G4']), n(mg['sensibilidad_G5']))]
     A = ARTICULO
     cuerpo += ['\\midrule', 'XCiT-M (artículo) & %s & %s & %s \\\\' % (n(A['G3']), n(A['G4']), n(A['G5'])),
                '\\bottomrule']
     cap = ('Sensibilidad de las categorías G3, G4 y G5 en el test ID (más alto es mejor). Son las categorías '
            'directamente comparables con el artículo del conjunto de datos~\\cite{ayensa2026}, porque coinciden '
-           'en número de imágenes.')
+           'en número de imágenes. Media: media aritmética de los cinco modelos.')
     escribir(S, 't09_sensibilidad_gleason.tex',
              tabla(cap, 'tab:sensibilidad-gleason', 'lccc', cuerpo, '\\small'),
              'results_agrupaciones/sensibilidad_G3_G4_G5.csv')

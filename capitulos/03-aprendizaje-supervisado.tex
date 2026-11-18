@@ -110,11 +110,11 @@ Sea $\Phi$ la función de distribución de una variable aleatoria $X \sim \mathc
 donde $\erf(t) = \frac{2}{\sqrt{\pi}} \int_0^t e^{-s^2}\,ds$ es la función error.
 \end{definicion}
 
-Dicho de otro modo, la GELU pondera cada entrada por la probabilidad de que una normal estándar no la supere: escala $x$ según lo grande que es en comparación con el resto de entradas. Así, mientras que la ReLU, $\operatorname{ReLU}(x) = x\,\mathbf{1}_{\{x>0\}}$, \emph{filtra} las entradas por su signo, la GELU las \emph{pondera} por su valor.
+Dicho de otro modo, la GELU pondera cada entrada por la probabilidad de que una normal estándar no la supere: escala $x$ según lo grande que es en comparación con el resto de entradas. Así, mientras que la ReLU, $\operatorname{ReLU}(x) = x\,\Ind(x>0)$, \emph{filtra} las entradas por su signo, la GELU las \emph{pondera} por su valor.
 
 \begin{observacion}
 \begin{enumerate}
-  \item La GELU es una versión suavizada de la ReLU: basta sustituir la función indicadora $\mathbf{1}_{\{x>0\}}$ por $\Phi(x)$. Si en lugar de $\mathcal{N}(0,1)$ se toma $\mathcal{N}(0,s^2)$, la GELU tiende a la ReLU cuando $s \to 0$. Además, ambas funciones son asintóticamente iguales cuando $|x| \to \infty$.
+  \item La GELU es una versión suavizada de la ReLU: basta sustituir la función indicadora $\Ind(x>0)$ por $\Phi(x)$. Si en lugar de $\mathcal{N}(0,1)$ se toma $\mathcal{N}(0,s^2)$, la GELU tiende a la ReLU cuando $s \to 0$. Además, ambas funciones son asintóticamente iguales cuando $|x| \to \infty$.
   \item A diferencia de la ReLU, la GELU no es monótona ni convexa, y toma valores negativos (pequeños) para $x<0$.
   \item Cuando se prioriza la velocidad sobre la exactitud, se puede aproximar por
   \[

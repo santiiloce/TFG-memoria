@@ -7,7 +7,7 @@
 
 \chapter{Detección OOD}\label{cap:deteccion-ood}
 
-% Patrón: tabla o figura -> análisis -> conclusión parcial; discusión global al final.
+% Patrón: tabla o figura -> análisis; discusión global al final.
 % Fuente: results_ood/faseC_K144 (= faseC_2026-10-20 más la fila de STOOD-X con K = 144; 17 métodos,
 % 9 conjuntos). Modelo: Swin-S (mismo checkpoint
 % que la \cref{tab:modelos}). Métricas definidas en el \cref{cap:ood-metricas}; clase positiva: OOD.
@@ -66,7 +66,6 @@ Con $K = 144$, elegido solo con datos ID (\cref{sec:stoodx-seleccion-k}), \stood
 % -0,014; RMDS - KNN = -0,003 [-0,004; -0,001] (p = 0,002); RMDS - STOOD-X 100 % = +0,000
 % [-0,002; +0,003] (p = 0,75); RMDS - STOOD-X K = 144 = -0,037 [-0,040; -0,035] (p < 0,001). Los IC de FPR@95 de RMDS [0,121; 0,134] y ViM [0,136; 0,150] no se
 % solapan, pero no se hizo bootstrap pareado para FPR@95.
-\pendiente{conclusión parcial}
 
 \section{Control interno: centro frente a tejido}\label{sec:ood-control-interno}
 
@@ -90,7 +89,6 @@ más sensibles al desplazamiento de covariables que al cambio semántico.
 % métodos de logits la diferencia es mayor (MSP: 0,87-0,88 en TUM/NORM frente a 0,74 en MUS), con
 % LYM (0,854) cerca de TUM/NORM. La conclusión se mantiene sin la lámina de cada parche
 % (\cref{tab:fuga-control-interno}).
-\pendiente{conclusión parcial}
 
 \section{PANDA: cambio de centro y de escala}\label{sec:ood-panda}
 
@@ -107,7 +105,6 @@ Respecto a PANDA, la comparación con el control debe interpretarse con especial
 \end{figure}
 
 \revisar{propuesta: matizar con las corrupciones sintéticas (\cref{sec:ood-corr-saturacion}): allí la saturación de \stoodx crece con la severidad (hasta el 86,4\,\% en pixelado 5) y el umbral del 95\,\% de \texttt{id\_val} ($-38{,}256$) queda por encima del valor saturado ($-38{,}691$), así que toda imagen saturada se rechaza; no se cambia el texto del autor}
-\pendiente{conclusión parcial}
 
 \section{Corrupciones sintéticas: \emph{covariate shift} controlado}\label{sec:ood-corrupciones}
 
@@ -148,7 +145,6 @@ Respecto a PANDA, la comparación con el control debe interpretarse con especial
 % Otras cifras: tono 5, 0,580; saturación 5, 0,733; burbujas 5, 0,811; movimiento 1, 0,910 y 5, 0,433.
 \pendiente{análisis}
 \pendiente{cita, si se quiere comparar con la compresión habitual de los escáneres}
-\pendiente{conclusión parcial}
 
 \subsection{¿Detectan la alteración? AUROC y FPR@95}\label{sec:ood-corr-deteccion}
 
@@ -197,7 +193,6 @@ Respecto a PANDA, la comparación con el control debe interpretarse con especial
 %   sin solapar); cifras arriba.
 \pendiente{análisis}
 \revisar{tablas completas, con IC y el resto de detectores, en el apéndice C (\cref{sec:apc-corrupciones}): confirmar ubicación}
-\pendiente{conclusión parcial}
 
 \subsection{¿Gradúan la severidad? CEC}\label{sec:ood-corr-cec}
 
@@ -235,7 +230,6 @@ Respecto a PANDA, la comparación con el control debe interpretarse con especial
 \pendiente{proposición del autor: valor de saturación de la $-z$ con separación completa}
 \pendiente{análisis}
 \revisar{tono: comparación de \stoodx con ViM y MDS}
-\pendiente{conclusión parcial}
 
 \subsection{Saturación de STOOD-X}\label{sec:ood-corr-saturacion}
 
@@ -253,7 +247,6 @@ Respecto a PANDA, la comparación con el control debe interpretarse con especial
 %   de pares empatados de la \cref{tab:ood-corr-cec}.
 \pendiente{análisis}
 \revisar{tono}
-\pendiente{conclusión parcial}
 
 \subsection{¿Rechazan las imágenes alteradas que el clasificador clasifica mal?}\label{sec:ood-corr-errores}
 
@@ -347,11 +340,46 @@ Respecto a PANDA, la comparación con el control debe interpretarse con especial
 %   - El bootstrap es por imagen.
 \pendiente{análisis del autor}
 \revisar{tono}
-\pendiente{conclusión parcial}
 
-\subsection{Conclusión parcial y limitaciones}\label{sec:ood-corr-conclusion}
 
-% Puntos:
+\section{Far-OOD}\label{sec:ood-far}
+
+Finalmente, en Textures, STOOD-X obtiene el mejor resultado (AUROC 0,991 con $K = 500$ y 0,993 con $K = 144$), lo que confirma, como era de esperar, que las imágenes ajenas al contexto médico se detectan sin dificultad. 
+Esta mayor dificultad de detecciónd de Near-OOD frente a Far-OOD coincide con los resultados también obtenidos en ~\cite{openood15}.
+No obstante, con MDS (0,956) Textures resulta más difícil de detectar que TUM, NORM o LYM, lo que indica que la dificultad que encuentra cada detector no coincide necesariamente con la distancia semántica intuitiva.
+\input{tablas/t10_far}
+\revisar{añadido el AUROC con $K = 144$; quitado el punto suelto tras la tabla}
+
+
+\section{Métodos basados en logits y en modificación de activaciones}\label{sec:ood-familias}
+
+\textbf{Métodos basados en logits y en modificación de activaciones.} MSP supera a MaxLogit y a Energy en los nueve conjuntos, al contrario de lo habitual en la literatura. Una explicación plausible es el uso de \emph{label smoothing} durante el entrenamiento, que comprime la escala de los logits; comprobarlo requeriría entrenar el modelo sin esta técnica. Los métodos que modifican activaciones, diseñados para redes con activaciones ReLU y BatchNorm, no se trasladan bien a un Swin Transformer con LayerNorm. ReAct mejora a Energy, pero no a MSP. DICE queda por debajo de Energy en ocho de los nueve conjuntos, con un AUROC inferior al azar en DTD (0,436). ASH colapsa por completo: al redistribuir la suma de las activaciones, que es negativa en el 27,5\,\% de las imágenes, invierte los logits y reduce la exactitud ID al 68,3\,\%. Por último, SHE con producto escalar resulta irregular (0,795), mientras que sus variantes con distancia coseno (0,938) y euclídea (0,942) mejoran notablemente, lo que apunta de nuevo a la incompatibilidad entre las características con signo del Swin y los supuestos del método.
+\revisar{«al contrario de lo habitual en la literatura»: falta cita}
+\revisar{ReAct mejora a Energy en ocho de los nueve conjuntos; en el control de resolución queda por debajo (0,602 frente a 0,622)}
+\revisar{el 27,5\,\% se midió en la validación ID}
+
+\input{tablas/t10_familias}
+
+% Las cifras de SHE (0,795; 0,938; 0,942) son del near-OOD principal (TUM+NORM).
+
+\section{Discusión}\label{sec:ood-discusion}
+
+\textbf{Conclusión.} Ningún método domina en todas las métricas y conjuntos. ViM ofrece el mejor equilibrio global en AUROC; RMDS, el mejor comportamiento con umbrales exigentes, aunque con un fallo severo en LYM; y STOOD-X destaca en far-OOD y en varias clases de NCT-CRC, pero es el más sensible a la resolución. El hallazgo más relevante es que los mejores detectores responden sobre todo a las condiciones de adquisición, lo que condiciona su uso en un entorno multicéntrico. \revisar{conclusiones propias del Swin; con ConvNeXt-S cambian (\cref{tab:convnext-conclusiones})}
+\revisar{donde dice que \stoodx «es el más sensible a la resolución», propuesta de integrar dos cosas: que es el más sensible al \emph{covariate shift} en general (corrupciones sintéticas, \cref{sec:ood-corr-deteccion}, y ConvNeXt-S, \cref{ap:convnext}), y el matiz de la \cref{sec:ood-corr-errores}: sirve como alarma de imagen alterada, pero no es el mejor para la clasificación selectiva. No se cambia el texto del autor}
+\revisar{la conclusión vale para los métodos con su configuración por defecto (STOOD-X con $K = 500$). Con $K = 144$, elegido solo con datos ID, STOOD-X es el mejor en AUROC, FPR@95 y CCR@FPR5 en todos los conjuntos salvo LYM (ViM 0,969 frente a 0,966; \cref{sec:stoodx-resultados}); hay que reescribir la conclusión teniéndolo en cuenta}
+
+% Integrar lo hallado en las secciones anteriores y enlazar con:
+% - STOOD-X en detalle (\cref{cap:stoodx}); selección de K solo con ID y K = 144
+%   (\cref{sec:stoodx-seleccion-k,tab:stoodx-k144-k500}).
+% - Umbral con garantía de falsas alarmas (\cref{sec:conforme-ood}).
+% - Efecto de la fuga por lámina en estas cifras (\cref{cap:fuga}): con KNN y MDS, el AUROC baja
+%   0,02-0,07 sin la lámina de cada parche.
+% - AUPR-In y AUPR-Out en el \cref{ap:aupr}; clases ADI, BACK, DEB y MUC en el \cref{ap:anexo-nct}.
+% - Corrupciones sintéticas (\cref{sec:ood-corrupciones}): STOOD-X es el más sensible a la presencia de
+%   covariate shift sintético (mejor AUROC en 25 de 27 celdas), pero gradúa la severidad peor que ViM y MDS
+%   (CEC) y no es el mejor para la clasificación selectiva (AUROC_err, AURC); KNN, MDS y ViM son los más
+%   equilibrados; los basados en logits quedan por detrás en las tres preguntas.
+% Corrupciones sintéticas (\cref{sec:ood-corrupciones}), conclusiones y limitaciones:
 % - STOOD-X es el detector más sensible a la presencia de covariate shift sintético: el mejor AUROC en 25
 %   de 27 celdas (24 con IC sin solapar) y el mejor FPR@95 en 22 de 27 (19 con IC sin solapar).
 %   - Coherente con ConvNeXt-S (\cref{ap:convnext}), donde es el primero en PANDA y en el control.
@@ -372,51 +400,8 @@ Respecto a PANDA, la comparación con el control debe interpretarse con especial
 % - el brillo estaba en el aumento de datos;
 % - en STOOD-X, el orden entre imágenes saturadas lo decide un término de ~1e-8;
 % - solo se ha evaluado con el Swin-S.
-\pendiente{conclusión parcial}
 \pendiente{cita de Tellez et al.\ (2019), si se usa: falta el documento}
-\revisar{tono}
-\pendiente{limitaciones}
-
-\section{Far-OOD}\label{sec:ood-far}
-
-Finalmente, en Textures, STOOD-X obtiene el mejor resultado (AUROC 0,991 con $K = 500$ y 0,993 con $K = 144$), lo que confirma, como era de esperar, que las imágenes ajenas al contexto médico se detectan sin dificultad. 
-Esta mayor dificultad de detecciónd de Near-OOD frente a Far-OOD coincide con los resultados también obtenidos en ~\cite{openood15}.
-No obstante, con MDS (0,956) Textures resulta más difícil de detectar que TUM, NORM o LYM, lo que indica que la dificultad que encuentra cada detector no coincide necesariamente con la distancia semántica intuitiva.
-\input{tablas/t10_far}
-\revisar{añadido el AUROC con $K = 144$; quitado el punto suelto tras la tabla}
-
-\pendiente{conclusión parcial}
-
-\section{Métodos basados en logits y en modificación de activaciones}\label{sec:ood-familias}
-
-\textbf{Métodos basados en logits y en modificación de activaciones.} MSP supera a MaxLogit y a Energy en los nueve conjuntos, al contrario de lo habitual en la literatura. Una explicación plausible es el uso de \emph{label smoothing} durante el entrenamiento, que comprime la escala de los logits; comprobarlo requeriría entrenar el modelo sin esta técnica. Los métodos que modifican activaciones, diseñados para redes con activaciones ReLU y BatchNorm, no se trasladan bien a un Swin Transformer con LayerNorm. ReAct mejora a Energy, pero no a MSP. DICE queda por debajo de Energy en ocho de los nueve conjuntos, con un AUROC inferior al azar en DTD (0,436). ASH colapsa por completo: al redistribuir la suma de las activaciones, que es negativa en el 27,5\,\% de las imágenes, invierte los logits y reduce la exactitud ID al 68,3\,\%. Por último, SHE con producto escalar resulta irregular (0,795), mientras que sus variantes con distancia coseno (0,938) y euclídea (0,942) mejoran notablemente, lo que apunta de nuevo a la incompatibilidad entre las características con signo del Swin y los supuestos del método.
-\revisar{«al contrario de lo habitual en la literatura»: falta cita}
-\revisar{ReAct mejora a Energy en ocho de los nueve conjuntos; en el control de resolución queda por debajo (0,602 frente a 0,622)}
-\revisar{el 27,5\,\% se midió en la validación ID}
-
-\input{tablas/t10_familias}
-
-% Las cifras de SHE (0,795; 0,938; 0,942) son del near-OOD principal (TUM+NORM).
-\pendiente{conclusión parcial}
-
-\section{Discusión}\label{sec:ood-discusion}
-
-\textbf{Conclusión.} Ningún método domina en todas las métricas y conjuntos. ViM ofrece el mejor equilibrio global en AUROC; RMDS, el mejor comportamiento con umbrales exigentes, aunque con un fallo severo en LYM; y STOOD-X destaca en far-OOD y en varias clases de NCT-CRC, pero es el más sensible a la resolución. El hallazgo más relevante es que los mejores detectores responden sobre todo a las condiciones de adquisición, lo que condiciona su uso en un entorno multicéntrico. \revisar{conclusiones propias del Swin; con ConvNeXt-S cambian (\cref{tab:convnext-conclusiones})}
-\revisar{donde dice que \stoodx «es el más sensible a la resolución», propuesta de integrar dos cosas: que es el más sensible al \emph{covariate shift} en general (corrupciones sintéticas, \cref{sec:ood-corr-deteccion}, y ConvNeXt-S, \cref{ap:convnext}), y el matiz de la \cref{sec:ood-corr-errores}: sirve como alarma de imagen alterada, pero no es el mejor para la clasificación selectiva. No se cambia el texto del autor}
-\revisar{la conclusión vale para los métodos con su configuración por defecto (STOOD-X con $K = 500$). Con $K = 144$, elegido solo con datos ID, STOOD-X es el mejor en AUROC, FPR@95 y CCR@FPR5 en todos los conjuntos salvo LYM (ViM 0,969 frente a 0,966; \cref{sec:stoodx-resultados}); hay que reescribir la conclusión teniéndolo en cuenta}
-
-% Integrar las conclusiones parciales de las secciones anteriores y enlazar con:
-% - STOOD-X en detalle (\cref{cap:stoodx}); selección de K solo con ID y K = 144
-%   (\cref{sec:stoodx-seleccion-k,tab:stoodx-k144-k500}).
-% - Umbral con garantía de falsas alarmas (\cref{sec:conforme-ood}).
-% - Efecto de la fuga por lámina en estas cifras (\cref{cap:fuga}): con KNN y MDS, el AUROC baja
-%   0,02-0,07 sin la lámina de cada parche.
-% - AUPR-In y AUPR-Out en el \cref{ap:aupr}; clases ADI, BACK, DEB y MUC en el \cref{ap:anexo-nct}.
-% - Corrupciones sintéticas (\cref{sec:ood-corrupciones}): STOOD-X es el más sensible a la presencia de
-%   covariate shift sintético (mejor AUROC en 25 de 27 celdas), pero gradúa la severidad peor que ViM y MDS
-%   (CEC) y no es el mejor para la clasificación selectiva (AUROC_err, AURC); KNN, MDS y ViM son los más
-%   equilibrados; los basados en logits quedan por detrás en las tres preguntas.
-\pendiente{integración de las conclusiones parciales}
+\pendiente{discusión global}
 
 % Repetición con ConvNeXt-S en el espacio M (\cref{ap:convnext}, tabla \cref{tab:convnext-conclusiones}). Se
 % mantienen: MSP > MaxLogit > Energy, ReAct/ASH/DICE por debajo de MSP, LYM ~ TUM/NORM y MDS > KNN (9 de 9).
