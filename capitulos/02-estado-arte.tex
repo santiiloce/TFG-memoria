@@ -393,7 +393,7 @@ el test ID al 90,77\,\% en las mismas imágenes con menor resolución
 % control de resolución 0,9077 (faseA, columna ACC_control_res_128).
 
 \subsection{Familias de métodos}\label{sec:ea-metodos}
-
+\revisar{Iván, me gustaría que revisases esta parte por si hubiera algo mal explicado o que no se entendiera}
 Yang et al.\ agrupan los métodos de detección OOD en cuatro familias: basados en
 clasificación, en densidad, en distancia y en
 reconstrucción~\cite{yang2024}. El \cref{tab:ea-familias} los resume e indica
@@ -558,11 +558,11 @@ Zhang et al.\ señalan que el progreso en detección OOD ha sido difícil de seg
 por tres problemas de evaluación: una terminología confusa, conjuntos de datos
 inconsistentes y prácticas erróneas~\cite{openood15}. OpenOOD nació como
 plataforma y benchmark unificado para evaluar con el mismo protocolo los métodos
-existentes y futuros~\cite{openood,openood15}; su versión~1.5 amplía la
+existentes y futuros~\cite{openood,openood15}; \textcolor{green}{su versión~1.5 amplía la
 evaluación a ImageNet, a modelos fundacionales y a la detección del espectro
 completo, e incluye alrededor de 40 métodos~\cite{openood15}. Yang et al.\
 recogen en su revisión una comparación de métodos hecha con esta
-plataforma~\cite{yang2024}. Los métodos post hoc de este trabajo se han evaluado
+plataforma~\cite{yang2024}}. Los métodos post hoc de este trabajo se han evaluado
 con la implementación de OpenOOD (\cref{cap:metodos}).
 % Fuente: openood15, §1, pp. 1-2 (tres trampas, OpenOOD v1 y v1.5); §4, p. 9 (40 métodos);
 % yang2024, §5, p. 5651.
@@ -573,9 +573,9 @@ con las ID, en lugar de uno solo~\cite{openood15}. Los conjuntos OOD se agrupan 
 \emph{near-OOD}, más difíciles de detectar, y \emph{far-OOD}, más fáciles de detectar, con un criterio
 semántico o empírico: en los benchmarks de CIFAR, las imágenes near-OOD contienen
 objetos parecidos a los ID, mientras que las far-OOD (dígitos, texturas o escenas)
-se alejan de ellas tanto en significado como en estadísticas de bajo nivel; en
+se alejan de ellas tanto en significado como en estadísticas de bajo nivel; \textcolor{green}{en
 ImageNet, donde es difícil definir la cercanía semántica, se agrupan según el
-rendimiento empírico de los detectores~\cite{openood15}. En la revisión de Yang
+rendimiento empírico de los detectores~\cite{openood15}}. En la revisión de Yang
 et al., los conjuntos near-OOD solo presentan cambio semántico respecto a los ID,
 mientras que los far-OOD añaden un desplazamiento de dominio
 evidente~\cite{yang2024}. Además, OpenOOD reserva conjuntos de validación ID y OOD
@@ -695,18 +695,18 @@ XAI)~\cite{sevillano2025tesis}. Barredo Arrieta et al.\ señalan que la
 imposibilidad de explicar el funcionamiento de los modelos es una de las
 principales barreras para su implantación, sobre todo en sectores muy regulados y
 reacios a técnicas que puedan poner en riesgo sus activos, como la banca, la
-seguridad o la salud~\cite{barredo2020}. Gracias a la ~\ref{fig:ea-papers-xai} se puede apreciar el incipiente 
-aumento de contribuciones en XAI y en aspectos relacionados.
+seguridad o la salud~\cite{barredo2020}. 
+%Gracias a la ~\ref{fig:ea-papers-xai} se puede apreciar el incipiente aumento de contribuciones en XAI y en aspectos relacionados.
 % Fuente: sevillano2025tesis, cap. 2, p. 16; barredo2020, §2.3, p. 86.
-
-\begin{figure}[tbp]
-  \centering
-  \includegraphics[width=\textwidth]{img/cap02/papers_xai.png}
-  \caption{Evolución del número de publicaciones cuyo título, resumen o palabras
-    clave se refieren a la XAI, según Scopus (datos a 10 de diciembre de 2019).
-    Fuente: Barredo Arrieta et al.~\cite{barredo2020} (figura~1).}
-  \label{fig:ea-papers-xai}
-\end{figure}
+%
+%\begin{figure}[tbp]
+%  \centering
+%  \includegraphics[width=\textwidth]{img/cap02/papers_xai.png}
+%  \caption{Evolución del número de publicaciones cuyo título, resumen o palabras
+%    clave se refieren a la XAI, según Scopus (datos a 10 de diciembre de 2019).
+%    Fuente: Barredo Arrieta et al.~\cite{barredo2020} (figura~1).}
+%  \label{fig:ea-papers-xai}
+%\end{figure}
 
 En la literatura se usan a menudo como sinónimos términos con matices
 distintos~\cite{barredo2020}. La \emph{interpretabilidad} es una característica
@@ -824,7 +824,7 @@ En psicología se llama fenómeno \emph{Clever Hans} a resolver un problema
 apoyándose en una correlación espuria, en lugar de en el
 problema~\cite{lapuschkin2019}. Lapuschkin et al.\ muestran que los modelos de
 aprendizaje automático pueden comportarse así y que las métricas habituales, como
-el error en el conjunto de prueba, no lo detectan~\cite{lapuschkin2019}. Con
+el error en el conjunto de prueba, no lo detectan~\cite{lapuschkin2019}.\textcolor{green}{ Con
 mapas de relevancia obtenidos mediante LRP encuentran varios casos: un
 clasificador de PASCAL VOC que reconocía los caballos por una etiqueta de
 procedencia presente en una parte de sus imágenes, de modo que añadirla a la foto de
@@ -834,7 +834,7 @@ por el relleno añadido en los bordes de la imagen~\cite{lapuschkin2019}. Para
 analizar conjuntos de datos completos proponen SpRAy (\emph{Spectral Relevance
 Analysis}), que agrupa los mapas de relevancia para identificar de forma
 semiautomática las distintas estrategias de predicción del
-modelo~\cite{lapuschkin2019}.
+modelo~\cite{lapuschkin2019}.}
 % Fuente: lapuschkin2019 (arXiv), §1, pp. 2-3 (fenómeno Clever Hans, atribuido a Pfungst 1911);
 % resumen, p. 1, y §3, p. 7 (las métricas no lo detectan); §2.1, pp. 3-4 (etiqueta de procedencia,
 % Pinball); §2.2, pp. 5-6 (SpRAy, relleno en aviones).
@@ -978,7 +978,7 @@ siendo retos abiertos~\cite{yang2024,sevillano2026,achtibat2023}.
 Este trabajo se sitúa en ese contexto. Sobre el conjunto de datos de próstata de
 Ayensa-Jiménez et al., compara varios clasificadores (\cref{cap:clasificacion-id})
 y evalúa sobre el elegido métodos de detección OOD post hoc de distintas familias,
-con conjuntos near-OOD, far-OOD y de cambio de centro y resolución
+con conjuntos near-OOD, far-OOD, con cambio de centro y resolución y con corrupciones sintéticas del conjunto ID.
 (\cref{cap:deteccion-ood}). Aplica \stoodx como detector explicable
 (\cref{cap:stoodx}), estudia la predicción conforme como forma complementaria de
 expresar la incertidumbre (\cref{cap:conforme}), estudia la fuga por lámina

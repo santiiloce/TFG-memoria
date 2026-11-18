@@ -113,13 +113,21 @@ Además, los conjuntos OOD se clasifican en dos grupos según su dificultad: \em
 % - Puntuación s: \mathcal{X} \to \R (más alto = más ID) y regla G_\tau(x) = ID si s(x) \geq \tau.
 % - Convención de OpenOOD y de este trabajo: clase positiva = OOD.
 \begin{definicion}[Detector OOD por umbral]\label{def:detector}
-\pendiente{definición}
+Sea $\mathcal{X}$ el espacio de entradas y sea $s\colon \mathcal{X} \to \R$ una función de puntuación en la que un valor mayor indica que la entrada es más propia de la distribución ID. Dado un umbral $\tau \in \R$, el detector OOD asociado es
+\[
+  G_\tau(x) =
+  \begin{cases}
+    \text{ID}, & \text{si } s(x) \geq \tau,\\
+    \text{OOD}, & \text{si } s(x) < \tau.
+  \end{cases}
+\]
 \end{definicion}
+
+Esta es la formulación de OpenOOD~\cite[ec.~(1)]{openood15} con la orientación de la puntuación invertida: allí la función de puntuación $S$ mide lo OOD que es una entrada y se decide OOD si $S(x) \geq \lambda$. Ambas reglas coinciden tomando $S = -s$ y $\lambda = -\tau$. Como en~\cite{openood15}, y siguiendo la convención en aprendizaje automático~\cite{provost1998case} y la obra fundamental de detección OOD~\cite{hendrycks2017}, la detección se trata como un problema de clasificación binaria en el que las muestras OOD son la clase positiva y las ID, la negativa. El umbral $\tau$ depende de cada aplicación; al hacerlo variar se obtienen las curvas y métricas de la \cref{sec:metricas}.
 
 \section{Métricas de evaluación}\label{sec:metricas}
 Debido a que la detección se trata de un problema de clasificación binaria según \cref{def:ID} se utilizarán las siguintes métricas: área bajo la curva característica de funcionamiento del receptor (AUROC), area bajo la curva precisión-recuperación (AUPR) y tasa falsos positivos al 95\% de tasa de verdaderos positivos (FPR@95).
-El inconveniente de estas métricas está en que no miden si la clasificación de las 14 clases es correcta. Para ello se ha considerado añadir en este trabajo la mejor CCR@FPR$x$. Debido al potencial de esta métrica como evolución de la métrica FPR@95 y su capacidad para medir tanto covariate shift como semantic shift distribution
-se considerará como un indicador de la detección full-spectrum. \revisar{Iván}[No sé si la afirmaciónd de CCR@FPRx de indicador full spectrum es apropiada]. Además siguiendo la convención en aprendizaje automático ~\cite{provost1998case} y la obra fundamental de detección OOD ~\cite{hendrycks2017} se tratarán las muestras "anómalas" OOD como \textit{positivas} y las muestras "normales" ID como negativas ~\cite{openood15}.
+El inconveniente de estas métricas está en que no miden si la clasificación de las 14 clases es correcta. Para ello se ha considerado añadir en este trabajo la mejor CCR@FPR$x$.
 
 Evaluación. Además de las puntuaciones F, AUROC y AUPR, otra métrica comúnmente utilizada es FPR@TPR$x$, que mide la FPR cuando la TPR es $x$ (por ejemplo, $0{,}95$). Algunos trabajos también utilizan una métrica alternativa, TNR@TPR$x$, que es equivalente a $1 - \text{FPR@TPR}x$. La detección de OOD también afecta al rendimiento de la clasificación de ID.
 \revisar{traducción casi literal; parafrasear y citar}
@@ -134,9 +142,35 @@ Puede ser interpretado como la probabilidad de que el detector separe correctame
 % para la curva ROC, al explicar tus métricas».
 \pendiente{citar a Fawcett~\cite{fawcett2006} para la curva ROC}
 
+\begin{table}[H]
+  \centering
+  \caption{Categorías diagnósticas obtenidas al contrastar las predicciones de un test con el valor verdadero. Fuente: Cerda y Cifuentes~\cite{cerda2012roc}.}
+  \label{tab:categorias-diagnosticas}
+  \begin{tabular}{lcc}
+    \toprule
+    & Valor verdadero positivo & Valor verdadero negativo \\
+    \midrule
+    Predicción positiva & Verdadero positivo (VP) & Falso positivo (FP) \\
+    Predicción negativa & Falso negativo (FN) & Verdadero negativo (VN) \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Al contrastar las predicciones de un test diagnóstico con el valor verdadero se obtienen las cuatro categorías de la \cref{tab:categorias-diagnosticas}, a partir de las cuales se definen~\cite{cerda2012roc}
+\[
+  \text{Sensibilidad} = \frac{\mathrm{VP}}{\mathrm{VP} + \mathrm{FN}}, \qquad
+  \text{Especificidad} = \frac{\mathrm{VN}}{\mathrm{FP} + \mathrm{VN}}.
+\]
+
 \begin{definicion}[Curva ROC]\label{def:roc}
 % TPR(\tau) y FPR(\tau) como funciones del umbral; curva paramétrica (Fawcett, 2006).
-\pendiente{definición}
+Un gráfico de curva ROC muestra en el eje X el valor $1 - \text{especificidad}$ y en el eje Y la sensibilidad, mostrando ambas propiedades para cada posible punto de corte de un test diagnóstico cuya escala de medición es continua. Ambos ejes toman valores desde 0 hasta 1 (0\,\% y 100\,\%). También se traza la diagonal correspondiente a la ecuación $y = x$, llamada \emph{diagonal de referencia} o \emph{línea de no-discriminación}~\cite{cerda2012roc}.
+\end{definicion}
+
+En la detección OOD, con la clase OOD como positiva (\cref{def:detector}), una muestra se predice positiva cuando $s(x) < \tau$, y cada umbral $\tau$ da un punto de la curva. La sensibilidad es la tasa de verdaderos positivos, $\mathrm{TPR}(\tau)$, es decir, la proporción de muestras OOD con $s(x) < \tau$; y $1 - \text{especificidad}$ es la tasa de falsos positivos, $\mathrm{FPR}(\tau)$, la proporción de muestras ID con $s(x) < \tau$. La curva ROC es entonces el conjunto de puntos $\bigl\{\bigl(\mathrm{FPR}(\tau), \mathrm{TPR}(\tau)\bigr) : \tau \in \R\bigr\}$.
+
+\begin{definicion}[Punto de corte de una escala continua que determina la sensibilidad y especificidad más altas]\label{def:youden}
+Se trata de aquel punto de corte que presenta el mayor índice de Youden, calculado según la fórmula $\text{sensibilidad} + \text{especificidad} - 1$~\cite{cerda2012roc}.
 \end{definicion}
 
 \begin{teorema}[Interpretación probabilística del AUROC]\label{teo:auroc-prob}

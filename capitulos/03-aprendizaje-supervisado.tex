@@ -71,7 +71,7 @@ al valor final, si la neurona se activa y qué valor transmite a la siguiente ca
 
 \begin{figure}[tbp]
   \centering
-  \includegraphics[width=0.85\textwidth]{img/neurona_artificial.png}
+  \includegraphics[width=0.5\textwidth]{img/neurona_artificial.png}
   \caption[Neurona biológica y neurona artificial]{%
     (a) Neurona biológica. (b) Neurona artificial: las entradas $x_j$ se ponderan
     con los pesos $w_{ij}$, se suman y el resultado $u_i$ pasa por una función no
@@ -529,16 +529,16 @@ diferencia de logits de $\log 127 \approx 4{,}84$. Este suelo se usa en el
 
 \section{Optimización: Adam y AdamW}\label{sec:adamw}
 
-Sea $f(\theta)$ la función de pérdida, que depende de los parámetros
-$\theta \in \R^n$ de la red. En la práctica no se minimiza directamente
-$f$, sino una sucesión de realizaciones estocásticas $f_1, f_2, \dots$, cada una
+Sea $L(\phi)$ la función de pérdida (\cref{def:entropia-cruzada}), que depende de los parámetros
+$\phi \in \R^n$ de la red. En la práctica no se minimiza directamente
+$L$, sino una sucesión de realizaciones estocásticas $L_1, L_2, \dots$, cada una
 evaluada sobre un minilote distinto de datos de entrenamiento. Se denota por
 \[
-  g_t = \nabla_\theta f_t(\theta_{t-1})
+  g_t = \nabla_\phi L_t(\phi_{t-1})
 \]
 el gradiente del minilote $t$ evaluado en los parámetros de la iteración
 anterior. El método más sencillo es el descenso de gradiente estocástico (SGD),
-que actualiza $\theta_t = \theta_{t-1} - \alpha\, g_t$ con una tasa de aprendizaje
+que actualiza $\phi_t = \phi_{t-1} - \alpha\, g_t$ con una tasa de aprendizaje
 $\alpha > 0$ común a todos los parámetros.
 
 \subsection{Adam}\label{sec:adam}
@@ -552,7 +552,7 @@ objetivos no estacionarios~\cite{kingma2014}.
 \begin{definicion}[Adam~\cite{kingma2014}]\label{def:adam}
 Sean $\alpha > 0$ la tasa de aprendizaje, $\beta_1, \beta_2 \in [0, 1)$ las tasas
 de decaimiento de las medias móviles y $\varepsilon > 0$ una constante de
-estabilidad numérica. Partiendo de $\theta_0$, $m_0 = 0$ y $v_0 = 0$, en cada
+estabilidad numérica. Partiendo de $\phi_0$, $m_0 = 0$ y $v_0 = 0$, en cada
 iteración $t \ge 1$ Adam calcula
 \begin{align}
   m_t &= \beta_1\, m_{t-1} + (1 - \beta_1)\, g_t ,
@@ -562,7 +562,7 @@ iteración $t \ge 1$ Adam calcula
   \widehat{m}_t &= \frac{m_t}{1 - \beta_1^{t}}, \qquad
   \widehat{v}_t = \frac{v_t}{1 - \beta_2^{t}},
       \label{eq:adam-correccion}\\
-  \theta_t &= \theta_{t-1} - \alpha\, \frac{\widehat{m}_t}{\sqrt{\widehat{v}_t} + \varepsilon},
+  \phi_t &= \phi_{t-1} - \alpha\, \frac{\widehat{m}_t}{\sqrt{\widehat{v}_t} + \varepsilon},
       \label{eq:adam-actualizacion}
 \end{align}
 donde $g_t^2$, la raíz cuadrada y el cociente se entienden componente a
@@ -586,6 +586,9 @@ primeras iteraciones. Los cocientes de la \cref{eq:adam-correccion} corrigen ese
 sesgo, como muestra el siguiente resultado.
 
 \begin{proposicion}[Corrección del sesgo de inicialización~\cite{kingma2014}]\label{prop:adam-sesgo}
+Sea $g$ un vector aleatorio con la distribución de los gradientes estocásticos,
+de modo que cada $g_i$ es una extracción de esa distribución~\cite[sec.~3]{kingma2014},
+y entiéndanse los cuadrados y las esperanzas componente a componente.
 Supongamos que los gradientes $g_1, g_2, \dots$ tienen el mismo momento de
 segundo orden, $\E[g_i^2] = \E[g^2]$ para todo $i$. Entonces, para todo $t \ge 1$,
 \[
@@ -602,6 +605,16 @@ obtiene, por inducción sobre $t$,
 \[
   v_t = (1 - \beta_2) \sum_{i=1}^{t} \beta_2^{\,t-i}\, g_i^{2}.
 \]
+En efecto, para $t = 1$ la \cref{eq:adam-v} da
+$v_1 = \beta_2 v_0 + (1-\beta_2)\, g_1^2 = (1-\beta_2)\, g_1^2$, que es la
+fórmula con un único sumando. Si la fórmula se cumple para $t-1$, entonces
+\[
+  v_t = \beta_2\, v_{t-1} + (1-\beta_2)\, g_t^2
+      = \beta_2 (1-\beta_2) \sum_{i=1}^{t-1} \beta_2^{\,t-1-i}\, g_i^{2} + (1-\beta_2)\, g_t^2
+      = (1-\beta_2) \sum_{i=1}^{t} \beta_2^{\,t-i}\, g_i^{2},
+\]
+pues $\beta_2 \cdot \beta_2^{\,t-1-i} = \beta_2^{\,t-i}$ y el último sumando es
+el término $i = t$, con $\beta_2^{\,0} = 1$.
 Tomando esperanzas, por linealidad y por la hipótesis,
 \[
   \E[v_t] = \E[g^2]\, (1 - \beta_2) \sum_{i=1}^{t} \beta_2^{\,t-i}
@@ -630,10 +643,17 @@ $\varepsilon = 0$), tiene dos propiedades que explican su uso extendido:
   gradientes se multiplican por $c > 0$, $\widehat{m}_t$ se multiplica por $c$ y
   $\widehat{v}_t$ por $c^2$, de modo que el cociente
   $c\,\widehat{m}_t / \sqrt{c^2\, \widehat{v}_t}$ no cambia.
-  \item \emph{Está aproximadamente acotado por $\alpha$.} En los casos
-  habituales $|\widehat{m}_t / \sqrt{\widehat{v}_t}| \lesssim 1$, lo que actúa
+  \item \emph{Está aproximadamente acotado por $\alpha$.} Kingma y Ba dan dos
+  cotas, componente a componente: $|\Delta_t| \le \alpha\,(1-\beta_1)/\sqrt{1-\beta_2}$
+  si $(1-\beta_1) > \sqrt{1-\beta_2}$, caso que solo se da cuando el gradiente
+  ha sido nulo en todas las iteraciones salvo la actual, y $|\Delta_t| \le \alpha$
+  en otro caso~\cite[sec.~2.1]{kingma2014}. En los casos habituales,
+  $\widehat{m}_t / \sqrt{\widehat{v}_t} \approx \E[g]/\sqrt{\E[g^2]}$, y este
+  cociente tiene valor absoluto como mucho $1$, porque
+  $\E[g^2] - \E[g]^2 = \operatorname{Var}(g) \ge 0$. Así,
+  $|\widehat{m}_t / \sqrt{\widehat{v}_t}| \lesssim 1$, lo que actúa
   como una región de confianza alrededor de los parámetros actuales y facilita
-  elegir el orden de magnitud de $\alpha$~\cite{kingma2014}.
+  elegir el orden de magnitud de $\alpha$~\cite[sec.~2.1]{kingma2014}.
 \end{itemize}
 
 \subsection{Regularización \texorpdfstring{$L_2$}{L2} y decaimiento de pesos}\label{sec:l2-wd}
@@ -643,13 +663,15 @@ formas de hacerlo que suelen confundirse:
 \begin{itemize}
   \item La \emph{regularización $L_2$} añade un término a la pérdida,
   \[
-    f_t^{\mathrm{reg}}(\theta) = f_t(\theta) + \frac{\lambda'}{2}\, \|\theta\|_2^2 ,
+    L_t^{\mathrm{reg}}(\phi) = L_t(\phi) + \frac{\lambda'}{2}\, \|\phi\|_2^2 ,
   \]
-  y aplica el optimizador a $f_t^{\mathrm{reg}}$.
+  donde $\lambda' \ge 0$ es el coeficiente de regularización $L_2$ y
+  $\|\phi\|_2^2 = \sum_{j=1}^{n} \phi_j^2$, y aplica el optimizador a
+  $L_t^{\mathrm{reg}}$.
   \item El \emph{decaimiento de pesos} (\emph{weight decay}) reduce los pesos
   directamente en cada paso, de forma separada del gradiente de la pérdida:
   \[
-    \theta_{t} = (1 - \lambda)\, \theta_{t-1} - \alpha\, \nabla f_t(\theta_{t-1}),
+    \phi_{t} = (1 - \lambda)\, \phi_{t-1} - \alpha\, \nabla_\phi L_t(\phi_{t-1}),
   \]
   donde $\lambda$ es la tasa de decaimiento por paso.
 \end{itemize}
@@ -657,16 +679,16 @@ Loshchilov y Hutter~\cite{loshchilov2019} muestran que ambas formas coinciden
 para SGD, pero no para métodos adaptativos como Adam.
 
 \begin{proposicion}[Equivalencia para SGD~\cite{loshchilov2019}]\label{prop:sgd-l2-wd}
-SGD con tasa de aprendizaje $\alpha$ y decaimiento de pesos $\lambda$ sobre $f_t$
-produce los mismos iterados que SGD sin decaimiento sobre $f_t^{\mathrm{reg}}$ con
+SGD con tasa de aprendizaje $\alpha$ y decaimiento de pesos $\lambda$ sobre $L_t$
+produce los mismos iterados que SGD sin decaimiento sobre $L_t^{\mathrm{reg}}$ con
 $\lambda' = \lambda / \alpha$.
 \end{proposicion}
 \begin{demostracion}
-Como $\nabla f_t^{\mathrm{reg}}(\theta) = \nabla f_t(\theta) + \lambda' \theta$,
-SGD sobre $f_t^{\mathrm{reg}}$ da
+Como $\nabla_\phi L_t^{\mathrm{reg}}(\phi) = \nabla_\phi L_t(\phi) + \lambda' \phi$,
+SGD sobre $L_t^{\mathrm{reg}}$ da
 \[
-  \theta_t = \theta_{t-1} - \alpha \nabla f_t(\theta_{t-1}) - \alpha \lambda'\, \theta_{t-1}
-           = (1 - \alpha\lambda')\, \theta_{t-1} - \alpha \nabla f_t(\theta_{t-1}),
+  \phi_t = \phi_{t-1} - \alpha \nabla_\phi L_t(\phi_{t-1}) - \alpha \lambda'\, \phi_{t-1}
+           = (1 - \alpha\lambda')\, \phi_{t-1} - \alpha \nabla_\phi L_t(\phi_{t-1}),
 \]
 que coincide con la regla del decaimiento de pesos si y solo si
 $\alpha\lambda' = \lambda$.
@@ -678,22 +700,22 @@ quedan acoplados.
 
 \begin{proposicion}[No equivalencia para métodos adaptativos~\cite{loshchilov2019}]\label{prop:adaptativo-l2-wd}
 Sea un optimizador cuyos iterados sin regularización son
-$\theta_t = \theta_{t-1} - \alpha M_t \nabla f_t(\theta_{t-1})$, con una matriz de
+$\phi_t = \phi_{t-1} - \alpha M_t \nabla_\phi L_t(\phi_{t-1})$, con una matriz de
 precondicionamiento $M_t$ que no es múltiplo de la identidad, y que con
 decaimiento de pesos $\lambda > 0$ son
-$\theta_t = (1-\lambda)\theta_{t-1} - \alpha M_t \nabla f_t(\theta_{t-1})$.
+$\phi_t = (1-\lambda)\phi_{t-1} - \alpha M_t \nabla_\phi L_t(\phi_{t-1})$.
 Entonces no existe ningún $\lambda' \in \R$ tal que aplicar el optimizador sin
-decaimiento a $f_t^{\mathrm{reg}}$ produzca los mismos iterados que aplicarlo con
-decaimiento $\lambda$ a $f_t$.
+decaimiento a $L_t^{\mathrm{reg}}$ produzca los mismos iterados que aplicarlo con
+decaimiento $\lambda$ a $L_t$.
 \end{proposicion}
 \begin{demostracion}
-Sobre $f_t^{\mathrm{reg}}$, los iterados son
+Sobre $L_t^{\mathrm{reg}}$, los iterados son
 \[
-  \theta_t = \theta_{t-1} - \alpha\lambda' M_t\, \theta_{t-1} - \alpha M_t \nabla f_t(\theta_{t-1}).
+  \phi_t = \phi_{t-1} - \alpha\lambda' M_t\, \phi_{t-1} - \alpha M_t \nabla_\phi L_t(\phi_{t-1}).
 \]
 Restando la regla con decaimiento de pesos, ambos iterados coinciden para todo
-$\theta_{t-1}$ si y solo si $\lambda\, \theta_{t-1} = \alpha\lambda' M_t\, \theta_{t-1}$
-para todo $\theta_{t-1}$, es decir, si $\alpha\lambda' M_t = \lambda I$. Como
+$\phi_{t-1}$ si y solo si $\lambda\, \phi_{t-1} = \alpha\lambda' M_t\, \phi_{t-1}$
+para todo $\phi_{t-1}$, es decir, si $\alpha\lambda' M_t = \lambda I$. Como
 $\lambda > 0$, esto exige que $M_t$ sea un múltiplo de la identidad, en
 contradicción con la hipótesis.
 \end{demostracion}
@@ -702,7 +724,11 @@ En Adam, el precondicionador es diagonal y depende de cada parámetro,
 \[
   M_t = \operatorname{diag}\bigl(\sqrt{\widehat{v}_t} + \varepsilon\bigr)^{-1},
 \]
-así que la \cref{prop:adaptativo-l2-wd} se aplica. Intuitivamente, con
+aunque Adam solo encaja de forma aproximada en el esquema de la
+\cref{prop:adaptativo-l2-wd}: actualiza con $\widehat{m}_t$ en lugar de con el
+gradiente $\nabla_\phi L_t(\phi_{t-1})$, y su $M_t$ depende de los propios
+gradientes, que cambian al añadir la penalización. La proposición da, por tanto,
+la intuición de lo que ocurre: con
 regularización $L_2$ el gradiente del término de penalización también se divide
 por $\sqrt{\widehat{v}_t}$, de modo que los pesos con gradientes históricamente
 grandes se regularizan menos que con el decaimiento de pesos, que los reduce a
@@ -717,8 +743,8 @@ $m_t, v_t, \widehat{m}_t, \widehat{v}_t$ se calculan como en la
 regularización, y la actualización de la \cref{eq:adam-actualizacion} se
 sustituye por
 \begin{equation}\label{eq:adamw}
-  \theta_t = \theta_{t-1} - \eta_t \left( \alpha\, \frac{\widehat{m}_t}{\sqrt{\widehat{v}_t} + \varepsilon}
-             + \lambda\, \theta_{t-1} \right),
+  \phi_t = \phi_{t-1} - \eta_t \left( \alpha\, \frac{\widehat{m}_t}{\sqrt{\widehat{v}_t} + \varepsilon}
+             + \lambda\, \phi_{t-1} \right),
 \end{equation}
 donde $\lambda \ge 0$ es la tasa de decaimiento de pesos y $\eta_t > 0$ es un
 multiplicador que permite modificar la tasa de aprendizaje a lo largo del
@@ -735,7 +761,7 @@ $\alpha$ y $\lambda$, lo que facilita ajustar ambos hiperparámetros.
 Los modelos de este trabajo se entrenaron con la implementación de Adam de
 fastai, que por defecto aplica el decaimiento de pesos de forma desacoplada y es,
 por tanto, AdamW. Esta implementación aplica el decaimiento como
-$\theta \leftarrow (1 - \mathrm{lr}_t\,\mathrm{wd})\,\theta$, donde
+$\phi \leftarrow (1 - \mathrm{lr}_t\,\mathrm{wd})\,\phi$, donde
 $\mathrm{lr}_t$ es la tasa de aprendizaje vigente; equivale a la
 \cref{eq:adamw} con $\lambda = \alpha\,\mathrm{wd}$. Además, no aplica
 decaimiento a los sesgos ni a los parámetros de las capas de normalización. Se
@@ -757,12 +783,14 @@ Goodfellow et al.~\cite[cap.~9]{goodfellow2016deep}.
 \subsubsection{La operación de convolución}
 
 \begin{definicion}[Convolución]\label{def:convolucion}
-Sean $x, w \colon \mathbb{R} \to \mathbb{R}$ dos funciones integrables, en particular se exigirá que $x, w \in L^1(\mathbb{R})$. Se
+Sean $x, w \colon \mathbb{R} \to \mathbb{R}$ dos funciones integrables, en particular se exigirá que $x, w \in L^1(\mathbb{R})$, es decir, $\int_{-\infty}^{\infty} |x(a)|\, da < \infty$ y lo mismo para $w$. Se
 define su \emph{convolución} como
 \begin{equation}\label{eq:conv-continua}
   s(t) = (x * w)(t) = \int_{-\infty}^{\infty} x(a)\, w(t-a)\, da .
 \end{equation}
-Si $x, w \colon \mathbb{Z} \to \mathbb{R}$ son discretas, la convolución es
+Si $x, w \colon \mathbb{Z} \to \mathbb{R}$ son discretas, con
+$x, w \in \ell^1(\mathbb{Z})$, es decir, $\sum_{a\in\mathbb{Z}} |x(a)| < \infty$
+y lo mismo para $w$, la convolución es
 \begin{equation}\label{eq:conv-discreta}
   s(t) = (x * w)(t) = \sum_{a=-\infty}^{\infty} x(a)\, w(t-a).
 \end{equation}
@@ -772,17 +800,56 @@ En el contexto de las redes convolucionales, $x$ recibe el nombre de
 \cite[sec.~9.1]{goodfellow2016deep}.
 \end{definicion}
 
+\begin{observacion}[Buena definición]\label{obs:conv-L1}
+La hipótesis $x, w \in L^1(\R)$ garantiza que la integral de la
+\cref{eq:conv-continua} existe. Se usa el \emph{teorema de Fubini--Tonelli}: si
+$F\colon\R^2\to\R$ es medible y $\iint |F(a,t)|\,da\,dt < \infty$, entonces
+$\int F(a,t)\,da$ converge absolutamente para casi todo $t$, y las integrales
+iteradas en cualquier orden coinciden con la integral doble; si
+$F \ge 0$, las integrales iteradas coinciden siempre, aunque valgan $\infty$.
+Aplicándolo a $F(a,t) = |x(a)|\,|w(t-a)| \ge 0$ e integrando primero en $t$, con
+el cambio $u = t - a$,
+\[
+  \iint |x(a)|\,|w(t-a)|\,dt\,da
+  = \int |x(a)| \Bigl(\int |w(u)|\,du\Bigr) da
+  = \|x\|_1\,\|w\|_1 < \infty,
+\]
+de modo que la integral de la \cref{eq:conv-continua} converge absolutamente para
+casi todo $t$ y, además, $\|x * w\|_1 \le \|x\|_1\,\|w\|_1$, es decir,
+$x * w \in L^1(\R)$. En el caso discreto basta acotar
+$\sum_a |x(a)|\,|w(t-a)| \le \bigl(\sup_b |w(b)|\bigr)\,\|x\|_1 \le \|w\|_1\,\|x\|_1$,
+así que la serie de la \cref{eq:conv-discreta} converge absolutamente para todo $t$.
+\end{observacion}
+
+\begin{proposicion}[Conmutatividad de la convolución]\label{prop:conv-conmutativa}
+En las condiciones de la \cref{def:convolucion}, $x * w = w * x$.
+\end{proposicion}
+\begin{demostracion}
+En el caso continuo, con el cambio de variable $b = t - a$ (luego $da = -db$, y
+los límites $\pm\infty$ se intercambian),
+\[
+  (x * w)(t) = \int_{-\infty}^{\infty} x(a)\, w(t-a)\, da
+  = \int_{-\infty}^{\infty} x(t-b)\, w(b)\, db = (w * x)(t).
+\]
+En el caso discreto, $a \mapsto b = t - a$ es una biyección de $\mathbb{Z}$ en
+sí mismo, y reordenar los términos no cambia el valor de una serie
+absolutamente convergente, así que
+$\sum_{a} x(a)\,w(t-a) = \sum_{b} x(t-b)\,w(b)$.
+\end{demostracion}
+
 En la práctica, la entrada y el núcleo son tensores de valores finitos y se
 suponen nulos fuera de las posiciones almacenadas, de modo que la suma
 infinita de \cref{eq:conv-discreta} se reduce a una suma finita siempre y cuando la entrada o
 el núcleo tengan soporte finito. En el procesamiento de imágenes digitales se emplea habitualmente un núcleo bidimensional $K$ de dimensiones impares $(2k+1) \times (2k+1)$ centrado en el origen, con índices $m, n \in \{-k, \dots, k\}$ \cite{mesejo2026vision}. Para una imagen bidimensional $I$, la convolución discreta se expresa como
 \begin{equation}\label{eq:conv-2d}
-  S(i,j) = (I * K)(i,j) = \sum_{m=-k}^{k}\sum_{n=-k}^{k} I(m,n)\, K(i-m,\, j-n),
+  S(i,j) = (I * K)(i,j) = \sum_{m=i-k}^{i+k}\sum_{n=j-k}^{j+k} I(m,n)\, K(i-m,\, j-n),
 \end{equation}
-y, al tratarse de una operación conmutativa (así como asociativa), resulta equivalente a
+y, al tratarse de una operación conmutativa (\cref{prop:conv-conmutativa}) (así como asociativa), resulta equivalente a
 \begin{equation}\label{eq:conv-2d-conmutativa}
-  S(i,j) = (K * I)(i,j) = \sum_{m=-k}^{k}\sum_{n=-k}^{k} I(i-m,\, j-n)\, K(m,n).
+  S(i,j) = (K * I)(i,j) = \sum_{m=-k}^{k}\sum_{n=-k}^{k} I(i-m,\, j-n)\, K(m,n),
 \end{equation}
+que se obtiene de la \cref{eq:conv-2d} con el cambio de índices $m' = i - m$,
+$n' = j - n$, que recorren $\{-k,\dots,k\}$.
 Esta propiedad se debe a que el núcleo aparece \emph{volteado (flipped)} respecto de
 la entrada tanto horizontal como verticalmente ---lo que equivale geométricamente a rotarlo $180^{\circ}$---: al crecer $m$ y $n$, los índices de la entrada crecen mientras que los del núcleo decrecen \cite{goodfellow2016deep, mesejo2026vision}. Aunque la conmutatividad y la asociatividad son útiles en demostraciones teóricas y para precombinar filtros lineales, el volteo del núcleo no resulta relevante para el aprendizaje de parámetros en una red convolucional \cite[sec.~9.1]{goodfellow2016deep}.
 
@@ -894,6 +961,7 @@ Para todo $(i,j) \in \mathbb{Z}^2$, por la definición
 \cref{eq:correlacion-cruzada},
 \begin{align*}
   \bigl(K \star T_\tau I\bigr)(i,j)
+  &= \sum_{m}\sum_{n} \bigl(T_\tau I\bigr)(i+m,\, j+n)\, K(m,n)\\
   &= \sum_{m}\sum_{n} I\bigl(i+m-\tau_1,\, j+n-\tau_2\bigr)\, K(m,n)\\
   &= (K \star I)(i-\tau_1,\, j-\tau_2)
   = \bigl(T_\tau(K \star I)\bigr)(i,j).
@@ -1033,11 +1101,11 @@ $x\in\R^{D}$,
 \]
 con parámetros aprendidos $\gamma,\delta\in\R^{D}$, uno por canal.
 \end{definicion}
-\revisar{Prince describe la LayerNorm con estadísticos sobre los canales y las
-posiciones espaciales (sec.~11.4) y, en los transformers, sobre los tokens de la
-secuencia (sec.~12.4). En las implementaciones de ViT, Swin y ConvNeXt usadas
-(\texttt{timm}) se normaliza cada token, o cada posición espacial, sobre sus $D$
-canales, que es lo que recoge la definición; comprobar cuál se prefiere citar.}
+Prince describe también variantes en las que los estadísticos se calculan sobre
+los canales y las posiciones espaciales (sec.~11.4) o sobre los tokens de la
+secuencia (sec.~12.4); la de la \cref{def:layernorm}, que normaliza cada token, o
+cada posición espacial, sobre sus $D$ canales, es la que usan las implementaciones
+de ViT, Swin y ConvNeXt de este trabajo.
 
 A diferencia de BatchNorm, la salida de LayerNorm para un ejemplo no depende del
 resto del lote. Vaswani et al.\ la usaron en el transformer original porque los
@@ -1068,14 +1136,13 @@ Prince indica que, en cada bloque, el orden de las operaciones es
 BatchNorm, ReLU y convolución \cite[sec.~11.5.1, fig.~11.7]{prince2023understanding}.
 En la ResNet-50 usada en este trabajo, cada convolución va seguida de BatchNorm
 y ReLU, y la última ReLU del bloque se aplica después de sumar la conexión
-residual, según el resumen de capas del entrenamiento.
-\revisar{comprobar el orden del bloque en He et al.~(2016); el orden de Prince
-corresponde a otra variante de ResNet}
+residual, según el resumen de capas del entrenamiento. Es el orden de He et
+al.~\cite[secs.~3.2 y~3.4]{he2016}.
 \end{observacion}
 
 \subsection{Transformers}\label{sec:transformer}
 
-Los transformers presentan su origen en los NLP, en donde es fundamental el contexto
+Los transformers presentan su origen en el procesamiento del lenguaje natural (\emph{natural language processing}, NLP), en donde es fundamental el contexto
 de las palabras para poder entender su significado. Por ejemplo, sea la siguiente frase, similar a la
 ofrecida por Prince~\cite[sec.~12.1]{prince2023understanding}:
 
@@ -1087,7 +1154,7 @@ que puede ser por ejemplo calificar esta reseña como positiva o negativa. En es
 es que las entradas pueden ser inmensamente largas de forma que las redes neuronales totalmente conectadas son imprácticas. Segundo, cada entrada
 es de una longitud distinta de forma que no sería obvio cómo aplicar una red totalmente conectada. Finalmente, el lenguaje es ambiguo,
 por ejemplo la palabra «ellos» se refiere al restaurante y no al sándwich de jamón. Para entender el texto, la palabra
-debería estar relacionada de alguna manera con la palabra «restaurante». En la jerga de los transformadores,
+debería estar relacionada de alguna manera con la palabra «restaurante». En la jerga de los transformers,
 la primera palabra debería tener en cuenta a la segunda. Esto implica que debe haber
 conexiones entre las palabras y que la fuerza de estas conexiones dependerá
 de las propias palabras. Además, estas conexiones deben extenderse a lo largo de amplios
@@ -1120,6 +1187,9 @@ de cada parche y $v_n$ contiene la información real que será transmitida si el
   = \frac{\exp\bigl(k_m^{\top} q_n\bigr)}{\sum_{m'=1}^{N}\exp\bigl(k_{m'}^{\top} q_n\bigr)},
   \qquad m = 1,\dots,N,
 \]
+donde $\softmax_m\bigl(k_\bullet^{\top} q_n\bigr)$ denota la componente
+$m$-ésima de la función \emph{softmax} (\cref{def:softmax}) aplicada al vector
+$\bigl(k_1^{\top} q_n, \dots, k_N^{\top} q_n\bigr) \in \R^{N}$;
 y la salida $n$-ésima del bloque es la media ponderada de los valores:
 \[
   \operatorname{sa}_n(x_1,\dots,x_N) = \sum_{m=1}^{N} a(x_m,x_n)\,v_m.
@@ -1184,6 +1254,10 @@ donde $D_q$ es la dimensión de las consultas y las claves. La salida del bloque
     \operatorname{Sa}_H(X)
   \end{bmatrix}.
 \]
+Si los valores de cada cabeza tienen dimensión $D_v$, cada
+$\operatorname{Sa}_h(X)\in\R^{D_v\times N}$, la concatenación está en
+$\R^{HD_v\times N}$ y $\Omega_c\in\R^{D\times HD_v}$, de modo que la salida tiene
+el mismo tamaño $D\times N$ que la entrada.
 \end{definicion}
 
 Habitualmente, si las entradas tienen dimensión $D$, los valores, las consultas y las claves de cada cabeza tienen dimensión $D/H$, lo que permite una implementación eficiente: el coste total es similar al de una única cabeza de dimensión $D$. Según Prince~\cite[sec.~12.3.3]{prince2023understanding}, el uso de varias cabezas parece necesario para que el transformer funcione bien, y se ha conjeturado que hace la red más robusta frente a malas inicializaciones.
@@ -1224,9 +1298,14 @@ $z\in\R^{N}$ se tiene
 es decir,
 $P^{\top}z$ reordena las componentes de $z$. Como el denominador de la función
 \emph{softmax} no depende del orden,
+$\sum_{m'=1}^{N}\exp(z_{\pi(m')}) = \sum_{m'=1}^{N}\exp(z_{m'})$, y por tanto,
+componente a componente,
 \[
-  \sum_{m=1}^{N}\exp(z_{\pi(m)}) = \sum_{m=1}^{N}\exp(z_m),
-  \qquad\text{luego}\qquad
+  \bigl(\softmax(P^{\top}z)\bigr)_m
+  = \frac{\exp(z_{\pi(m)})}{\sum_{m'=1}^{N}\exp(z_{m'})}
+  = \bigl(\softmax(z)\bigr)_{\pi(m)}
+  = \bigl(P^{\top}\softmax(z)\bigr)_m,
+  \qquad\text{es decir,}\qquad
   \softmax(P^{\top}z) = P^{\top}\softmax(z).
 \]
 La columna $n$-ésima de $AP$ es la columna $\pi(n)$-ésima de $A$, que denotamos
@@ -1327,7 +1406,8 @@ Prince, con los tokens en columnas.
 El transformer recibe una secuencia de vectores. Para aplicarlo a una imagen
 $x\in\R^{H\times W\times C}$, donde $(H,W)$ es la resolución y $C$ el número de
 canales, la imagen se divide en $N = HW/P^2$ parches de $P\times P$ píxeles, que
-se aplanan en vectores $x_p^1,\dots,x_p^N\in\R^{P^2C}$. $N$ es la longitud de la
+se aplanan en vectores $x_p^1,\dots,x_p^N\in\R^{P^2C}$ (esta $P$, la del
+artículo, no es la matriz de permutación de la \cref{prop:sa-permutaciones}). $N$ es la longitud de la
 secuencia que recibe el transformer. Como el transformer usa la misma dimensión
 $D$ en todas sus capas, cada parche se proyecta a $\R^{D}$ con una matriz
 aprendida $E$; el resultado se llama \emph{embedding} del parche
@@ -1581,7 +1661,9 @@ $M = 7$, la dimensión de las consultas de cada cabeza es $d = 32$ y la capa
 oculta del MLP tiene $4$ veces la dimensión de la entrada. Swin-S tiene $C = 96$
 y $\{2, 2, 18, 2\}$ bloques en sus cuatro etapas, y su complejidad es similar a la
 de ResNet-101~\cite[sec.~3.3]{liu2021swin}. La \cref{tab:swin-s} resume el
-Swin-S usado en este trabajo. Su salida, tras el promedio, tiene $768$
+Swin-S usado en este trabajo; como cada cabeza tiene dimensión $d = 32$, el
+número de cabezas de cada etapa es su número de canales dividido entre
+$32$~\cite[sec.~3.3]{liu2021swin}. Su salida, tras el promedio, tiene $768$
 características.
 
 \begin{table}[tbp]
@@ -1602,8 +1684,7 @@ características.
   \end{tabular}
 \end{table}
 % Resolución, canales y bloques: resumen de capas de param4_*/resultados.txt.
-\revisar{el número de cabezas no aparece en el resumen de capas: se ha obtenido como canales$/d$ con
-$d = 32$ (Liu et al., sec.~3.3)}
+% Cabezas: canales/d con d = 32 (Liu et al., sec. 3.3); no aparecen en el resumen de capas.
 
 \subsection{ConvNeXt}\label{sec:convnext}
 
@@ -1614,20 +1695,19 @@ $d = 32$ (Liu et al., sec.~3.3)}
 % reducción entre etapas LayerNorm2d + Conv2d 73920 = 96*192*2*2 + 192 (2x2); etapas de 3, 3, 27
 % y 3 bloques (36 GELU) con 96, 192, 384 y 768 canales; salida de 768 x 8 x 8.
 
-En 2020 las redes neuronales convulcionales parecían estancadas ante la superioridad de los transformers. ¿Y si realmente,
-no es que fueran peores, y sólo es que estaban desactualizadas? Esta pregunta fue respondida en 2022, cuando unos investigadores de Facebook presentaron una familia de redes
+En 2020 las redes neuronales convolucionales parecían estancadas ante la superioridad de los transformers. ¿Y si realmente,
+no es que fueran peores, y solo es que estaban desactualizadas? Esta pregunta fue respondida en 2022, cuando unos investigadores de Facebook presentaron una familia de redes
 convolucionales, llamada ConvNeXt, que superó a los vision transformers en
 clasificación de imágenes~\cite{liu2022convnext,todi2023convnext}. Para construirla, partieron de
 una ResNet y la adaptaron para que se pareciera más a un vision
-transformer. Para esto aplicaron diversas implementaciones como pasar de entrenar con 90 épocas a 300, utilizar
-como optimizador AdamW en vez SGD, nuevas técnicas de data augmentation, stochasthic depth y label smoothing que evitó que el modelo 
-fuese demasiado confiado. También empleó en cada una de las cuatro etapas principales de la red neuronal una distribución de 
-bloques residuales en donde se dedica mucha más capacidad de procesamiento a extraer características complejas en una resolución intermedia. Estó último permitió que el modelo fuera capaz de adquirir características más complejas. Entre otras implementaciones como utilizar como función 
-de activación GELU en vez de RELU la estructura final del bloque ConvNext es la siguiente:
+transformer. Para esto aplicaron diversas implementaciones, como pasar de entrenar con 90 épocas a 300, utilizar
+como optimizador AdamW en vez de SGD, nuevas técnicas de aumento de datos (\emph{data augmentation}), \emph{stochastic depth} y \emph{label smoothing} (\cref{sec:perdida}). También empleó en cada una de las cuatro etapas principales de la red neuronal una distribución de 
+bloques residuales en donde se dedica mucha más capacidad de procesamiento a extraer características complejas en una resolución intermedia. Con este cambio, la exactitud en ImageNet-1K pasó del 78,8\,\% al 79,4\,\%~\cite[sec.~2.2]{liu2022convnext}. Entre otras implementaciones, como utilizar como función 
+de activación GELU en vez de ReLU, la estructura final del bloque ConvNeXt es la siguiente:
 
-\textit{Input $\rightarrow$ 7x7 DWConv $\rightarrow$ Capa de normalización $\rightarrow$ 1x1 Conv $\rightarrow$ Función de activación Gelu $\rightarrow$ 1x1 Conv}
+\textit{Input $\rightarrow$ 7x7 DWConv $\rightarrow$ Capa de normalización $\rightarrow$ 1x1 Conv $\rightarrow$ Función de activación GELU $\rightarrow$ 1x1 Conv $\rightarrow$ suma con el Input (conexión residual)}
 \cite{liu2022convnext}
-El el modelo resultante se entrenó y evaluó en ImageNet-1k e
+El modelo resultante se entrenó y evaluó en ImageNet-1k e
 ImageNet-22k y tiene varias variantes~\cite{todi2023convnext}. ConvNeXt es, por
 tanto, una red puramente convolucional que incorpora decisiones de diseño de los
 transformers~\cite{todi2023convnext}.
