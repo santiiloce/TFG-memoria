@@ -12,7 +12,7 @@
 % se orientan de modo que un valor más alto indica «más ID». Implementación de referencia: OpenOOD.
 \pendiente{introducción del capítulo y notación común}
 
-Esto equivale a usar la función mencionada en \ref{def:objetivoOOD} en el clasificador base para generar el "OOD-score". Estos métodos solo toman 
+Esto equivale a usar la función mencionada en \ref{def:objetivoOOD} en el clasificador base para generar el 'OOD-score'. Estos métodos solo toman 
 efecto en la fase de inferencia y por defecto asume que el clasificado es entrenado con el estándar de perdida de entropía cruzada.
 \section{Métodos basados en logits}\label{sec:metodos-logits}
 
@@ -23,32 +23,67 @@ Grupo de los logits (números producidos por la red justo al final, antes de con
   \item \textbf{MLS} (\emph{MaxLogit})~\cite{hendrycks2022}: lo mismo que MSP, pero con el logit máximo sin pasar por softmax. La ventaja que ofrece este método es que el softmax normaliza y pierde información sobre la magnitud absoluta; el logit bruto la conserva.
   \item \textbf{EBO} (\emph{Energy-Based OOD})~\cite{liu2020energy}: el logaritmo de la suma de las exponenciales de todos los logits. Funciona como una versión «suave» y diferenciable de la función $\max(x)$.
 \end{itemize}
-\revisar{añadidas las citas a los artículos originales de MSP, MaxLogit y Energy}
-\revisar{en EBO, «de las exponenciales de los argumentos de todos los logits» se ha simplificado a «de las exponenciales de todos los logits»}
-
+% Fuentes: MSP: Hendrycks y Gimpel (2017), sec. 3, p. 3 («the softmax probability of the predicted class,
+% i.e., the maximum softmax probability»). Energy: Liu et al. (2020), sec. 2, ec. (3) y (4), p. 3 (softmax
+% con temperatura y energía libre E(x; f) = -T log sum_i e^{f_i(x)/T}); sec. 3.1, ec. (7), p. 4 (se usa -E
+% como puntuación para que las ID tengan valores más altos); sec. 4, p. 8 (T = 1 sin parámetros).
+% MaxLogit: el artículo (hendrycks2022, mls.pdf) no está en tfg-referencias/papers; la fórmula coincide
+% con la implementación de OpenOOD (maxlogit_postprocessor.py). En este trabajo, T = 1
+% (OpenOOD/configs/postprocessors/ebo.yml).
 \begin{definicion}[Puntuaciones MSP, MaxLogit y Energy]\label{def:logits}
-% s_MSP(x) = \max_k \softmax(f(x))_k; s_MLS(x) = \max_k f_k(x);
-% s_EBO(x) = T \log \sum_k e^{f_k(x)/T} (opuesto de la energía libre, T = 1).
-\pendiente{definición formal}
+Sea $f(x) = \bigl(f_1(x), \dots, f_C(x)\bigr) \in \R^C$ el vector de logits que el clasificador asigna a la entrada $x$, con $C$ clases. Se definen las puntuaciones
+\begin{enumerate}
+  \item \textbf{MSP}: la probabilidad de la clase predicha tras la softmax (\cref{def:softmax}), es decir, la máxima probabilidad softmax~\cite[sec.~3]{hendrycks2017}:
+  \[
+    s_{\mathrm{MSP}}(x) = \max_{k} \softmax_k\bigl(f(x)\bigr) = \max_{k} \frac{e^{f_k(x)}}{\sum_{i=1}^{C} e^{f_i(x)}}.
+  \]
+  \item \textbf{MaxLogit}: el logit máximo~\cite{hendrycks2022},
+  \[
+    s_{\mathrm{MLS}}(x) = \max_{k} f_k(x).
+  \]
+  \item \textbf{Energy}: el opuesto de la energía libre del clasificador~\cite[ec.~(4)]{liu2020energy},
+  \[
+    E(x; f) = -T \log \sum_{i=1}^{C} e^{f_i(x)/T}, \qquad
+    s_{\mathrm{EBO}}(x) = -E(x; f) = T \log \sum_{i=1}^{C} e^{f_i(x)/T},
+  \]
+  donde $T > 0$ es la temperatura. Se toma $-E$ como puntuación para que las imágenes ID reciban valores más altos~\cite[sec.~3.1, ec.~(7)]{liu2020energy}; en este trabajo, como recomiendan sus autores, $T = 1$~\cite[sec.~4]{liu2020energy}.
+\end{enumerate}
+Las tres están orientadas de modo que un valor mayor indica una entrada más propia de la distribución ID, como exige la \cref{def:detector}.
 \end{definicion}
 
 \begin{proposicion}[LogSumExp como cota suave del máximo]\label{prop:logsumexp}
-% \max_k f_k \le \log \sum_k e^{f_k} \le \max_k f_k + \log C.
-\pendiente{enunciado}
+Para todo $z = (z_1, \dots, z_C) \in \R^C$,
+\[
+  \max_{k} z_k \;\le\; \log \sum_{i=1}^{C} e^{z_i} \;\le\; \max_{k} z_k + \log C .
+\]
+En particular, con $T = 1$, las puntuaciones de la \cref{def:logits} cumplen
+\[
+  s_{\mathrm{EBO}}(x) = s_{\mathrm{MLS}}(x) - \log s_{\mathrm{MSP}}(x)
+  \qquad \text{y} \qquad
+  s_{\mathrm{MLS}}(x) \le s_{\mathrm{EBO}}(x) \le s_{\mathrm{MLS}}(x) + \log C .
+\]
 \end{proposicion}
 \begin{demostracion}
-\pendiente{demostración}
+Sea $z_{\max} = \max_k z_k$ y sea $p = \softmax(z)$. La componente máxima de $p$ es la de $z_{\max}$, luego
+\[
+  \log \max_k p_k = \log \frac{e^{z_{\max}}}{\sum_{i=1}^{C} e^{z_i}} = z_{\max} - \log \sum_{i=1}^{C} e^{z_i},
+\]
+que es la relación entre la puntuación softmax y la energía de~\cite[sec.~3.2]{liu2020energy}. Despejando,
+\[
+  \log \sum_{i=1}^{C} e^{z_i} = z_{\max} - \log \max_k p_k .
+\]
+Las componentes de $p$ son positivas y suman 1. Como $p_k \le \max_j p_j$ para todo $k$, sumando las $C$ desigualdades se obtiene $1 = \sum_{k=1}^{C} p_k \le C \max_j p_j$; y como cada $p_k$ es uno de los sumandos positivos de esa suma, $p_k \le 1$. Por tanto, $1/C \le \max_k p_k \le 1$. Tomando logaritmos, $-\log C \le \log \max_k p_k \le 0$, y sustituyendo en la igualdad anterior se obtienen las dos desigualdades. La cota inferior se alcanza en el límite en que una componente domina a las demás, $\max_k p_k \to 1$, y la superior, cuando todas las $z_k$ son iguales, $\max_k p_k = 1/C$. Para las puntuaciones basta tomar $z = f(x)$: entonces $\log \sum_i e^{z_i} = s_{\mathrm{EBO}}(x)$, $z_{\max} = s_{\mathrm{MLS}}(x)$ y $\max_k p_k = s_{\mathrm{MSP}}(x)$.
 \end{demostracion}
 
 \begin{observacion}[Efecto del \emph{label smoothing} sobre los logits]\label{obs:ls-logits}
 % Relacionar con \cref{prop:ls-optimo}: el label smoothing acota la diferencia entre logits; hipótesis
 % (no comprobada) para explicar que MSP supere a MaxLogit y Energy (\cref{sec:ood-familias}).
-\pendiente{desarrollo}
+La técnica de \emph{label smoothing} (\cref{def:label-smoothing}) tiene como principal objetivo evitar valores extremos a la hora de clasificar, de forma que el modelo no genere un exceso de confianza asociando una puntuación del 100\,\% a una sola clase. De esta forma, un pequeño ruido se reparte entre todas las clases en los objetivos de entrenamiento, que dejan de valer cero. Como consecuencia, la diferencia entre el logit de la clase correcta y el de las demás queda acotada (\cref{prop:ls-optimo}; \cite[sec.~2]{muller2019}), lo que afecta a las puntuaciones de los métodos \emph{post hoc} basados en logits.
 \end{observacion}
 
 \section{Métodos basados en la modificación de activaciones}\label{sec:metodos-activaciones}
 
-Estos métodos modifican las activaciones o los pesos de la última capa del modelo antes de calcular la puntuación, con el objetivo de atenuar las señales anómalas que producen las imágenes OOD. Los tres calculan finalmente una puntuación de tipo Energy sobre los logits resultantes y fueron diseñados y evaluados originalmente sobre redes convolucionales con activaciones ReLU.
+Estos métodos modifican las activaciones o los pesos de la última capa del modelo antes de calcular la puntuación, con el objetivo de atenuar las señales anómalas que producen las imágenes OOD. Los tres calculan finalmente una puntuación de tipo Energy sobre los logits resultantes que fueron diseñados y evaluados originalmente sobre redes convolucionales con activaciones ReLU.
 
 \begin{itemize}
   \item \textbf{ReAct} (\emph{Rectified Activations}) (Sun et al.~\cite{sun2021react}): parte de la observación de que las imágenes OOD tienden a producir activaciones anormalmente altas en algunas unidades de la penúltima capa, lo que sus autores atribuyen al uso de estadísticas de BatchNorm estimadas con datos ID y aplicadas sin cambios a datos OOD. Para atenuarlo, recorta cada activación del vector de características por encima de un umbral $c$, $\tilde{h} = \min(h, c)$, y calcula la puntuación Energy sobre los logits obtenidos a partir de las características recortadas. El umbral $c$ se fija como el percentil 90 de las activaciones en el conjunto de validación ID.
@@ -56,19 +91,40 @@ Estos métodos modifican las activaciones o los pesos de la última capa del mod
   \item \textbf{DICE} (\emph{Directed Sparsification}) (Sun y Li~\cite{sun2022dice}): actúa sobre los pesos de la última capa lineal en lugar de sobre las activaciones. Para cada conexión entre una característica y una clase, calcula su contribución media en el conjunto de entrenamiento ID (el peso multiplicado por la activación media de esa característica), conserva solo las conexiones de mayor contribución y pone a cero el resto (esparsidad del 90\,\%). Al eliminar las conexiones poco relevantes para los datos ID, reduce la varianza de la salida en las imágenes OOD y mejora su separación. La puntuación es la Energy de los logits calculados con la capa podada.
 \end{itemize}
 
+% Fuentes (solo los artículos de tfg-referencias/papers):
+% - ReAct: Sun et al. (2021), react.pdf, sec. 3 «Method», p. 3, ecs. (1)-(3): \bar h(x) = min(h(x), c)
+%   componente a componente; f^ReAct = W^T \bar h + b; c = percentil p de las activaciones ID; c = \infty
+%   recupera la salida original; por defecto, puntuación Energy.
+% - ASH-B: Djurisic et al. (2023), ash.pdf, sec. 3, p. 4, algoritmo 2 (percentil p de la propia muestra,
+%   suma s_1 antes de podar, valores < t a 0, los n no nulos pasan a s_1/n); colocación tras el último
+%   pooling (sec. 3, p. 4); puntuación Energy por defecto (sec. 2, p. 3).
+% - DICE: Sun y Li (2022), dice.pdf, sec. 3.1, p. 5, ecs. (1)-(2): matriz de contribuciones
+%   v_c = E_{x \in D}[w_c \odot h(x)], máscara con los k mayores elementos, p = 1 - k/(mC);
+%   sec. 3.2, p. 6, ec. (4): puntuación Energy.
+% Notación del capítulo: W \in \R^{C x D} (los artículos usan W \in \R^{m x C} y W^T h).
 \begin{definicion}[ReAct, ASH-B y DICE]\label{def:activaciones}
-% ReAct: \tilde h_j = \min(h_j, c); s(x) = \log \sum_k \exp(W \tilde h + b)_k.
-% ASH-B: conserva el conjunto T_p de las activaciones por encima del percentil p y asigna a cada una
-%        s_1 / |T_p|, con s_1 = \sum_j h_j.
-% DICE: máscara M \in \{0,1\}^{C \times D} con las conexiones de mayor contribución \bar h_j W_{kj}.
-\pendiente{definición formal}
+Sean $h(x) = \bigl(h_1(x), \dots, h_D(x)\bigr) \in \R^D$ el vector de características de la penúltima capa para la entrada $x$ y $f(x) = W h(x) + b$ los logits, con $W \in \R^{C \times D}$ y $b \in \R^C$. Los tres métodos sustituyen $f(x)$ por unos logits modificados $\tilde f(x)$ y, por defecto, puntúan con la energía de esos logits (\cref{def:logits}, con $T = 1$):
+\[
+  s(x) = \log \sum_{k=1}^{C} e^{\tilde f_k(x)} .
+\]
+\begin{enumerate}
+  \item \textbf{ReAct}~\cite[sec.~3]{sun2021react}. Fijado un umbral $c > 0$, cada característica se recorta por arriba, $\bar h_j(x) = \min\bigl(h_j(x), c\bigr)$ para $j = 1, \dots, D$, y los logits se calculan con las características recortadas: $\tilde f(x) = W \bar h(x) + b$. El umbral se elige como el percentil $p$ de las activaciones de los datos ID, de modo que el recorte apenas altere las activaciones ID y sí las anormalmente altas de las OOD; con $c = \infty$ se recuperan los logits originales.
+  \item \textbf{ASH-B}~\cite[sec.~3, alg.~2]{djurisic2023}. El recorte depende de cada entrada. Sean $t$ el percentil $p$ de las componentes de $h(x)$ y $s_1 = \sum_{j=1}^{D} h_j(x)$ su suma. Se anulan las componentes menores que $t$; si $A$ es el conjunto de índices de las componentes que quedan no nulas y $n = |A|$, a todas ellas se les asigna el mismo valor,
+  \[
+    \tilde h_j(x) =
+    \begin{cases}
+      s_1 / n, & j \in A,\\
+      0, & j \notin A,
+    \end{cases}
+  \]
+  de forma que la representación queda binarizada y conserva la suma original. Los logits son $\tilde f(x) = W \tilde h(x) + b$.
+  \item \textbf{DICE}~\cite[sec.~3]{sun2022dice}. La modificación se hace sobre los pesos de la última capa. Con los datos ID de entrenamiento $\mathcal{D}$ se estima la contribución media de cada característica $j$ a cada clase $k$,
+  \[
+    V_{kj} = \E_{x \in \mathcal{D}}\bigl[W_{kj}\, h_j(x)\bigr],
+  \]
+  y se construye una máscara $M \in \{0, 1\}^{C \times D}$ que vale 1 en las $K$ entradas de mayor contribución y $0$ en el resto. Los logits son $\tilde f(x) = (M \odot W)\, h(x) + b$, donde $\odot$ es el producto elemento a elemento. La fracción de pesos eliminados es el parámetro de esparsidad $p = 1 - K/(CD)$; con $p = 0$ se recuperan los logits originales.
+\end{enumerate}
 \end{definicion}
-
-\begin{observacion}[Supuestos sobre el signo de las activaciones]\label{obs:relu}
-% Los tres métodos suponen activaciones no negativas (ReLU); en el Swin-S las características salen
-% de una LayerNorm y pueden ser negativas (relevante en \cref{sec:ood-familias}).
-\pendiente{desarrollo}
-\end{observacion}
 
 \section{Métodos basados en características y distancias}\label{sec:metodos-caracteristicas}
 
@@ -82,7 +138,6 @@ Grupo de métodos que comparan con la información de las características (\emp
   \item \textbf{SHE} (\emph{Simplified Hopfield Energy})~\cite{zhang2023she}: en la preparación (\texttt{setup()}) pasa el conjunto de entrenamiento por la red y, para cada clase, calcula la media de las características solo de las imágenes que el modelo clasifica correctamente (etiqueta real igual a la predicción). Eso le da 14 «patrones» de referencia. En test, mira qué clase predice el modelo para la imagen y compara su característica con el patrón de esa clase (por producto escalar, distancia euclídea o coseno, según la configuración).
 \end{itemize}
 
-\revisar{añadidas las citas a los artículos originales de KNN, MDS, RMDS, ViM y SHE}
 
 \begin{definicion}[Puntuación KNN]\label{def:knn}
 Sea $h(x) \in \R^D$ el vector de características de una imagen $x$ y sea
@@ -103,45 +158,108 @@ Para vectores con norma uno se cumple $\|z - z'\|^2 = 2 - 2 \langle z, z' \rangl
 caracteristicas normalizadas equivale a la similitud coseno.
 \end{definicion}
 
+% Fuente: Lee et al. (2018), mds.pdf, sec. 2.1 «Why Mahalanobis distance-based score?», pp. 2-3, ecs. (1)-(2).
+% El artículo añade técnicas de calibración (preprocesado de la entrada y combinación de capas, sec. 2.2)
+% que no se usan aquí: OpenOOD (mds_postprocessor.py) aplica solo la ec. (2) sobre la penúltima capa.
+% Texto anterior del autor (se conserva como nota; no está en el artículo): la distancia de Mahalanobis
+% D_M(x) = sqrt((x - \hat\mu)^T \hat\Sigma^{-1} (x - \hat\mu)) mide a cuántas desviaciones estándar está x de la
+% media de una gaussiana multivariante; es invariante a cambios de escala y tiene en cuenta las
+% correlaciones entre dimensiones.
 \begin{definicion}[Puntuación de Mahalanobis]\label{def:mds}
-% \mu_c medias por clase, \Sigma covarianza compartida; s(x) = -\min_c (h - \mu_c)^T \Sigma^{-1} (h - \mu_c).
-Medida de distancia basada en cuanta desviación estándar una muestra de test x se encuentra de la media de una distribución
-multivariante gaussiana. Es definida como: 
-
-\begin{equation}
-D_M(x) = \sqrt{(x - \hat{\mu})^T \hat{\Sigma}^{-1} (x - \hat{\mu})}
-\end{equation}
-
-Se denota por $\hat{\mu}$ el vector de medias, $\hat{\Sigma}^{-1}$ la inversa de la matriz de covarianza de la distribución. 
-Esta medida es invariante a cambios de escala y considera además las correlaciones entre las dimensiones de los
-datos utilizados para estimar la distribución.\cite{lee2018}
+Sean $\{(x_n, y_n)\}_{n=1}^{N}$ los datos de entrenamiento, con $C$ clases, y $h(x)$ las características de la penúltima capa. Se supone que, condicionadas a la clase, las características siguen distribuciones gaussianas con una covarianza común a todas las clases, $h(x) \mid y = c \sim \mathcal{N}(\mu_c, \Sigma)$, y se estiman sus parámetros con la media y la covarianza empíricas de los datos de entrenamiento,
+\[
+  \hat\mu_c = \frac{1}{N_c} \sum_{n : y_n = c} h(x_n), \qquad
+  \hat\Sigma = \frac{1}{N} \sum_{c=1}^{C} \sum_{n : y_n = c} \bigl(h(x_n) - \hat\mu_c\bigr)\bigl(h(x_n) - \hat\mu_c\bigr)^{\top},
+\]
+donde $N_c$ es el número de imágenes de la clase $c$. La puntuación es la distancia de Mahalanobis, cambiada de signo, a la gaussiana de clase más cercana~\cite[sec.~2.1, ecs.~(1)--(2)]{lee2018}:
+\[
+  s_{\mathrm{MDS}}(x) = \max_{c} \Bigl[ -\bigl(h(x) - \hat\mu_c\bigr)^{\top} \hat\Sigma^{-1} \bigl(h(x) - \hat\mu_c\bigr) \Bigr].
+\]
 \end{definicion}
 
+Los estimadores son los de máxima verosimilitud de las gaussianas de clase con covarianza común, y, salvo un factor y una constante, la puntuación es el logaritmo de la densidad de la imagen de test bajo la gaussiana de clase más cercana. La idea de los autores es que las imágenes anómalas se distinguen mejor en el espacio de características que en las probabilidades de la softmax, que pueden ser altas incluso para imágenes alejadas de la frontera de decisión~\cite[sec.~2.1]{lee2018}.
+
+% Fuente: Lee et al. (2018), mds.pdf, material suplementario, ap. A «Preliminaries for Gaussian
+% discriminant analysis», p. 12 (posterior del LDA igual a una softmax con pesos \Sigma^{-1}\mu_c y sesgo
+% -1/2 \mu_c^T \Sigma^{-1} \mu_c + log \beta_c); sec. 2.1, p. 3 (la puntuación corresponde al logaritmo de
+% la densidad).
 \begin{proposicion}[Relación con el análisis discriminante lineal]\label{prop:mds-lda}
-% Bajo el modelo generativo h | Y = c \sim N(\mu_c, \Sigma) con covarianza compartida, la regla
-% de Bayes es la de LDA y la distancia de Mahalanobis a la clase más cercana coincide con el
-% logaritmo de la máxima densidad condicionada salvo constantes.
-\pendiente{enunciado}
+Supongamos que $h \mid y = c \sim \mathcal{N}(\mu_c, \Sigma)$, con la misma covarianza $\Sigma$ definida positiva para todas las clases, y que $\Prob(y = c) = \pi_c > 0$. Entonces:
+\begin{enumerate}
+  \item La probabilidad a posteriori de cada clase es una softmax de funciones lineales de $h$:
+  \[
+    \Prob(y = c \mid h) = \softmax_c\bigl(w_1^{\top} h + b_1, \dots, w_C^{\top} h + b_C\bigr), \qquad
+    w_c = \Sigma^{-1} \mu_c, \quad b_c = -\tfrac{1}{2}\, \mu_c^{\top} \Sigma^{-1} \mu_c + \log \pi_c .
+  \]
+  \item Para cada clase, $\log p(h \mid y = c) = -\tfrac{1}{2}\, (h - \mu_c)^{\top} \Sigma^{-1} (h - \mu_c) + \kappa$, con $\kappa$ una constante que no depende ni de $h$ ni de $c$. En consecuencia, con los parámetros de la \cref{def:mds},
+  \[
+    s_{\mathrm{MDS}}(x) = 2 \max_{c} \log p\bigl(h(x) \mid y = c\bigr) - 2\kappa .
+  \]
+\end{enumerate}
 \end{proposicion}
 \begin{demostracion}
-\pendiente{demostración}
+La densidad gaussiana es $p(h \mid y = c) = (2\pi)^{-D/2} \det(\Sigma)^{-1/2} \exp\bigl(-\tfrac{1}{2}(h - \mu_c)^{\top} \Sigma^{-1} (h - \mu_c)\bigr)$, de donde se sigue el apartado 2 con $\kappa = -\tfrac{D}{2}\log(2\pi) - \tfrac{1}{2}\log\det\Sigma$, que no depende de la clase por ser la covarianza común. Tomando el máximo sobre $c$ y multiplicando por 2 se obtiene la expresión de $s_{\mathrm{MDS}}$.
+
+Para el apartado 1, como $\Sigma^{-1}$ es simétrica,
+\[
+  -\tfrac{1}{2}(h - \mu_c)^{\top} \Sigma^{-1} (h - \mu_c)
+  = -\tfrac{1}{2}\, h^{\top} \Sigma^{-1} h + \mu_c^{\top} \Sigma^{-1} h - \tfrac{1}{2}\, \mu_c^{\top} \Sigma^{-1} \mu_c ,
+\]
+luego $\pi_c\, p(h \mid y = c) = g(h) \exp\bigl(w_c^{\top} h + b_c\bigr)$, con $g(h) = e^{\kappa} \exp\bigl(-\tfrac{1}{2} h^{\top} \Sigma^{-1} h\bigr)$ igual para todas las clases. Por el teorema de Bayes,
+\[
+  \Prob(y = c \mid h) = \frac{\pi_c\, p(h \mid y = c)}{\sum_{c'} \pi_{c'}\, p(h \mid y = c')}
+  = \frac{g(h)\, e^{w_c^{\top} h + b_c}}{g(h) \sum_{c'} e^{w_{c'}^{\top} h + b_{c'}}}
+  = \softmax_c\bigl(w_1^{\top} h + b_1, \dots, w_C^{\top} h + b_C\bigr). \qedhere
+\]
 \end{demostracion}
 
+Así, la última capa de un clasificador softmax tiene exactamente la forma de la posterior de un clasificador gaussiano con covarianza común sobre las características. Los autores lo interpretan como un indicio de que, al entrenar la red, las características podrían ajustarse a gaussianas de clase, lo que motiva la \cref{def:mds}~\cite[ap.~A]{lee2018}.
+
+% Fuente: Ren et al. (2021), rmds.pdf, sec. 2 «Methods», pp. 1-2, ecs. (1)-(3).
 \begin{definicion}[Mahalanobis relativo]\label{def:rmds}
-% s(x) = -\min_c [ d_{\Sigma}(h, \mu_c) - d_{\Sigma_0}(h, \mu_0) ], con (\mu_0, \Sigma_0) gaussiana global.
-\pendiente{definición}
+Sean $\{(x_n, y_n)\}_{n=1}^{N}$ los datos de entrenamiento, con $C$ clases, y $h_n = h(x_n)$ sus características. Se ajustan, por un lado, una gaussiana por clase con covarianza compartida,
+\[
+  \mu_c = \frac{1}{N_c} \sum_{n : y_n = c} h_n, \qquad
+  \Sigma = \frac{1}{N} \sum_{c=1}^{C} \sum_{n : y_n = c} (h_n - \mu_c)(h_n - \mu_c)^{\top},
+\]
+y, por otro, una única gaussiana sobre todos los datos sin tener en cuenta la clase,
+\[
+  \mu_0 = \frac{1}{N} \sum_{n=1}^{N} h_n, \qquad
+  \Sigma_0 = \frac{1}{N} \sum_{n=1}^{N} (h_n - \mu_0)(h_n - \mu_0)^{\top}.
+\]
+Con $\mathrm{MD}_c(h) = (h - \mu_c)^{\top} \Sigma^{-1} (h - \mu_c)$ y $\mathrm{MD}_0(h) = (h - \mu_0)^{\top} \Sigma_0^{-1} (h - \mu_0)$, la distancia de Mahalanobis relativa a la clase $c$ es $\mathrm{RMD}_c(h) = \mathrm{MD}_c(h) - \mathrm{MD}_0(h)$, y la puntuación es~\cite[sec.~2]{ren2021}
+\[
+  s_{\mathrm{RMDS}}(x) = -\min_{c} \mathrm{RMD}_c\bigl(h(x)\bigr).
+\]
 \end{definicion}
 
+La gaussiana global hace el papel de un modelo del «fondo»: recoge lo que las características tienen en común con todos los datos de entrenamiento, con independencia de la clase. Al restar $\mathrm{MD}_0$ se descuenta esa parte, que según los autores es similar en los datos ID y OOD y enturbia la puntuación de Mahalanobis, sobre todo cuando las imágenes OOD se parecen a las ID. Equivale a comparar, mediante un cociente de verosimilitudes, el ajuste a la gaussiana de la clase con el ajuste a la gaussiana global; además, el método no tiene hiperparámetros~\cite[sec.~2]{ren2021}.
+
+% Fuente: Wang et al. (2022), vim.pdf, sec. 3, p. 3, ec. (1) (origen o = -(W^T)^+ b; con su notación
+% W \in R^{N x C} y l = W^T x + b); sec. 4, p. 4, ecs. (4)-(7). Implementación (OpenOOD,
+% vim_postprocessor.py): puntuación logsumexp(l) - logit virtual; d = 256 (configs/postprocessors/vim.yml).
 \begin{definicion}[ViM]\label{def:vim}
-% PCA de las características centradas en el origen u = -W^+ b; subespacio principal P de dimensión
-% d; residuo x^{P\perp}; logit virtual \alpha \|x^{P\perp}\|; puntuación a partir del softmax con el
-% logit virtual.
-\pendiente{definición}
+Sean $h(x) \in \R^D$ las características y $f(x) = W h(x) + b$ los logits, con $W \in \R^{C \times D}$. Se toma como nuevo origen del espacio de características el punto $o = -W^{+} b$, donde $W^{+}$ es la pseudoinversa de Moore-Penrose, de modo que $f(x) = W\bigl(h(x) - o\bigr)$ y el sesgo desaparece; en lo que sigue, $\tilde h(x) = h(x) - o$~\cite[sec.~3, ec.~(1)]{wang2022vim}.
+\begin{enumerate}
+  \item \emph{Subespacio principal y residuo.} Sea $X$ la matriz cuyas filas son las características $\tilde h$ de los datos de entrenamiento y sea $X^{\top} X = Q \Lambda Q^{\top}$ su descomposición espectral, con los autovalores ordenados de mayor a menor. El subespacio principal $P$ es el generado por las $d$ primeras columnas de $Q$; si $R \in \R^{D \times (D - d)}$ reúne las restantes, el residuo de $x$ es la proyección de $\tilde h(x)$ sobre el complemento ortogonal $P^{\perp}$,
+  \[
+    \tilde h(x)^{P^{\perp}} = R R^{\top} \tilde h(x).
+  \]
+  \item \emph{Logit virtual.} La norma del residuo se reescala para que sea comparable con los logits,
+  \[
+    f_0(x) = \alpha \,\bigl\| \tilde h(x)^{P^{\perp}} \bigr\|, \qquad
+    \alpha = \frac{\sum_{i=1}^{K} \max_{j} f_j(x_i)}{\sum_{i=1}^{K} \bigl\| \tilde h(x_i)^{P^{\perp}} \bigr\|},
+  \]
+  donde $x_1, \dots, x_K$ son imágenes de entrenamiento elegidas al azar; así, en promedio, el logit virtual tiene la misma escala que el logit máximo.
+  \item \emph{Puntuación.} Se añade el logit virtual a los $C$ logits originales y se toma la probabilidad softmax que le corresponde,
+  \[
+    \mathrm{ViM}(x) = \frac{e^{f_0(x)}}{\sum_{c=1}^{C} e^{f_c(x)} + e^{f_0(x)}},
+  \]
+  que es mayor cuanto más OOD es la imagen~\cite[sec.~4, ecs.~(4)--(7)]{wang2022vim}.
+\end{enumerate}
 \end{definicion}
 
-\begin{proposicion}[Residuo de PCA como proyección ortogonal]\label{prop:pca-residuo}
-\pendiente{enunciado}
-\end{proposicion}
+La puntuación crece si aumenta la norma del residuo, es decir, si la imagen se aleja del subespacio en el que se concentran las características de entrenamiento, y decrece si sus logits originales son grandes. Así combina una información independiente de la clase (el residuo) con otra que depende de ella (los logits)~\cite[sec.~4]{wang2022vim}. Para seguir la convención de la \cref{def:detector}, en este trabajo se usa $s_{\mathrm{ViM}}(x) = \log \sum_{c=1}^{C} e^{f_c(x)} - f_0(x)$, como en la implementación de OpenOOD. Como $\mathrm{ViM}(x) = 1 / \bigl(1 + e^{s_{\mathrm{ViM}}(x)}\bigr)$ es estrictamente decreciente en $s_{\mathrm{ViM}}$, ambas ordenan las imágenes de la misma forma, en sentido opuesto.
 
 \begin{definicion}[SHE]\label{def:she}
 Sea $\mathcal{D}_{\mathrm{train}} = \{(x_n, y_n)\}_{n=1}^{N}$ el conjunto de entrenamiento y
@@ -231,7 +349,7 @@ características, que el coseno descarta, contiene información útil para la de
 
 Se trata de una metodología post hoc de detección OOD en dos etapas~\cite{sevillano2026}: una primera de detección, basada en un test estadístico no paramétrico sobre distancias en el espacio de características, y una segunda de explicación, que muestra al usuario los vecinos más cercanos y las características más relevantes compartidas con ellos.
 
-Sea $x$ una imagen cuya clase predicha por el modelo es $c$, y sea $X_{\mathrm{set}}$ el conjunto de características de entrenamiento de esa clase. Se denota $X_k = \{x_1, \ldots, x_K\}$ el conjunto de los $K$ vecinos más cercanos de $x$ en $X_{\mathrm{set}}$ según una distancia $d$ y, para cada vecino $x_i$, $X_k^{i}$ el conjunto de sus $K$ vecinos más cercanos en $X_{\mathrm{set}} \setminus \{x_i\}$. La hipótesis del método es que, si $x$ pertenece a la distribución de entrenamiento, las distancias $D(x, X_k)$ y $D(x_i, X_k^{i})$ siguen la misma distribución; si $x$ es OOD, las primeras serán mayores. Para contrastarlo se aplica el test unilateral de Wilcoxon-Mann-Whitney (\cref{sec:mann-whitney}) entre ambos conjuntos de distancias, con un total de $M = K + K^2$ distancias, y el $p$-valor resultante se utiliza como puntuación: valores altos indican pertenencia a la distribución.
+Sea $x$ una imagen cuya clase predicha por el modelo es $c$, y sea $X_{\mathrm{set}}$ el conjunto de características de entrenamiento de esa clase. Se denota $X_k = \{x_1, \ldots, x_K\}$ el conjunto de los $K$ vecinos más cercanos de $h(x)$ en $X_{\mathrm{set}}$ según una distancia $d$ y, para cada vecino $x_i$, $X_k^{i}$ el conjunto de sus $K$ vecinos más cercanos en $X_{\mathrm{set}} \setminus \{x_i\}$. La hipótesis del método es que, si $x$ pertenece a la distribución de entrenamiento, las distancias de $h(x)$ a sus vecinos $X_k$ y las de cada $x_i$ a sus vecinos $X_k^{i}$ siguen la misma distribución; si $x$ es OOD, las primeras serán mayores. Para contrastarlo se aplica el test unilateral de Wilcoxon-Mann-Whitney (\cref{sec:mann-whitney}) entre ambos conjuntos de distancias, con un total de $M = K + K^2$ distancias, y el $p$-valor resultante se utiliza como puntuación: valores altos indican pertenencia a la distribución.
 
 \begin{definicion}[Puntuación de STOOD-X]\label{def:stoodx}
 Sea $x$ una imagen de test con clase predicha $c = \hat y(x)$ y sea
@@ -299,16 +417,18 @@ en este trabajo.
 \end{observacion}
 
 \paragraph{Hiperparámetros y coste computacional.}
-El método tiene tres hiperparámetros~\cite{sevillano2026}: la distancia $d$ (coseno, adecuada
-para espacios de alta dimensión), el número de vecinos $K$ y la proporción $N_f$ de
+El método tiene cuatro hiperparámetros~\cite{sevillano2026}: la distancia $d$ (coseno, adecuada
+para espacios de alta dimensión), el conjunto de posibles vecinos (el de entrenamiento, que
+evita el \emph{data snooping}), el número de vecinos $K$ y la proporción $N_f$ de
 características empleadas. Los autores prueban $K \in \{9, 18, 36, 72, 144, 288, 500\}$ y el
 conjunto de entrenamiento completo, observan que el rendimiento mejora con $K$ pero con
 ganancias decrecientes, y fijan $K = 500$ como compromiso entre rendimiento y tiempo de
 cálculo. $N_f$ selecciona las características más relevantes de la penúltima capa según su
 relevancia absoluta calculada con CRP. Para un conjunto de referencia de tamaño $N$ y
 características de dimensión $D$, el coste por imagen es
-$O(N D + N \log N + M \log M)$, que para $K$ grande se reduce a
-$O(N \log N + K^2 \log K)$ dominado por el cálculo de distancias y la ordenación.
+$O(N D + N \log N + M \log M)$. Como $M \approx K^2$ para $K$ grande y $D$ está acotada por la
+arquitectura, el coste se reduce a $O(N \log N + K^2 \log K)$, dominado por la ordenación de
+las distancias y por el test estadístico.
 
 % Segunda etapa (explicación): vecinos más cercanos y características más relevantes compartidas,
 % seleccionadas con CRP en el artículo (\cref{sec:crp}).
@@ -320,8 +440,8 @@ artificial explicable BLUE (responsable, legal, confiable y ética) y en dos pas
         distancias, los vecinos explican de forma directa por qué la puntuación es alta o
         baja: si se parecen visualmente a $x$, la decisión ID está respaldada por ejemplos
         validados; si no, la imagen no tiene precedentes cercanos.
-  \item \emph{Visualización de características.} Para las características más relevantes,
-        seleccionadas con CRP (\cref{sec:crp}), se muestra dónde aparecen en la imagen de test y
+  \item \emph{Visualización de características.} Para las características más presentes en los vecinos,
+        cuya relevancia se calcula con CRP (\cref{sec:crp}), se muestra dónde aparecen en la imagen de test y
         en sus vecinos. El usuario puede comprobar si la imagen comparte con sus vecinos los
         mismos conceptos o si la decisión se apoya en características ajenas a la tarea, como
         un fondo o un objeto irrelevante, lo que puede revelar un sesgo del modelo.

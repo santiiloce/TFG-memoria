@@ -279,24 +279,27 @@ es decir, la fracción de imágenes OOD aceptadas y la fracción de imágenes ID
 
 En la definición original, la puntuación es la probabilidad máxima del softmax; aquí puede ser la de cualquier detector. La FPR de esta métrica es la de Dhamija et al.: la fracción de imágenes OOD aceptadas como ID. Con la convención del resto del capítulo, en la que la clase positiva es OOD, esa fracción es $1 - \mathrm{TPR}$. Para el umbral más bajo se aceptan todas las imágenes y el CCR coincide con la exactitud del clasificador~\cite[sec.~4]{dhamija2018}; por eso el CCR@FPR$x$ nunca la supera.
 
-\subsection{Estabilidad de la ordenación por severidad (CEC)}\label{sec:cec}
+\subsection{Estabilidad de la ordenación por severidad (CEC, \textit{Corruption Error of Confidence})}\label{sec:cec}
 
-\pendiente{introducción del autor}
-
+Esta métrica, propuesta en~\cite{zhang2022corruptions}, mide en qué medida se incumple la intuición de que, conforme aumenta el nivel de corrupción de una imagen, disminuye la confianza con la que se clasifica. Se basa en el número de intercambios que hay que hacer en el método de ordenación de la burbuja.
 \begin{definicion}[CEC]\label{def:cec}
-Sean los niveles de severidad $L = (\ell_0 = 0, \ell_1, \dots, \ell_m)$, con $m+1$ niveles, y sea $s(x, c, \ell)$ la puntuación de un detector (un valor mayor significa más ID) para la imagen $x$ con la corrupción $c$ en el nivel $\ell$, donde $\ell_0 = 0$ corresponde a la imagen limpia. Para cada par de niveles $\ell_a < \ell_b$, el par es \emph{discordante} si $s(x, c, \ell_b) > s(x, c, \ell_a)$ y \emph{empatado} si $s(x, c, \ell_b) = s(x, c, \ell_a)$. Se define
+Sean $V$ un conjunto de $N_v$ imágenes, $N_c$ corrupciones y, para cada imagen $x \in V$ y corrupción $c$, $c(x, \ell)$ la imagen $x$ con la corrupción $c$ en el nivel de severidad $\ell \in \{\ell_0, \ell_1, \dots, \ell_m\}$, con $0 = \ell_0 < \ell_1 < \dots < \ell_m$ y $c(x, 0) = x$ la imagen limpia. Dada una función de puntuación $s$ (\cref{def:detector}), sea la secuencia
 \[
-\mathrm{CEC}(x, c) = \frac{\#\{\text{pares discordantes}\} + \tfrac{1}{2}\,\#\{\text{pares empatados}\}}{\binom{m+1}{2}},
+  S_c(x) = \bigl(s(c(x, \ell_0)), s(c(x, \ell_1)), \dots, s(c(x, \ell_m))\bigr),
 \]
-y la CEC del detector es la media de $\mathrm{CEC}(x, c)$ sobre las imágenes y las corrupciones. Vale $0$ cuando la ordenación es perfectamente monótona, $0{,}5$ cuando es la que daría el azar y $1$ cuando el orden está invertido.
+que debería ser decreciente si la puntuación disminuye al aumentar la severidad. Sea $K_\tau\bigl(S_c(x)\bigr)$ el número de intercambios que realiza el método de la burbuja al ordenar $S_c(x)$ de mayor a menor. Se define~\cite[ec.~(5)]{zhang2022corruptions}
+\[
+  \mathrm{CEC} = \frac{1}{N_v N_c} \sum_{c=1}^{N_c} \sum_{x \in V} \frac{K_\tau\bigl(S_c(x)\bigr)}{\binom{m+1}{2}},
+\]
+donde $\binom{m+1}{2}$ es el número de comparaciones entre dos valores cualesquiera de la secuencia.
 \end{definicion}
-\revisar{definición añadida por el agente (texto técnico mínimo)}
+
+En~\cite{zhang2022corruptions}, $s$ es la confianza del clasificador, la probabilidad máxima de la softmax ($s_{\mathrm{MSP}}$, \cref{def:logits}), y se usan los niveles 0 a 5. En este trabajo, $s$ es la puntuación de cada detector y los niveles son 0, 1, 3 y 5 (\cref{sec:corrupciones}), de modo que $m = 3$ y cada secuencia tiene $\binom{4}{2} = 6$ pares. El método de la burbuja solo intercambia dos valores consecutivos cuando el posterior es mayor, así que $K_\tau\bigl(S_c(x)\bigr)$ es el número de pares de niveles $\ell_a < \ell_b$ con $s(c(x, \ell_b)) > s(c(x, \ell_a))$, es decir, de pares discordantes. El artículo no trata los empates; aquí cada par empatado cuenta como $\tfrac{1}{2}$. Así, la CEC vale 0 cuando la puntuación decrece estrictamente con la severidad, 0,5 en promedio si el orden es aleatorio y 1 cuando crece estrictamente.
 
 % Observación (para que la redacte el autor): sin empates, CEC(x, c) = (1 - \tau_a)/2, con \tau_a la
 % \tau de Kendall entre la secuencia de puntuaciones y el orden de severidad. Comprobado
 % numéricamente (results_corrupciones/resumen.md §7, comprobacion_cec_kendall.csv): 300 imágenes
 % por detector y corrupción (135 combinaciones, 40.500 secuencias), |dif| máx. 1,1e-16.
-\pendiente{proposición y demostración (autor)}
 
 % Adaptación de la métrica de Zhang et al. (tono neutro). Comprobado en el PDF (arXiv:2206.14973v1):
 % - Confianza: \hat p(x) = max P(f(x)|x), la probabilidad máxima del softmax (p. 3, antes de la ec. 2).

@@ -7,49 +7,77 @@
 
 \chapter{Inferencia estadística}\label{cap:inferencia}
 
-% Introducción breve del capítulo (3-5 líneas): qué herramientas se presentan y para qué se usan
-% en el trabajo (puntuación de STOOD-X, comparación de modelos, incertidumbre de las métricas,
-% conjuntos de predicción con garantías).
-\pendiente{introducción del capítulo}
-La inferencia estadística se usa en el contexto de la herramienta STOOD-X haciendo uso de diferentes tests y estadísticos con los que poder
-corrobar estadísticamente las distribuciones que siguen las muestras. Siendo así capaces de distinguri entre las muestras ID y las OOD.
+La inferencia estadística se usa en el contexto de la herramienta STOOD-X haciendo uso de diferentes tests y estadísticos con los que poder corroborar estadísticamente las distribuciones que siguen las muestras, siendo así capaces de distinguir entre las muestras ID y las OOD. Las mismas herramientas aparecen en otros puntos del trabajo: el test de McNemar compara dos clasificadores evaluados sobre las mismas imágenes (\cref{sec:eleccion-swin}), los intervalos \emph{bootstrap} cuantifican la incertidumbre de las métricas de los \cref{cap:clasificacion-id,cap:deteccion-ood,cap:stoodx}, y la predicción conforme construye conjuntos de predicción y umbrales de detección con garantías de cobertura (\cref{cap:conforme}).
+
 %=======================================================
 \section{Fundamentos de los contrastes de hipótesis}\label{sec:contrastes}
 %=======================================================
+% Fuente: canavos2003, cap. 9, §9.1-9.2, pp. 303-310 (hipótesis, errores, defs. 9.1-9.3); §9.6.1,
+% pp. 327-330 (regiones críticas unilaterales, valor p en el ejemplo 9.6); §15.1, pp. 572-574 (métodos
+% no paramétricos). Páginas impresas (en el PDF, +16).
 
-% Referencia base: Canavos~\cite{canavos2003} (capítulo de pruebas de hipótesis y capítulo de
-% métodos no paramétricos).
-% - Hipótesis nula y alternativa, estadístico de contraste, región crítica.
-% - Errores de tipo I y II, nivel de significación \alpha.
-% - Contrastes no paramétricos: no suponen una forma concreta para la distribución.
+Una \emph{hipótesis estadística} es una afirmación sobre alguna característica desconocida de la población de la que se extrae una muestra aleatoria: el valor de un parámetro o la forma de su distribución~\cite[sec.~9.1]{canavos2003}. La hipótesis que se somete a prueba es la \emph{hipótesis nula}, $H_0$, que se mantiene mientras los datos no aporten suficiente evidencia en su contra. La \emph{hipótesis alternativa}, $H_1$, expresa alguna forma de negación de $H_0$ y recoge lo que se concluiría si esta se rechaza. Una hipótesis es \emph{simple} si determina por completo la distribución de la población, y \emph{compuesta} en caso contrario; lo habitual es que $H_0$ sea simple y $H_1$ compuesta~\cite[sec.~9.2]{canavos2003}.
 
-\begin{definicion}[Contraste de hipótesis]\label{def:contraste}
-\pendiente{definición}
+\begin{definicion}[{Contraste de hipótesis~\cite[def.~9.3]{canavos2003}}]\label{def:contraste}
+Sea $X_1, \dots, X_n$ una muestra aleatoria de la población de interés. Un \emph{contraste} o \emph{prueba} de $H_0$ frente a $H_1$ es una regla que decide, a partir de la muestra, si se rechaza $H_0$. Se expresa mediante una \emph{estadística de prueba} $T = T(X_1, \dots, X_n)$ y un conjunto $C \subset \R$, la \emph{región crítica}: $H_0$ se rechaza si el valor observado $t$ de $T$ pertenece a $C$. Los puntos frontera de $C$ son los \emph{valores críticos}.
 \end{definicion}
+
+Toda decisión puede ser errónea de dos maneras~\cite[sec.~9.2]{canavos2003}: se comete un \emph{error de tipo~I} si se rechaza $H_0$ siendo cierta, y un \emph{error de tipo~II} si no se rechaza siendo falsa. Sus probabilidades,
+\[
+  \alpha = \Prob(\text{rechazar } H_0 \mid H_0 \text{ es cierta}), \qquad
+  \beta = \Prob(\text{no rechazar } H_0 \mid H_0 \text{ es falsa}),
+\]
+son los \emph{tamaños} de los errores de tipo~I y~II~\cite[defs.~9.1 y~9.2]{canavos2003}; $\alpha$ recibe también el nombre de \emph{nivel de significación}. Como $H_1$ suele ser compuesta, $\beta$ depende del verdadero valor del parámetro bajo $H_1$, y $1 - \beta$ es la \emph{potencia} del contraste frente a ese valor. Para un tamaño de muestra fijo, ambos errores no pueden reducirse a la vez: desplazar el valor crítico para disminuir $\alpha$ aumenta $\beta$. Por eso se fija de antemano el mayor $\alpha$ que se está dispuesto a tolerar y, entre los contrastes con ese tamaño, se prefiere el de menor $\beta$~\cite[sec.~9.2]{canavos2003}. Esta asimetría explica que, cuando la muestra no permite rechazar $H_0$, se diga que no se puede rechazar, y no que se acepta.
+
+Los contrastes de este capítulo son \emph{no paramétricos}. Los métodos paramétricos, como la prueba $t$ de Student o el análisis de varianza, necesitan especificar una familia de distribuciones para la población, típicamente la normal; los no paramétricos no lo hacen y, en general, solo exigen que las distribuciones sean continuas, porque trabajan con los rangos o los signos de las observaciones y no con sus valores~\cite[sec.~15.1]{canavos2003}.
 
 \begin{definicion}[$p$-valor]\label{def:p-valor}
-% p(t) = P_{H_0}(T \ge t) para un contraste unilateral por la derecha.
-\pendiente{definición}
+Sea un contraste que rechaza $H_0$ para valores grandes de la estadística de prueba $T$, y sea $t$ el valor observado. El \emph{$p$-valor} de $t$ es
+\[
+  p(t) = \Prob_{H_0}(T \ge t),
+\]
+la probabilidad, calculada suponiendo cierta $H_0$, de obtener un valor de $T$ al menos tan extremo como el observado. Si el contraste rechaza para valores pequeños de $T$, se toma $\Prob_{H_0}(T \le t)$, y si es bilateral, el doble del menor de los dos valores, sin superar $1$.
 \end{definicion}
 
+Canavos lo emplea con este sentido en sus ejemplos~\cite[pp.~330 y~580]{canavos2003}. Supongamos que $T$ es continua bajo $H_0$, sea $G(t) = \Prob_{H_0}(T \ge t)$, que es continua y no creciente, y sea $\{T \ge c_\alpha\}$ la región crítica de tamaño $\alpha$, con $c_\alpha$ el menor valor tal que $G(c_\alpha) = \alpha$. Si $t \ge c_\alpha$, entonces $G(t) \le \alpha$; recíprocamente, si $t < c_\alpha$, entonces $G(t) \ge \alpha$, y la igualdad contradiría la minimalidad de $c_\alpha$. Por tanto, rechazar $H_0$ a nivel $\alpha$ equivale a $p(t) \le \alpha$, y el $p$-valor es el menor nivel de significación al que la muestra observada permite rechazar $H_0$.
+
 \begin{proposicion}[Distribución del $p$-valor bajo la hipótesis nula]\label{prop:p-valor-uniforme}
-% Si T es continua con función de distribución F bajo H_0, entonces p = 1 - F(T) ~ U(0, 1).
-% (Transformada integral de probabilidad.) Si T es discreta, P(p \le u) \le u (p-valor conservador).
-% Es la base para hablar de p-valores «calibrados»: se usa en la Observación de independencia
-% (STOOD-X: 82 % de id_val con p < 0,05) y en el p-valor conforme (\cref{prop:p-valor-conforme}).
-\pendiente{enunciado}
+Sea $H_0$ una hipótesis simple, sea $F$ la función de distribución de $T$ bajo $H_0$ y sea $p = G(T)$, con $G(t) = \Prob_{H_0}(T \ge t)$, el $p$-valor de la \cref{def:p-valor} visto como variable aleatoria. Entonces:
+\begin{enumerate}
+  \item $\Prob_{H_0}(p \le u) \le u$ para todo $u \in [0, 1]$;
+  \item si $F$ es continua, $\Prob_{H_0}(p \le u) = u$ para todo $u \in [0,1]$, es decir, $p \sim U(0, 1)$.
+\end{enumerate}
 \end{proposicion}
 \begin{demostracion}
-\pendiente{demostración}
+La función $G$ es no creciente y continua por la izquierda, porque si $t_m \uparrow t$, los sucesos $\{T \ge t_m\}$ decrecen hacia $\{T \ge t\}$; su límite por la derecha en $t$ es $\Prob_{H_0}(T > t)$.
+
+(1) Sea $u \in [0,1]$ y sea $A = \{t \in \R : G(t) \le u\}$. Si $A = \emptyset$, entonces $\Prob_{H_0}(p \le u) = 0 \le u$. En otro caso, como $G$ es no creciente, $A$ es un intervalo no acotado superiormente; sea $t^* = \inf A$. Como $G(t) \to 1$ cuando $t \to -\infty$, si $u < 1$ se tiene $t^* > -\infty$ (para $u = 1$ el resultado es trivial). Hay dos casos:
+\begin{itemize}
+  \item Si $t^* \in A$, entonces $\{p \le u\} = \{T \ge t^*\}$ y $\Prob_{H_0}(p \le u) = G(t^*) \le u$.
+  \item Si $t^* \notin A$, entonces $\{p \le u\} = \{T > t^*\}$ y $\Prob_{H_0}(p \le u) = \lim_{t \downarrow t^*} G(t) \le u$, porque $G(t) \le u$ para todo $t > t^*$.
+\end{itemize}
+
+(2) Si $F$ es continua, $G = 1 - F$ es continua, tiende a $1$ en $-\infty$ y a $0$ en $+\infty$. Para $u \in (0, 1)$, el conjunto $A$ es no vacío, $t^*$ es finito y, por continuidad, $G(t^*) = u$ y $t^* \in A$. Por el primer caso, $\Prob_{H_0}(p \le u) = G(t^*) = u$. Para $u = 0$ y $u = 1$ basta tomar límites, usando la continuidad por la derecha de la función de distribución de $p$ y que $\Prob_{H_0}(p \le 1) = 1$.
 \end{demostracion}
+
+En consecuencia, si se rechaza $H_0$ cuando $p \le \alpha$, la probabilidad de error de tipo~I es exactamente $\alpha$ cuando $T$ es continua, y como mucho $\alpha$ cuando es discreta. Se dice entonces que el $p$-valor está \emph{calibrado}: si $H_0$ es cierta y el contraste se repite sobre muchas muestras independientes, el histograma de los $p$-valores debe ser aproximadamente plano. Esta es la comprobación que se hace con \stoodx en la \cref{sec:stoodx-calibracion}, y la misma propiedad, en su versión finita, es la del $p$-valor conforme (\cref{prop:p-valor-conforme}).
 
 %=======================================================
 \section{El test de Mann-Whitney}\label{sec:mann-whitney}
 %=======================================================
 
+% Fuente: mann1947, §3, p. 51 (U cuenta las veces que una y precede a una x: misma orientación que
+% la \cref{def:estadistico-u}); §4, pp. 51-58, ecs. (2), (5) y (15) (media, varianza y límite normal).
 % Referencias: Mann y Whitney (1947), Wilcoxon (1945), Canavos (2003); implementación de SciPy
 % (Virtanen et al., 2020).
-\pendiente{introducción al test (Mann y Whitney~\cite{mann1947}; Wilcoxon~\cite{wilcoxon1945}; Canavos~\cite{canavos2003})}
+% Fuente: canavos2003, §15.2.1, pp. 574-576 (hipótesis (15.1), idea de los rangos, momentos
+% (15.3)-(15.6), regla n_1, n_2 > 10, rango medio en los empates; nota al pie: equivale a Wilcoxon).
+
+Para comparar dos poblaciones a partir de muestras aleatorias independientes sin suponer que sean normales, Canavos presenta la prueba $U$ de Mann-Whitney~\cite[sec.~15.2.1]{canavos2003}, propuesta por Mann y Whitney~\cite{mann1947} y equivalente en esencia a la prueba de la suma de rangos de Wilcoxon~\cite{wilcoxon1945}. Sean $X_1, \dots, X_{n_1}$ e $Y_1, \dots, Y_{n_2}$ muestras aleatorias independientes de dos poblaciones continuas con densidades $f_1$ y $f_2$. La hipótesis nula es que ambas poblaciones tienen la misma distribución,
+\[
+  H_0\colon f_1(x) \equiv f_2(x),
+\]
+y la alternativa, unilateral o bilateral, es que una de ellas está desplazada respecto de la otra; se supone que ambas tienen la misma forma y la misma dispersión, de modo que solo pueden diferir en su tendencia central~\cite[sec.~15.2.1]{canavos2003}. La idea del test es ordenar conjuntamente las $n_1 + n_2$ observaciones. Si $H_0$ es cierta, los rangos de cada muestra deberían quedar repartidos a lo largo de toda la ordenación; si los de una muestra se acumulan en uno de los extremos, hay motivos para pensar que las poblaciones difieren~\cite[sec.~15.2.1]{canavos2003}.
 
 % Fuente: Canavos (2003), sec. 15.2.1 «Prueba de Mann-Whitney», pp. 574-575: muestras independientes de
 % poblaciones continuas; U a partir de la suma de rangos R_1 de la muestra 1 en la muestra combinada,
@@ -69,19 +97,44 @@ Equivalentemente, si se ordenan las $n_1 + n_2$ observaciones conjuntamente, se 
 \]
 En efecto, el rango de $X_i$ es $1$ más el número de observaciones menores que ella, más $\tfrac{1}{2}$ por cada otra observación igual. Al sumar en $i$, las comparaciones de cada $X_i$ consigo misma y con las demás observaciones de su muestra aportan $n_1 + \binom{n_1}{2} = n_1(n_1+1)/2$, porque cada par de la misma muestra suma exactamente 1, y las comparaciones con la segunda muestra aportan $U$. Canavos define el estadístico con la orientación opuesta, $n_1 n_2 + n_1(n_1+1)/2 - R_1 = n_1 n_2 - U$~\cite[ec.~(15.2)]{canavos2003}, que cuenta los pares en que la primera muestra queda por debajo; ambas versiones dan el mismo test.
 
-\begin{proposicion}[Media y varianza de $U$ bajo la hipótesis nula]\label{prop:u-momentos}
-% E[U] = n_1 n_2 / 2; Var(U) = n_1 n_2 (n_1 + n_2 + 1) / 12 sin empates.
-\pendiente{enunciado}
+\begin{proposicion}[{Media y varianza de $U$ bajo la hipótesis nula~\cite[ecs.~(15.3)-(15.6)]{canavos2003}}]\label{prop:u-momentos}
+Sea $N = n_1 + n_2$. Si $H_0$ es cierta y no hay empates, la suma de rangos $R_1$ y el estadístico $U$ de la \cref{def:estadistico-u} cumplen
+\[
+  \E(R_1) = \frac{n_1 (N + 1)}{2}, \qquad
+  \E(U) = \frac{n_1 n_2}{2}, \qquad
+  \Var(U) = \Var(R_1) = \frac{n_1 n_2 (N + 1)}{12}.
+\]
 \end{proposicion}
 \begin{demostracion}
-\pendiente{demostración}
+Bajo $H_0$, las $N$ observaciones son independientes y tienen la misma distribución continua, de modo que no hay empates con probabilidad $1$ y todas las ordenaciones de la muestra conjunta son equiprobables~\cite[sec.~15.2.1]{canavos2003}. Por tanto, los rangos $r_1, \dots, r_{n_1}$ de la primera muestra son $n_1$ valores extraídos al azar y sin reemplazamiento de $\{1, \dots, N\}$. Cada $r_i$ sigue la distribución uniforme en $\{1, \dots, N\}$, con
+\[
+  \E(r_i) = \frac{N + 1}{2}, \qquad
+  \Var(r_i) = \frac{(N + 1)(2N + 1)}{6} - \frac{(N + 1)^2}{4} = \frac{N^2 - 1}{12},
+\]
+y, por simetría, la covarianza $c = \operatorname{Cov}(r_i, r_j)$ es la misma para todo par $i \neq j$. Para calcularla, se extiende la notación a los rangos $r_1, \dots, r_N$ de todas las observaciones: como $\sum_{i=1}^{N} r_i = N(N+1)/2$ es constante,
+\[
+  0 = \Var\Bigl(\sum_{i=1}^{N} r_i\Bigr) = N\,\frac{N^2 - 1}{12} + N(N - 1)\,c,
+  \qquad\text{luego}\qquad c = -\frac{N + 1}{12}.
+\]
+Así, $\E(R_1) = n_1 (N+1)/2$ y
+\[
+  \Var(R_1) = n_1\,\frac{N^2 - 1}{12} + n_1(n_1 - 1)\,c
+  = \frac{n_1 (N + 1)}{12}\bigl[(N - 1) - (n_1 - 1)\bigr]
+  = \frac{n_1 n_2 (N + 1)}{12}.
+\]
+Por último, como $U = R_1 - n_1(n_1 + 1)/2$, se tiene $\Var(U) = \Var(R_1)$ y
+$\E(U) = n_1(N + 1)/2 - n_1(n_1 + 1)/2 = n_1 n_2 / 2$. Los mismos momentos valen para la versión de Canavos, $n_1 n_2 - U$.
 \end{demostracion}
 
 \begin{teorema}[Aproximación normal]\label{teo:u-normal}
-% z = (U - E[U]) / \sqrt{Var(U)} converge en distribución a N(0, 1) cuando n_1, n_2 \to \infty.
-% Se enuncia sin demostración (citar Mann y Whitney, 1947, o Lehmann).
-\pendiente{enunciado}
+Si $H_0$ es cierta y no hay empates, la variable
+\[
+  Z = \frac{U - \E(U)}{\sqrt{\Var(U)}} = \frac{U - n_1 n_2 / 2}{\sqrt{n_1 n_2 (n_1 + n_2 + 1)/12}}
+\]
+converge en distribución a la normal estándar $N(0, 1)$ cuando $n_1$ y $n_2$ tienden a infinito.
 \end{teorema}
+
+No se incluye la demostración, que se encuentra en el trabajo de Mann y Whitney~\cite[sec.~4]{mann1947}. Allí, a partir de una relación de recurrencia para la distribución exacta de $U$, obtienen la media y la varianza de la \cref{prop:u-momentos} y prueban que todos los momentos de la variable tipificada convergen a los de la normal estándar, de donde se sigue que la distribución límite es normal cuando $n_1$ y $n_2$ tienden a infinito de cualquier manera~\cite[sec.~4]{mann1947}. A diferencia de la $\bar X$ del \cref{teo:tcl}, $U$ no es una suma de variables independientes, porque cada $X_i$ se compara con todas las $Y_j$, y el resultado no se sigue directamente del teorema central del límite. En la práctica, Canavos considera adecuada la aproximación cuando $n_1$ y $n_2$ son mayores que 10; para muestras más pequeñas, la distribución exacta de $U$ está tabulada~\cite[sec.~15.2.1]{canavos2003}. Para una alternativa bilateral se rechaza $H_0$ si $U$ es muy grande o muy pequeño, es decir, si $|z| \ge z_{1-\alpha/2}$.
 
 \begin{proposicion}[Relación entre $U$ y el AUROC]\label{prop:auroc-u}
 Si la primera muestra son las puntuaciones de $n_1$ imágenes ID y la segunda, las de $n_2$ imágenes OOD, entonces $\widehat{\AUROC} = U/(n_1 n_2)$.
@@ -95,22 +148,78 @@ Es el \cref{cor:auroc-u}.
 % - Saturación: si todas las distancias de un grupo superan a las del otro, U = n_1 n_2 y z
 %   alcanza su máximo (38,69 con K = 500 en STOOD-X); por eso se usa -z como puntuación.
 \begin{observacion}[Empates, corrección de continuidad y saturación]\label{obs:u-empates}
-\pendiente{desarrollo}
+\textbf{Empates.} Aunque con poblaciones continuas los empates no deberían darse, en la práctica aparecen a menudo; Canavos recomienda asignar a las observaciones empatadas el promedio de los rangos que ocuparían~\cite[sec.~15.2.1]{canavos2003}. Con este rango medio, $U = R_1 - n_1(n_1+1)/2$ sigue coincidiendo con la \cref{def:estadistico-u}. Bajo $H_0$ las $N$ observaciones son intercambiables, de modo que, condicionado a los valores observados, todos los repartos de esos valores entre las dos muestras son equiprobables. La demostración de la \cref{prop:u-momentos} se repite entonces con los rangos medios $a_1, \dots, a_N$ en lugar de $1, \dots, N$: su media sigue siendo $(N+1)/2$, de modo que $\E(U) = n_1 n_2/2$, y, si $\sigma_a^2 = \frac1N \sum_{j=1}^{N} \bigl(a_j - \frac{N+1}{2}\bigr)^2$, se obtiene $\Var(R_1) = n_1 n_2\, \sigma_a^2 / (N - 1)$. Al sustituir $t$ rangos consecutivos $k+1, \dots, k+t$ por su media, la suma de cuadrados respecto de $(N+1)/2$ disminuye en $\sum_{i=1}^{t} \bigl(i - \frac{t+1}{2}\bigr)^2 = (t^3 - t)/12$. Por tanto, si $t_g$ es el número de observaciones del grupo de empates $g$,
+\[
+  \sigma_U^2 = \Var(U) = \frac{n_1 n_2}{N(N-1)} \cdot \frac{N(N^2 - 1) - \sum_g (t_g^3 - t_g)}{12}
+  = \frac{n_1 n_2}{12}\left[(N + 1) - \frac{\sum_g (t_g^3 - t_g)}{N(N - 1)}\right],
+\]
+que es la varianza usada en la \cref{def:stoodx}. Sin empates, todos los $t_g$ valen $1$ y se recupera la \cref{prop:u-momentos}.
+
+\textbf{Corrección de continuidad.} $U$ es discreta (sin empates, toma valores enteros), mientras que la aproximación del \cref{teo:u-normal} es continua. Igual que en la aproximación de la binomial por la normal (\cref{teo:tml}), la probabilidad de la cola se aproxima mejor desplazando medio punto el valor observado:
+\[
+  \Prob_{H_0}(U \ge u) \approx 1 - \Phi\left(\frac{u - \frac12 - n_1 n_2/2}{\sigma_U}\right).
+\]
+La implementación de \stoodx usa la función \texttt{scipy.stats.mannwhitneyu} de SciPy~\cite{virtanen2020}, que en su método asintótico aplica por defecto esta corrección y la de empates; de ahí el término $-\frac12$ del estadístico $z(x)$ de la \cref{def:stoodx}.
+% Fuente: virtanen2020, Box 2, p. 263 (scipy.stats: contrastes estadísticos), que no detalla
+% mannwhitneyu. El comportamiento por defecto (use_continuity=True, method='auto') se ha comprobado
+% en SciPy 1.13.1 (entornos de /mnt/homeGPU/slcerro) y en OpenOOD/stoodx_paper.py, l. 192.
+
+\textbf{Saturación.} Por la \cref{def:estadistico-u}, $0 \le U \le n_1 n_2$, y $U = n_1 n_2$ si y solo si todas las observaciones de la primera muestra superan a todas las de la segunda (\emph{separación completa}). En ese caso el estadístico tipificado alcanza su valor máximo, que, sin el término de empates de $\sigma_U$, es
+\[
+  z_{\max} = \frac{n_1 n_2/2 - 1/2}{\sqrt{n_1 n_2 (N + 1)/12}} = \frac{n_1 n_2 - 1}{\sqrt{n_1 n_2 (N + 1)/3}}
+\]
+y solo depende de los tamaños de las muestras. En \stoodx, $n_1 = K$ y $n_2 = K^2$, de modo que $z_{\max} \approx 38{,}69$ con $K = 500$ y $z_{\max} \approx 20{,}71$ con $K = 144$: todas las imágenes con separación completa reciben la misma puntuación $-z_{\max}$, salvo diferencias mínimas debidas al término de empates, y quedan empatadas entre sí (\cref{sec:stoodx-puntuacion}). Para esas imágenes, el $p$-valor $1 - \Phi(z)$ es tan pequeño que se redondea a cero en coma flotante, y por eso se usa $-z$ como puntuación (\cref{obs:stoodx-z}).
 \end{observacion}
+% Cifras: z_máx = 38,6910841 (K = 500) y 20,7123117 (K = 144), con corrección de continuidad y sin el
+% término de empates; comprobado con la fórmula. Según saturacion_stoodx.csv (cap. 10), el término de
+% empates solo cambia el octavo decimal con K = 500.
 
 % - El test supone muestras independientes; en STOOD-X las K^2 distancias de referencia no lo son
 %   (vecinos compartidos), lo que afecta a la calibración (\cref{sec:stoodx-calibracion}).
 % - Consecuencia: los p-valores no siguen la U(0,1) de \cref{prop:p-valor-uniforme}.
 \begin{observacion}[Hipótesis de independencia]\label{obs:u-dependencia}
-\pendiente{desarrollo}
+La \cref{prop:u-momentos}, el \cref{teo:u-normal} y el tratamiento de los empates suponen que las dos muestras son aleatorias e independientes, de modo que bajo $H_0$ las $N$ observaciones son intercambiables~\cite[sec.~15.2]{canavos2003}. En \stoodx esta hipótesis no se cumple. Las $K^2$ distancias de $B(x)$ (\cref{def:stoodx}) se calculan entre los vecinos de $x$ y los vecinos de estos, y distintos vecinos $x_i$ comparten buena parte de sus propios vecinos, de modo que una misma imagen de entrenamiento interviene en muchas distancias; además, si dos vecinos de $x$ son vecinos mutuos, su distancia aparece dos veces en $B(x)$. Las distancias de $A(x)$, por su parte, tienen en común la imagen $x$. Con observaciones dependientes, la distribución de $U$ bajo $H_0$ deja de ser la descrita en la \cref{prop:u-momentos} y en el \cref{teo:u-normal}, y el $p$-valor ya no tiene por qué ser uniforme (\cref{prop:p-valor-uniforme}), aunque $x$ sea una imagen ID. En consecuencia, el $p$-valor de \stoodx sirve para ordenar las imágenes, pero no puede interpretarse como un nivel de significación: con $K = 500$, en la validación ID el 82\,\% de las imágenes obtiene $p < 0{,}05$ (\cref{sec:stoodx-calibracion}).
 \end{observacion}
 
 % Correlación de Spearman (también basada en rangos). Se usa en \cref{sec:corrupciones}: caída de
 % exactitud frente a AUROC sobre las 27 celdas, y comprobación del nivel 0.
-\begin{definicion}[Correlación de Spearman]\label{def:spearman}
-\pendiente{definición de la correlación de Spearman (autor)}
+% Fuente: canavos2003, §15.6, pp. 586-588, ecs. (15.15)-(15.19).
+El último procedimiento basado en rangos que se usa en el trabajo no es un contraste, sino una medida de asociación. El coeficiente de correlación muestral $r$ mide la asociación \emph{lineal} entre dos variables y su uso inferencial se apoya en suponer normalidad; el coeficiente de Spearman, en cambio, se calcula sobre los rangos~\cite[sec.~15.6]{canavos2003}.
+
+\begin{definicion}[{Correlación de Spearman~\cite[ec.~(15.15)]{canavos2003}}]\label{def:spearman}
+Sea $(X_1, Y_1), \dots, (X_n, Y_n)$ una muestra de $n$ pares y sean $X'_i$ e $Y'_i$ los rangos de $X_i$ entre $X_1, \dots, X_n$ y de $Y_i$ entre $Y_1, \dots, Y_n$, con el rango medio en los empates. El \emph{coeficiente de correlación de rangos de Spearman}, $r_S$, es el coeficiente de correlación muestral de los rangos:
+\[
+  r_S = \frac{\displaystyle\sum_{i=1}^{n} X'_i Y'_i - \frac{1}{n}\Bigl(\sum_{i=1}^{n} X'_i\Bigr)\Bigl(\sum_{i=1}^{n} Y'_i\Bigr)}
+  {\displaystyle\Biggl[\sum_{i=1}^{n} X'^2_i - \frac{1}{n}\Bigl(\sum_{i=1}^{n} X'_i\Bigr)^2\Biggr]^{1/2}
+   \Biggl[\sum_{i=1}^{n} Y'^2_i - \frac{1}{n}\Bigl(\sum_{i=1}^{n} Y'_i\Bigr)^2\Biggr]^{1/2}} .
+\]
 \end{definicion}
-\revisar{estructura añadida por el agente}
+
+Como cualquier coeficiente de correlación muestral, $r_S \in [-1, 1]$. Pero, al trabajar con rangos, no se limita a detectar relaciones lineales: mide el grado de asociación \emph{monótona} entre $X$ e $Y$, y un valor próximo a $1$ o a $-1$ indica que una variable tiende a crecer o a decrecer con la otra~\cite[sec.~15.6]{canavos2003}.
+
+\begin{proposicion}[{Expresión sin empates~\cite[ec.~(15.19)]{canavos2003}}]\label{prop:spearman-sin-empates}
+Si no hay empates y $d_i = X'_i - Y'_i$, entonces
+\[
+  r_S = 1 - \frac{6 \sum_{i=1}^{n} d_i^2}{n(n^2 - 1)} .
+\]
+En particular, $r_S = 1$ si y solo si las dos ordenaciones coinciden, y $r_S = -1$ si y solo si son opuestas.
+\end{proposicion}
+\begin{demostracion}
+Sin empates, tanto $(X'_1, \dots, X'_n)$ como $(Y'_1, \dots, Y'_n)$ son permutaciones de $\{1, \dots, n\}$, así que
+\[
+  \sum_{i=1}^{n} X'_i = \sum_{i=1}^{n} Y'_i = \frac{n(n+1)}{2}, \qquad
+  \sum_{i=1}^{n} X'^2_i = \sum_{i=1}^{n} Y'^2_i = \frac{n(n+1)(2n+1)}{6}.
+\]
+Cada corchete del denominador vale
+$\frac{n(n+1)(2n+1)}{6} - \frac{n(n+1)^2}{4} = \frac{n(n^2-1)}{12}$, de modo que el denominador es $n(n^2-1)/12$. Para el numerador, de $d_i^2 = X'^2_i + Y'^2_i - 2X'_iY'_i$ se obtiene
+\[
+  \sum_{i=1}^{n} X'_i Y'_i = \frac12\Bigl[\sum_{i=1}^{n} X'^2_i + \sum_{i=1}^{n} Y'^2_i - \sum_{i=1}^{n} d_i^2\Bigr]
+  = \frac{n(n+1)(2n+1)}{6} - \frac12 \sum_{i=1}^{n} d_i^2 ,
+\]
+y el numerador es $\frac{n(n^2-1)}{12} - \frac12\sum_i d_i^2$. Dividiendo se obtiene la expresión del enunciado. Por ella, $r_S = 1$ si y solo si todos los $d_i$ son nulos, es decir, si $X'_i = Y'_i$ para todo $i$. Para el otro caso, si se sustituye cada $Y'_i$ por $n + 1 - Y'_i$ (los rangos de $-Y_i$), el numerador cambia de signo y el denominador no varía, luego $r_S$ cambia de signo; por tanto, $r_S = -1$ si y solo si $X'_i = n + 1 - Y'_i$ para todo $i$.
+\end{demostracion}
+
+En este trabajo, $r_S$ se usa para medir si la caída de exactitud del clasificador y el \AUROC de los detectores varían de forma monótona a lo largo de las celdas de corrupciones sintéticas (\cref{sec:corrupciones,sec:ood-corr-errores}).
 
 %=======================================================
 \section{El test de McNemar}\label{sec:mcnemar}
@@ -120,16 +229,43 @@ Es el \cref{cor:auroc-u}.
 % - Tabla 2x2: b = aciertos solo del modelo A, c = aciertos solo del modelo B.
 % - Versión exacta (binomial sobre los pares discordantes) y chi-cuadrado con corrección de
 %   continuidad. En este trabajo: fase 1, Swin frente al siguiente modelo, p = 0,19.
-\pendiente{planteamiento (McNemar~\cite{mcnemar1947})}
+% Fuente: canavos2003, §15.3.1, pp. 579-580 (prueba del signo: H_0: p = 0,5, S ~ Bin(n; 0,5),
+% empates descartados, aproximación normal para n grande).
+
+Cuando dos clasificadores se evalúan sobre las mismas imágenes, sus aciertos no forman dos muestras independientes: cada imagen aporta un par de observaciones. Para datos pareados, Canavos presenta la \emph{prueba del signo}~\cite[sec.~15.3.1]{canavos2003}. Dados $n$ pares $(X_i, Y_i)$, se anota un signo $+$ si $X_i > Y_i$ y un signo $-$ en caso contrario, y se llama $p$ a la probabilidad de obtener un $+$. Si $X$ e $Y$ tienen la misma distribución, $p = 0{,}5$, y la hipótesis nula de la prueba es $H_0\colon p = 0{,}5$. La estadística de prueba es el número $S$ de signos $+$, que bajo $H_0$ sigue una distribución binomial de parámetros $n$ y $0{,}5$, porque cada par es un ensayo independiente; los pares empatados se descartan y, para $n$ grande, la binomial puede aproximarse por la normal~\cite[sec.~15.3.1]{canavos2003}. El test de McNemar~\cite{mcnemar1947} es esta misma prueba aplicada a observaciones dicotómicas, como acertar o fallar.
+
+Sean dos clasificadores, $A$ y $B$, evaluados sobre las mismas $N$ imágenes, que se suponen independientes. Para la imagen $i$, el par de resultados (acierta o falla cada modelo) toma uno de cuatro valores, con probabilidades $\pi_{11}$ (aciertan ambos), $\pi_{10}$ (solo acierta $A$), $\pi_{01}$ (solo acierta $B$) y $\pi_{00}$ (fallan ambos). Se denotan $a$, $b$, $c$ y $d$ los números de imágenes de cada tipo, de modo que $(a, b, c, d)$ sigue una distribución multinomial de parámetros $N$ y $(\pi_{11}, \pi_{10}, \pi_{01}, \pi_{00})$. Las exactitudes de $A$ y de $B$ son $\pi_{11} + \pi_{10}$ y $\pi_{11} + \pi_{01}$, luego coinciden si y solo si $\pi_{10} = \pi_{01}$, y la hipótesis nula es
+\[
+  H_0\colon \pi_{10} = \pi_{01}.
+\]
+Los pares concordantes ($a$ y $d$) desempeñan el papel de los empates de la prueba del signo: no informan sobre qué modelo es mejor, y el contraste se basa solo en los $b + c$ pares discordantes.
 
 \begin{proposicion}[Distribución del estadístico de McNemar]\label{prop:mcnemar}
-% Bajo H_0, el número de pares discordantes a favor de un modelo, condicionado a b + c, sigue una
-% Bin(b + c, 1/2).
-\pendiente{enunciado}
+Con la notación anterior y $\pi_{10} + \pi_{01} > 0$, condicionado a que haya $m$ pares discordantes, $b + c = m$, el número $b$ de pares favorables a $A$ sigue una distribución $\mathrm{Bin}(m, \theta)$, con $\theta = \pi_{10}/(\pi_{10} + \pi_{01})$. En particular, bajo $H_0$, $b \mid (b + c = m) \sim \mathrm{Bin}(m, \tfrac12)$.
 \end{proposicion}
 \begin{demostracion}
-\pendiente{demostración}
+Sean $b_0, c_0 \ge 0$ enteros con $b_0 + c_0 = m$. Sumando la función de probabilidad multinomial sobre los valores de $a$ y $d$ con $a + d = N - m$, y aplicando el binomio de Newton,
+\[
+  \Prob(b = b_0,\ c = c_0)
+  = \sum_{a + d = N - m} \frac{N!}{a!\, b_0!\, c_0!\, d!}\, \pi_{11}^{a} \pi_{10}^{b_0} \pi_{01}^{c_0} \pi_{00}^{d}
+  = \binom{N}{m} (\pi_{11} + \pi_{00})^{N - m} \binom{m}{b_0} \pi_{10}^{b_0} \pi_{01}^{c_0}.
+\]
+Por otra parte, cada imagen es discordante con probabilidad $\pi_{10} + \pi_{01}$, de modo que $b + c \sim \mathrm{Bin}(N, \pi_{10} + \pi_{01})$ y
+\[
+  \Prob(b + c = m) = \binom{N}{m} (\pi_{10} + \pi_{01})^{m} (\pi_{11} + \pi_{00})^{N - m}.
+\]
+Dividiendo,
+\[
+  \Prob(b = b_0 \mid b + c = m) = \binom{m}{b_0} \theta^{b_0} (1 - \theta)^{m - b_0},
+\]
+que es la función de probabilidad de una $\mathrm{Bin}(m, \theta)$. Bajo $H_0$, $\theta = \tfrac12$.
 \end{demostracion}
+
+Como $H_0$ equivale a $\theta = \tfrac12$, el test de McNemar es la prueba del signo sobre los pares discordantes, con $S = b$. El $p$-valor exacto bilateral es $\min\bigl\{1,\ 2\,\Prob\bigl(S \ge \max(b, c)\bigr)\bigr\}$, con $S \sim \mathrm{Bin}(b + c, \tfrac12)$. Cuando $m = b + c$ es grande, la binomial se aproxima por la normal (\cref{teo:tml}): bajo $H_0$, $\E(b) = m/2$ y $\Var(b) = m/4$, de modo que
+\[
+  Z = \frac{b - m/2}{\sqrt{m/4}} = \frac{b - c}{\sqrt{b + c}}
+\]
+es aproximadamente $N(0, 1)$. Con la corrección de continuidad se usa $Z_c = (|b - c| - 1)/\sqrt{b + c}$, y $Z_c^2$, por ser el cuadrado de una normal estándar, sigue aproximadamente una distribución $\chi^2$ con un grado de libertad. Estas son las versiones que se aplican en la \cref{sec:eleccion-swin}. Como el modelo multinomial supone que las imágenes son independientes, el test hereda esa hipótesis.
 
 \begin{teorema}[Teorema central del límite]\label{teo:tcl}
 Sean $X_1, X_2, \dots, X_n$ $n$ variables aleatorias i.i.d.\ cuya distribución no está especificada y que presentan una media $\mu$ y una varianza $\sigma^2$ finitas. El promedio muestral $\bar{X} = \frac{1}{n}\sum_{i=1}^{n} X_i$ tiene una distribución con media $\mu$ y varianza $\frac{\sigma^2}{n}$.
@@ -148,13 +284,42 @@ Sea $X \sim \mathrm{Bin}(n, p)$ una variable aleatoria binomial, con media $np$ 
 tiende a la normal estándar $N(0,1)$.
 
 
-Se considera esta aproximación adecuada tanto para $np > 5$ como para $p<= 1/2$, o cuando $n(1 - p) > 5$ para $p > 1/2$. Esto es
+Se considera esta aproximación adecuada tanto para $np > 5$ como para $p \le 1/2$, o cuando $n(1 - p) > 5$ para $p > 1/2$. Esto es
 \[
 \Prob(a \le X_B \le b) \approx \Prob\left( \frac{a - np}{\sqrt{np(1-p)}} \le Z_N \le \frac{b - np}{\sqrt{np(1-p)}} \right)
 \]
 
 \end{teorema}
 \paragraph{Aplicación en el estudio.} Se ha usado para comprobar si realmente existe una diferencia entre los modelos Swin-S y ConvNeXt-S, evaluados sobre las mismas \num{12618} imágenes del test ID (\cref{tab:mcnemar-swin-convnext}).
+
+%=======================================================
+\section{Gráficos cuantil-cuantil}\label{sec:qq-plot}
+%=======================================================
+
+% Fuente: wilk1968, secs. 4.1-4.2 (definición y propiedades del Q-Q plot) y sec. 5 (posiciones de
+% representación: fracciones (i - 1/2)/n, i/(n + 1), etc.).
+
+Un gráfico cuantil-cuantil (\emph{Q-Q plot}) compara los cuantiles de dos distribuciones~\cite[sec.~4.1]{wilk1968}. Para comprobar si una muestra procede de una distribución de referencia $F$, se ordenan sus valores, $x_{(1)} \le x_{(2)} \le \dots \le x_{(n)}$, y se representa cada $x_{(i)}$ frente al cuantil de $F$ de la fracción correspondiente, es decir, los puntos
+\[
+  \bigl(F^{-1}(p_i),\ x_{(i)}\bigr), \qquad p_i = \frac{i - \tfrac12}{n}, \qquad i = 1, \dots, n.
+\]
+El eje horizontal contiene los cuantiles teóricos de $F$, y el vertical, los cuantiles empíricos de la muestra. Otras elecciones de $p_i$, como $i/(n + 1)$, dan gráficos muy parecidos salvo para muestras muy pequeñas~\cite[sec.~5]{wilk1968}.
+
+Si la muestra procede de $F$, los puntos quedan sobre la recta $y = x$. Si procede de una transformación lineal de $F$, siguen formando una recta, aunque con otra pendiente y otra ordenada en el origen~\cite[sec.~4.2]{wilk1968}. Cualquier desviación de la recta indica una diferencia entre las distribuciones: por ejemplo, una pendiente que crece en los extremos indica colas más pesadas que las de $F$. En distribuciones de colas largas, el gráfico destaca sobre todo las diferencias en las colas~\cite[sec.~4.2]{wilk1968}.
+
+El gráfico no es un contraste formal, sino una herramienta descriptiva. Para contrastar la normalidad de una muestra univariante con la media y la varianza estimadas puede usarse el test de Lilliefors, una versión del test de Kolmogorov-Smirnov con valores críticos obtenidos por Monte Carlo~\cite{lilliefors1967}.
+
+\begin{proposicion}[Distribución de la distancia de Mahalanobis]\label{prop:mahalanobis-chi2}
+Sea $h \sim \mathcal{N}(\mu, \Sigma)$ un vector aleatorio de dimensión $D$, con $\Sigma$ definida positiva. Entonces
+\[
+  d^2 = (h - \mu)^{\top} \Sigma^{-1} (h - \mu) \sim \chi^2_D.
+\]
+\end{proposicion}
+\begin{demostracion}
+Como $\Sigma$ es simétrica y definida positiva, tiene una raíz cuadrada simétrica y definida positiva $\Sigma^{1/2}$. El vector $z = \Sigma^{-1/2}(h - \mu)$ es gaussiano, por ser una transformación afín de $h$, con media $0$ y covarianza $\Sigma^{-1/2} \Sigma \Sigma^{-1/2} = I_D$; por tanto, sus componentes $z_1, \dots, z_D$ son normales estándar independientes. Entonces $d^2 = z^{\top} z = \sum_{j=1}^{D} z_j^2$ es la suma de los cuadrados de $D$ normales estándar independientes, que sigue una distribución $\chi^2_D$.
+\end{demostracion}
+
+\paragraph{Aplicación en el estudio.} Por la \cref{prop:mahalanobis-chi2}, si las características de cada clase siguen la gaussiana que supone MDS (\cref{def:mds}), las distancias de Mahalanobis de las imágenes a su clase siguen una $\chi^2_D$. En la \cref{sec:ood-mds-gaussiana} se comprueba con un Q-Q plot de esas distancias frente a la $\chi^2_D$.
 
 %=======================================================
 \section{Intervalos de confianza \emph{bootstrap}}\label{sec:bootstrap}
@@ -168,7 +333,8 @@ Se considera esta aproximación adecuada tanto para $np > 5$ como para $p<= 1/2$
 %   * por lámina: se remuestrean láminas completas, porque los parches de una misma lámina no son
 %     independientes (enlace con la fuga por lámina).
 % - En el trabajo: 1000 remuestras, semilla 0.
-\pendiente{planteamiento}
+
+Para construir un intervalo de confianza hace falta conocer, al menos de forma aproximada, la distribución muestral del estimador. Para muchas de las métricas de este trabajo, como el \AUROC o el \FPRn{95}, no se dispone de una expresión sencilla de esa distribución. El método \emph{bootstrap}, propuesto por Efron~\cite{efron1979}, la aproxima por simulación: sustituye la distribución desconocida de la población por la distribución empírica de la muestra y estudia cómo varía el estimador al extraer muestras de esta última~\cite{pena2008fundamentos}.
 
 Dada una muestra $(x_1, \dots, x_n)$, el método \emph{bootstrap}~\cite{pena2008fundamentos} consiste en:
 
@@ -219,8 +385,17 @@ donde $\lceil\cdot\rceil$ indica redondear al entero superior.   ~\cite{pena2008
 \end{definicion}
 
 \begin{observacion}[Bootstrap estratificado, pareado y por lámina]\label{obs:bootstrap-variantes}
-\pendiente{desarrollo}
+El procedimiento anterior parte de una única muestra de observaciones i.i.d. En el trabajo se usan tres variantes, que se combinan según el caso:
+\begin{enumerate}
+  \item \emph{Estratificado.} Las métricas de detección dependen de dos muestras: $n_1$ puntuaciones ID y $n_2$ OOD. En cada réplica se remuestrean con reemplazo, por separado, $n_1$ puntuaciones ID y $n_2$ OOD, de modo que se conservan los tamaños de ambos grupos. Así se obtienen los intervalos de \AUROC y \FPRn{95} de los \cref{cap:deteccion-ood,cap:stoodx}.
+  \item \emph{Pareado.} Para comparar dos métodos evaluados sobre las mismas imágenes, en cada réplica se usan los mismos índices para ambos y se calcula la diferencia de la métrica, $\Delta^*_b = \hat\theta^*_{A,b} - \hat\theta^*_{B,b}$. Como $\Var(\hat\theta_A - \hat\theta_B) = \Var(\hat\theta_A) + \Var(\hat\theta_B) - 2\operatorname{Cov}(\hat\theta_A, \hat\theta_B)$, tratar las dos métricas como independientes ignoraría su covarianza; al remuestrear las mismas imágenes, las réplicas la conservan. El intervalo por percentiles de $\Delta^*_1, \dots, \Delta^*_B$ y el $p$-valor bilateral $p^* = \min\bigl\{1,\ 2\min(\hat\pi_{\le}, \hat\pi_{\ge})\bigr\}$, donde $\hat\pi_{\le}$ y $\hat\pi_{\ge}$ son las proporciones de réplicas con $\Delta^*_b \le 0$ y $\Delta^*_b \ge 0$, permiten decidir si la diferencia es significativa (\cref{sec:eleccion-swin}).
+  \item \emph{Por lámina.} Los parches de una misma lámina no son independientes (\cref{cap:fuga}). Si se remuestrean imágenes, el \emph{bootstrap} los trata como si lo fueran y puede subestimar la variabilidad del estimador. Remuestreando láminas completas, con todas sus imágenes, se conserva la dependencia dentro de cada lámina; a cambio, el número de imágenes varía de una réplica a otra (\cref{sec:eleccion-swin}).
+\end{enumerate}
+En todos los casos se usan $B = \num{1000}$ réplicas con semilla 0, y los extremos del intervalo se calculan como percentiles con interpolación lineal entre las dos réplicas ordenadas más próximas, una variante de la \cref{def:bootstrap} que solo difiere de ella en la forma de redondear el índice.
 \end{observacion}
+% Fuente: OpenOOD/metricas_ood.py (indices_bootstrap: rng.integers por separado para ID y OOD;
+% bootstrap_ic: np.percentile; bootstrap_pareado_auroc: mismos índices y p = min(1, 2 min(...)));
+% fase1_metricas.py (remuestreo de láminas). La fórmula de la varianza de la diferencia es del agente.
 
 %=======================================================
 \section{Predicción conforme}\label{sec:prediccion-conforme}

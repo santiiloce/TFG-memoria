@@ -362,7 +362,80 @@ No obstante, con MDS (0,956) Textures resulta más difícil de detectar que TUM,
 
 % Las cifras de SHE (0,795; 0,938; 0,942) son del near-OOD principal (TUM+NORM).
 
+\section{Hipótesis gaussiana de MDS}\label{sec:ood-mds-gaussiana}
+
+% Fuente: scripts/figura_qq_mahalanobis.py sobre OpenOOD/features/completo (Swin-S, D = 768).
+% mu_c y Sigma estimadas con id_train (90.800 imágenes), como en el postprocesador MDS de OpenOOD;
+% -min_c d^2 reproduce las puntuaciones MDS de results_ood/faseA_2026-10-20_11-19-35/scores_mds.npz.
+% Medianas de d^2 en el test ID (mediana de chi^2_768: 767,3): Adenocarcinoma_ductal 175,5;
+% Carcinoma_intraductal 3604,8; Estroma 343,8; Glandulas_no_neoplasicas 240,5; Gleason_3 2787,3;
+% Gleason_4_cribiformes 484,0; Gleason_4_fusionadas 951,4; Gleason_4_glomeruloide 9074,7;
+% Gleason_4_pobremente_formadas 5261,1; Gleason_5_comedonecrosis 3227,1; Gleason_5_no_glandulas 578,4;
+% Inflamatorio 1805,4; No_Cancer 2114,4; PIN_de_alto_grado 395,2.
+
+MDS supone que, condicionadas a la clase, las características de la penúltima capa siguen gaussianas con una covarianza común (\cref{def:mds}). Es uno de los detectores más consistentes del estudio, con un \AUROC medio de 0,926 (\cref{tab:ood-global}), por lo que cabe preguntarse si las clases siguen realmente esa distribución.
+
+Para comprobarlo se estiman las medias $\mu_c$ y la covarianza común $\Sigma$ con las \num{90800} imágenes de entrenamiento, igual que en MDS, y se calcula la distancia de Mahalanobis $d^2$ de cada una de las \num{12618} imágenes del test ID a su clase verdadera. Si la hipótesis se cumple, $d^2$ sigue una $\chi^2_{768}$ (\cref{prop:mahalanobis-chi2}), de modo que el Q-Q plot de las distancias de cada clase frente a la $\chi^2_{768}$ (\cref{sec:qq-plot}) debería quedar sobre la recta $y = x$. El experimento se ha implementado en Python con NumPy, scikit-learn (\texttt{EmpiricalCovariance}, el mismo estimador de la covarianza que usa el postprocesador MDS de OpenOOD), SciPy (cuantiles de la $\chi^2$) y Matplotlib, sobre las características del Swin-S ya exportadas. Se ha comprobado que, con estas estimaciones, la distancia mínima a las clases reproduce las puntuaciones de MDS del test ID usadas en este capítulo.
+
+También se podría haber aplicado el test de Lilliefors~\cite{lilliefors1967} a las primeras componentes principales. Cualquier proyección lineal de una gaussiana es gaussiana, así que bastaría con que una sola componente no fuese normal para rechazar la hipótesis: se aplicaría el test a la primera componente y, si no se rechazara, a la segunda y a la tercera. No ha hecho falta, porque el Q-Q plot ya muestra que la hipótesis no se cumple (\cref{fig:ood-qq-mahalanobis}).
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=\textwidth]{img/cap10/qq_mahalanobis_chi2.pdf}
+  \caption{Q-Q plot de las distancias de Mahalanobis al cuadrado de las imágenes del test ID a su clase verdadera (eje vertical, en escala logarítmica) frente a los cuantiles de la $\chi^2_{768}$ (eje horizontal), una serie por clase, con su número de imágenes $n$. Si las clases siguieran la gaussiana que supone MDS, los puntos quedarían sobre la recta discontinua $y = x$.}
+  \label{fig:ood-qq-mahalanobis}
+\end{figure}
+
+Ninguna clase queda sobre la recta $y = x$: todas las curvas se separan de ella y tienen colas mucho más pesadas que la $\chi^2_{768}$, de modo que las características no siguen la gaussiana que supone MDS. Además, las clases grandes quedan por debajo de la recta y las pequeñas muy por encima. Frente a la mediana de la $\chi^2_{768}$, 767,3, la mediana de $d^2$ es de 240,5 en \clase{Glandulas\_no\_neoplasicas} ($n = \num{3590}$) y de 175,5 en \clase{Adenocarcinoma\_ductal} ($n = \num{2102}$), pero de 9074,7 en \clase{Gleason\_4\_glomeruloide} ($n = 25$), de 5261,1 en \clase{Gleason\_4\_pobremente\_formadas} ($n = 127$) y de 3604,8 en \clase{Carcinoma\_intraductal} ($n = 121$). Esto apunta a que tampoco se cumple la hipótesis de covarianza común, que dominan las clases grandes. Aun así, MDS funciona: separar las imágenes ID de las OOD no requiere que el modelo gaussiano sea correcto.
+
 \section{Discusión}\label{sec:ood-discusion}
+
+% Media aritmética y desviación típica muestral (n - 1) de cada métrica sobre las ocho filas de cada método
+% en results_ood/faseC_K144/tabla_principal.csv (TUM, NORM, STR, LYM, MUS, PANDA, control 128 px, DTD); se
+% excluye TUM+NORM porque es la unión de TUM y NORM. Calculada a mano a partir del CSV; no la genera
+% scripts/generar_tablas.py.
+\begin{table}[tbp]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\caption{Resultado global de los 17 métodos: media $\pm$ desviación típica de \AUROC y \CCRn{5} (más alto es mejor) y de \FPRn{95} (más bajo es mejor) sobre ocho conjuntos (TUM, NORM, STR, LYM, MUS, PANDA, control de 128\,px y DTD; se excluye TUM+NORM, unión de TUM y NORM). Clase positiva: OOD. En negrita, la mejor media entre los métodos no exploratorios. $^{a}$ASH reduce la exactitud ID al 68{,}3\,\%. $^{\dagger}$Variante exploratoria ($K_c=\min(500,\lfloor n_c/2\rfloor)$). $^{\ddagger}$100\,\% de las características y $K=144$ (\cref{sec:stoodx-seleccion-k}); el resto de filas de \stoodx usan $K=500$.}
+\label{tab:ood-global}
+\begin{tabular}{lccc}
+\toprule
+Método & \AUROC $\uparrow$ & \FPRn{95} $\downarrow$ & \CCRn{5} $\uparrow$ \\
+\midrule
+\multicolumn{4}{@{}l}{\textit{Basados en logits}} \\
+MSP & 0{,}818 $\pm$ 0{,}079 & 0{,}890 $\pm$ 0{,}063 & 0{,}108 $\pm$ 0{,}063 \\
+MaxLogit & 0{,}744 $\pm$ 0{,}089 & 0{,}937 $\pm$ 0{,}049 & 0{,}061 $\pm$ 0{,}048 \\
+Energy & 0{,}734 $\pm$ 0{,}092 & 0{,}938 $\pm$ 0{,}048 & 0{,}060 $\pm$ 0{,}047 \\
+\midrule
+\multicolumn{4}{@{}l}{\textit{Modificación de activaciones}} \\
+ReAct & 0{,}770 $\pm$ 0{,}100 & 0{,}824 $\pm$ 0{,}084 & 0{,}175 $\pm$ 0{,}084 \\
+ASH$^{a}$ & 0{,}491 $\pm$ 0{,}096 & 0{,}989 $\pm$ 0{,}019 & 0{,}007 $\pm$ 0{,}015 \\
+DICE & 0{,}594 $\pm$ 0{,}113 & 0{,}732 $\pm$ 0{,}168 & 0{,}266 $\pm$ 0{,}166 \\
+\midrule
+\multicolumn{4}{@{}l}{\textit{Características y distancias}} \\
+KNN & 0{,}911 $\pm$ 0{,}066 & 0{,}261 $\pm$ 0{,}130 & 0{,}738 $\pm$ 0{,}130 \\
+MDS & 0{,}926 $\pm$ 0{,}064 & 0{,}250 $\pm$ 0{,}142 & 0{,}747 $\pm$ 0{,}140 \\
+RMDS & 0{,}899 $\pm$ 0{,}073 & 0{,}364 $\pm$ 0{,}342 & 0{,}633 $\pm$ 0{,}340 \\
+ViM & 0{,}929 $\pm$ 0{,}061 & 0{,}241 $\pm$ 0{,}139 & 0{,}756 $\pm$ 0{,}138 \\
+SHE (prod.\ escalar) & 0{,}705 $\pm$ 0{,}115 & 0{,}730 $\pm$ 0{,}159 & 0{,}270 $\pm$ 0{,}159 \\
+SHE (coseno) & 0{,}864 $\pm$ 0{,}095 & 0{,}446 $\pm$ 0{,}200 & 0{,}553 $\pm$ 0{,}199 \\
+SHE (euclídea) & 0{,}870 $\pm$ 0{,}098 & 0{,}447 $\pm$ 0{,}206 & 0{,}552 $\pm$ 0{,}206 \\
+\midrule
+\multicolumn{4}{@{}l}{\textit{STOOD-X}} \\
+STOOD-X (100\,\%) & 0{,}944 $\pm$ 0{,}043 & 0{,}273 $\pm$ 0{,}220 & 0{,}716 $\pm$ 0{,}212 \\
+STOOD-X ($K=144$)$^{\ddagger}$ & \textbf{0{,}972} $\pm$ 0{,}023 & \textbf{0{,}120} $\pm$ 0{,}116 & \textbf{0{,}864} $\pm$ 0{,}109 \\
+STOOD-X (87,5\,\%) & 0{,}943 $\pm$ 0{,}043 & 0{,}276 $\pm$ 0{,}222 & 0{,}714 $\pm$ 0{,}214 \\
+STOOD-X $K_c$$^{\dagger}$ & 0{,}931 $\pm$ 0{,}064 & 0{,}247 $\pm$ 0{,}193 & 0{,}742 $\pm$ 0{,}185 \\
+\bottomrule
+\end{tabular}
+\end{table}
+\pendiente{análisis de la \cref{tab:ood-global}}
+% Orden por AUROC medio: STOOD-X K=144 0,972; STOOD-X 100 % 0,944; 87,5 % 0,943; K_c 0,931; ViM 0,929;
+% MDS 0,926; KNN 0,911; RMDS 0,899. Sin STOOD-X K=144, el menor FPR@95 medio es ViM (0,241) y el mayor
+% CCR@FPR5 medio también ViM (0,756), aunque STOOD-X (100 %) tiene mayor AUROC medio (0,944) y la menor
+% desviación de AUROC (0,043). RMDS tiene la mayor desviación de FPR@95 (0,342), por LYM (0,992) y el control de 128 px (0,821).
 
 \textbf{Conclusión.} Ningún método domina en todas las métricas y conjuntos. ViM ofrece el mejor equilibrio global en AUROC; RMDS, el mejor comportamiento con umbrales exigentes, aunque con un fallo severo en LYM; y STOOD-X destaca en far-OOD y en varias clases de NCT-CRC, pero es el más sensible a la resolución. El hallazgo más relevante es que los mejores detectores responden sobre todo a las condiciones de adquisición, lo que condiciona su uso en un entorno multicéntrico. \revisar{conclusiones propias del Swin; con ConvNeXt-S cambian (\cref{tab:convnext-conclusiones})}
 \revisar{donde dice que \stoodx «es el más sensible a la resolución», propuesta de integrar dos cosas: que es el más sensible al \emph{covariate shift} en general (corrupciones sintéticas, \cref{sec:ood-corr-deteccion}, y ConvNeXt-S, \cref{ap:convnext}), y el matiz de la \cref{sec:ood-corr-errores}: sirve como alarma de imagen alterada, pero no es el mejor para la clasificación selectiva. No se cambia el texto del autor}
