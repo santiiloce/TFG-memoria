@@ -22,22 +22,6 @@ distribuciones sobre las clases (en particular, $q$ es la distribución
 con parámetros $\phi$; y $L$ es el número de capas, con índice $\ell$.
 \revisar{párrafo añadido a petición del autor para justificar la unificación de la notación; antes, $K$ era también el número de capas ocultas (\cref{def:mlp}) y de bloques residuales (\cref{def:residual}), e $y$, $y^{LS}$ el vector \emph{one-hot} y los objetivos suavizados (\cref{def:label-smoothing}).}
 
-\section{El problema de clasificación supervisada}\label{sec:clasificacion}
-
-\begin{definicion}[Problema de clasificación]\label{def:clasificacion}
-% Muestra i.i.d. \{(x_i, y_i)\}_{i=1}^I de P(X, Y); clasificador g(x) = \argmax_k f_k(x;\phi);
-% riesgo esperado con pérdida 0-1 y riesgo empírico.
-\pendiente{definición formal}
-\end{definicion}
-
-% - Clasificador de Bayes y su optimalidad respecto a la pérdida 0-1.
-\begin{proposicion}[Optimalidad del clasificador de Bayes]\label{prop:bayes}
-\pendiente{enunciado}
-\end{proposicion}
-\begin{demostracion}
-\pendiente{demostración}
-\end{demostracion}
-
 \section{Redes neuronales}\label{sec:redes}
 
 \subsection{Neuronas y funciones de activación}\label{sec:activaciones}
@@ -510,23 +494,6 @@ porque los objetivos suman uno. Por último, para $k \ne y$,
 \]
 \end{demostracion}
 
-\begin{observacion}\label{obs:ls-suelo}
-Con $\varepsilon = 0$ (objetivos exactos), $H(q,p) = -\log p_y$ no tiene mínimo
-sobre las distribuciones con componentes positivas: tiende a cero cuando $p_y \to 1$,
-lo que exige que la diferencia entre logits crezca sin límite. Con
-$\varepsilon > 0$, en cambio, el óptimo es una distribución con un «suelo»
-$\varepsilon/K$ en todas las clases y una diferencia de logits finita, que solo
-depende de $\varepsilon$ y $K$. Esto concuerda con la observación de Müller et
-al.\ de que el \emph{label smoothing} lleva a que la diferencia entre el logit de
-la clase correcta y los de las incorrectas sea una constante que depende del
-parámetro~\cite[sec.~2]{muller2019}. En el entrenamiento de este trabajo,
-con $\varepsilon = 0{,}1$ y $K = 14$, el óptimo asigna $0{,}907$ a la clase
-verdadera y $\varepsilon/K \approx 0{,}00714$ a cada una de las demás, con una
-diferencia de logits de $\log 127 \approx 4{,}84$. Este suelo se usa en el
-\cref{cap:conforme}.
-\end{observacion}
-% Uso en el capítulo 12: results_conforme/mondrian/label_smoothing.json.
-
 \section{Optimización: Adam y AdamW}\label{sec:adamw}
 
 Sea $L(\phi)$ la función de pérdida (\cref{def:entropia-cruzada}), que depende de los parámetros
@@ -627,13 +594,6 @@ $\beta_2 < 1$. Dividiendo entre $1 - \beta_2^t > 0$ se obtiene
 $\E[\widehat{v}_t] = \E[g^2]$. El caso de $m_t$ es idéntico, sustituyendo
 $g_i^2$ por $g_i$ y $\beta_2$ por $\beta_1$.
 \end{demostracion}
-
-\begin{observacion}
-Si el momento de segundo orden no es constante, aparece un término adicional
-$\zeta$ en la expresión de $\E[v_t]$. Kingma y Ba~\cite{kingma2014} argumentan que
-$\zeta$ es pequeño, porque $\beta_2$ puede elegirse de modo que la media móvil
-asigne pesos muy pequeños a los gradientes lejanos en el tiempo.
-\end{observacion}
 
 El paso efectivo de Adam,
 $\Delta_t = \alpha\, \widehat{m}_t / \sqrt{\widehat{v}_t}$ (tomando
@@ -909,20 +869,6 @@ lo que equivale a una convolución con paso unidad seguida de un submuestreo,
 pero sin calcular los valores que se descartarían
 \cite[sec.~9.5]{goodfellow2016deep}.
 
-Por último, el \emph{relleno con ceros} (\emph{zero padding}) de la entrada
-permite controlar el tamaño de la salida con independencia del tamaño del
-núcleo. Si la entrada tiene anchura $m$ y el núcleo anchura $k$, hay tres
-casos habituales \cite[sec.~9.5]{goodfellow2016deep}:
-\begin{itemize}
-  \item \emph{Válida} (\emph{valid}): sin relleno; el núcleo solo se aplica
-        donde cabe entero y la salida tiene anchura $m-k+1$.
-  \item \emph{Misma} (\emph{same}): se rellena lo justo para que la salida
-        tenga la misma anchura $m$ que la entrada.
-  \item \emph{Completa} (\emph{full}): se rellena lo suficiente para que cada
-        píxel se visite $k$ veces en cada dirección; la salida tiene anchura
-        $m+k-1$.
-\end{itemize}
-
 \subsubsection{Motivación: interacciones dispersas, parámetros compartidos y
 equivarianza}
 
@@ -1116,136 +1062,65 @@ estadísticos del lenguaje varían mucho de un lote a otro
 
 Las conexiones residuales se usaron por primera vez en redes convolucionales para
 clasificación de imágenes, en las llamadas \emph{redes residuales} o
-ResNet~\cite{he2016}. Para redes muy profundas, Prince
-\cite[sec.~11.5.1]{prince2023understanding} describe el \emph{bloque residual con
-cuello de botella} (\emph{bottleneck}), que usa tres convoluciones: la primera,
-de $1\times1$, reduce el número de canales; la segunda es una convolución
-habitual de $3\times3$; y la tercera, de nuevo de $1\times1$, recupera el número
-de canales original para poder sumar la entrada. Así se integra la información
-de una región de $3\times3$ píxeles con menos parámetros. Como en otras
-arquitecturas convolucionales, la resolución espacial se reduce periódicamente
-mientras aumenta el número de canales.
-
-La ResNet-50 usada en este trabajo tiene esta estructura: una convolución
+ResNet~\cite{he2016}. La ResNet-50 usada en este trabajo tiene una convolución
 inicial de $7\times7$ con paso 2 seguida de \emph{max pooling}, cuatro etapas de
-$3$, $4$, $6$ y $3$ bloques con cuello de botella cuyas salidas tienen $256$,
-$512$, $1024$ y $2048$ canales, y BatchNorm y ReLU en cada bloque.
-
-\begin{observacion}
-Prince indica que, en cada bloque, el orden de las operaciones es
-BatchNorm, ReLU y convolución \cite[sec.~11.5.1, fig.~11.7]{prince2023understanding}.
-En la ResNet-50 usada en este trabajo, cada convolución va seguida de BatchNorm
-y ReLU, y la última ReLU del bloque se aplica después de sumar la conexión
-residual, según el resumen de capas del entrenamiento. Es el orden de He et
-al.~\cite[secs.~3.2 y~3.4]{he2016}.
-\end{observacion}
+$3$, $4$, $6$ y $3$ bloques con cuello de botella (\emph{bottleneck}) cuyas
+salidas tienen $256$, $512$, $1024$ y $2048$ canales, y BatchNorm y ReLU en cada
+bloque.
 
 \subsection{Transformers}\label{sec:transformer}
 
-Los transformers presentan su origen en el procesamiento del lenguaje natural (\emph{natural language processing}, NLP), en donde es fundamental el contexto
-de las palabras para poder entender su significado. Por ejemplo, sea la siguiente frase, similar a la
-ofrecida por Prince~\cite[sec.~12.1]{prince2023understanding}:
+% [agente] Sección condensada el 21/11/2026 a petición del autor, a partir de Prince, secs. 12.1-12.4,
+% y de Dosovitskiy et al. (2021) y Liu et al. (2021) para la posición de la LayerNorm.
+Los transformers tienen su origen en el procesamiento del lenguaje natural (\emph{natural language processing}, NLP), en donde es fundamental el contexto
+de las palabras para poder entender su significado~\cite[sec.~12.1]{prince2023understanding}.
+Un modelo que procese texto debe \emph{compartir parámetros} entre las distintas posiciones de la entrada, para que su número no crezca con la longitud
+del texto, y establecer \emph{conexiones entre las representaciones de las palabras} cuya intensidad dependa de las propias palabras, y no de unos pesos fijos.
+Los transformers satisfacen ambos requisitos gracias al mecanismo de \emph{autoatención por producto escalar}~\cite[sec.~12.2]{prince2023understanding}.
 
-\textit{El restaurante se negó a servirme un sándwich de jamón porque ellos solo ofrecían platos veganos. Al final, ellos
-solo me dieron dos rebanadas de pan. Su ambiente fue igual de bueno que la comida y el servicio.}
-
-En el procesamiento de lenguajes naturales se trabaja para ofrecer una representación adaptable del texto para diversos objetivos,
-que puede ser por ejemplo calificar esta reseña como positiva o negativa. En este contexto existen diversas dificultades. La primera
-es que las entradas pueden ser inmensamente largas de forma que las redes neuronales totalmente conectadas son imprácticas. Segundo, cada entrada
-es de una longitud distinta de forma que no sería obvio cómo aplicar una red totalmente conectada. Finalmente, el lenguaje es ambiguo,
-por ejemplo la palabra «ellos» se refiere al restaurante y no al sándwich de jamón. Para entender el texto, la palabra
-debería estar relacionada de alguna manera con la palabra «restaurante». En la jerga de los transformers,
-la primera palabra debería tener en cuenta a la segunda. Esto implica que debe haber
-conexiones entre las palabras y que la fuerza de estas conexiones dependerá
-de las propias palabras. Además, estas conexiones deben extenderse a lo largo de amplios
-fragmentos de texto. Por ejemplo, la palabra «su» de la última frase también se refiere al restaurante.
-
-Las dificultades anteriores sugieren dos requisitos para un modelo que procese texto. Por un lado, debe \emph{compartir parámetros} entre las distintas posiciones
-de la entrada, de forma análoga a como las redes convolucionales comparten los pesos de sus filtros entre las distintas posiciones de una imagen; así, el número de
-parámetros no crece con la longitud del texto y el mismo modelo puede aplicarse a entradas de cualquier tamaño. Por otro lado, debe establecer \emph{conexiones entre las representaciones de las palabras}
-cuya intensidad dependa de las propias palabras, y no de unos pesos fijos. Una capa totalmente conectada no cumple ninguno de los dos: calcula $f(x) = \operatorname{ReLU}(\beta + \Omega x)$ para una entrada
-$x$ de tamaño fijo, y la influencia de cada componente de $x$ sobre la salida queda determinada por los pesos $\Omega$, sea cual sea el texto. Los transformers satisfacen ambos requisitos gracias al mecanismo de
-\emph{autoatención por producto escalar}~\cite[sec.~12.2]{prince2023understanding}, que describimos a continuación.
-
-% - Atención por producto escalar: Attention(Q, K, V) = softmax(QK^T / \sqrt{d}) V.
-% - Atención multicabeza, LayerNorm, MLP; ViT (Dosovitskiy et al., 2021): parches de 16 px.
-
-Un bloque de autoatención recibe $N$ vectores de entrada $x_1,\dots,x_N\in\mathbb{R}^D$ y devuelve $N$ vectores de salida de la misma dimensión. En procesamiento del lenguaje, cada entrada representa una palabra o un fragmento de palabra; en visión, un fragmento (\emph{patch}) de la imagen. La idea es que cada salida sea una combinación de todas las entradas, en la que el peso de cada una dependa de su parecido con la entrada correspondiente a esa salida.
-
-\begin{definicion}[{Autoatención por producto escalar~\cite[sec.~12.2]{prince2023understanding}}]\label{def:autoatencion}
-Sean $x_1,\dots,x_N\in\mathbb{R}^D$. Para cada $n = 1,\dots,N$ se calculan, mediante tres transformaciones afines con parámetros compartidos por todas las entradas, los vectores
-\[
-  v_n = \beta_v + \Omega_v x_n, \qquad
-  q_n = \beta_q + \Omega_q x_n, \qquad
-  k_n = \beta_k + \Omega_k x_n,
-\]
-llamados respectivamente \emph{valor}, \emph{consulta} (\emph{query}) y \emph{clave} (\emph{key}), donde $\Omega_v\in\mathbb{R}^{D\times D}$, $\beta_v\in\mathbb{R}^D$, $\Omega_q,\Omega_k\in\mathbb{R}^{D_q\times D}$ y $\beta_q,\beta_k\in\mathbb{R}^{D_q}$.
-Brevemente explicado $q_n$ representa lo que busca cada parche en un momento dado, $k_n$  actúa como un identificativo
-de cada parche y $v_n$ contiene la información real que será transmitida si el parche resulta ser relevante. Los \emph{pesos de atención} de la salida $n$-ésima sobre cada entrada $x_m$ se definen como
-\[
-  a(x_m,x_n) = \softmax_m\bigl(k_\bullet^{\top} q_n\bigr)
-  = \frac{\exp\bigl(k_m^{\top} q_n\bigr)}{\sum_{m'=1}^{N}\exp\bigl(k_{m'}^{\top} q_n\bigr)},
-  \qquad m = 1,\dots,N,
-\]
-donde $\softmax_m\bigl(k_\bullet^{\top} q_n\bigr)$ denota la componente
-$m$-ésima de la función \emph{softmax} (\cref{def:softmax}) aplicada al vector
-$\bigl(k_1^{\top} q_n, \dots, k_N^{\top} q_n\bigr) \in \R^{N}$;
-y la salida $n$-ésima del bloque es la media ponderada de los valores:
-\[
-  \operatorname{sa}_n(x_1,\dots,x_N) = \sum_{m=1}^{N} a(x_m,x_n)\,v_m.
-\]
-\end{definicion}
-
-Para cada $n$, los pesos $a(x_1,x_n),\dots,a(x_N,x_n)$ son positivos y suman $1$, de modo que cada salida es una combinación convexa de los valores.
-El producto escalar $k_m^{\top} q_n$ mide la compatibilidad entre la consulta de la entrada $n$-ésima y la clave de la entrada $m$-ésima. Como las consultas y las claves se obtienen con proyecciones distintas y aprendidas, $\Omega_q$ y $\Omega_k$, esta compatibilidad no es un simple parecido entre $x_n$ y $x_m$:
-el modelo aprende durante el entrenamiento qué entradas son relevantes para cada una. Así, cada salida da más peso a las entradas más relevantes para ella. Además, como la función \emph{softmax} normaliza los pesos para que sumen uno, las claves \emph{compiten} entre sí: aumentar el peso de una entrada reduce necesariamente el de las demás.
-Los nombres de consulta y clave proceden del campo de la recuperación de información. Las consultas y las claves deben tener la misma dimensión $D_q$, que puede ser distinta de la de los valores; estos suelen tener la dimensión $D$ de la entrada, para que la representación no cambie de tamaño.
-
-\begin{observacion}[Forma matricial]
-Si se colocan las entradas como columnas de una matriz $X\in\mathbb{R}^{D\times N}$ donde $N$ es el número total de tokens y $D$ es la dimensión del espacio latente, los valores, las consultas y las claves se calculan a la vez como
+\begin{definicion}[{Autoatención por producto escalar~\cite[secs.~12.2 y~12.3.2]{prince2023understanding}}]\label{def:autoatencion}
+Sea $X\in\R^{D\times N}$ la matriz cuyas columnas $x_1,\dots,x_N$ son las entradas
+(en visión, los parches de la imagen). Mediante tres transformaciones afines con
+parámetros compartidos por todas las entradas se calculan los \emph{valores}, las
+\emph{consultas} (\emph{queries}) y las \emph{claves} (\emph{keys}),
 \[
   V = \beta_v\mathbf{1}^{\top} + \Omega_v X, \qquad
   Q = \beta_q\mathbf{1}^{\top} + \Omega_q X, \qquad
   K = \beta_k\mathbf{1}^{\top} + \Omega_k X,
 \]
-donde $\mathbf{1}\in\mathbb{R}^{N}$ es el vector de unos, y la salida del bloque es
+donde $\mathbf{1}\in\R^{N}$ es el vector de unos, $\Omega_v\in\R^{D\times D}$,
+$\beta_v\in\R^D$, $\Omega_q,\Omega_k\in\R^{D_q\times D}$ y
+$\beta_q,\beta_k\in\R^{D_q}$. La salida del bloque es
 \[
-  \operatorname{Sa}(X) = V\,\Softmax\bigl(K^{\top}Q\bigr),
+  \operatorname{Sa}(X) = V\,\Softmax\!\left(\frac{K^{\top}Q}{\sqrt{D_q}}\right),
 \]
-donde $\Softmax$ aplica la función \emph{softmax} a cada columna de la matriz por separado~\cite[sec.~12.2.4]{prince2023understanding}.
-\end{observacion}
+donde $\Softmax$ aplica la función \emph{softmax} (\cref{def:softmax}) a cada
+columna de la matriz por separado.
+\end{definicion}
 
-\begin{observacion}
-\begin{enumerate}
-  \item El número de parámetros, $\{\beta_v,\Omega_v,\beta_q,\Omega_q,\beta_k,\Omega_k\}$, no depende de $N$, de modo que el mismo bloque puede aplicarse a secuencias de cualquier longitud. En cambio, el número de pesos de atención es $N^2$.
-  \item Aunque el bloque no tiene función de activación, no es lineal en la entrada. Los valores $v_m$ son funciones afines de $x_m$, y si los pesos de atención fueran constantes la salida sería también afín. Sin embargo, los pesos $a(x_m,x_n)$
-  dependen de la propia entrada: el producto escalar $k_m^{\top}q_n$ es cuadrático en $X$ y la función \emph{softmax} introduce exponenciales. Por tanto, la salida es el producto de una función no lineal de $X$ por una función afín de $X$. En términos de
-  Prince~\cite[sec.~12.2.2]{prince2023understanding}, se trata de una \emph{hiperred}: una rama de la red calcula los pesos que utiliza la otra. En un perceptrón multicapa la no linealidad la aporta la función de activación; en la autoatención, los pesos de atención.
-  \item En la práctica, los productos escalares se dividen por $\sqrt{D_q}$, lo que se conoce como \emph{autoatención por producto escalar escalado}~\cite[sec.~12.3.2]{prince2023understanding}:
-  \[
-    \operatorname{Sa}(X) = V\,\Softmax\!\left(\frac{K^{\top}Q}{\sqrt{D_q}}\right).
-  \]
-  Así se evita que los productos escalares sean tan grandes que el mayor de ellos domine la función \emph{softmax}; en esa situación, los gradientes son muy pequeños y el modelo es difícil de entrenar.
-  Por otro lado, al multiplicar la matriz resultante por los valores ($V$) se obtiene una nueva representación de los parches donde cada uno se ha actualizado incorporando el contexto global ponderado de toda la imagen.
-\end{enumerate}
-\end{observacion}
+Brevemente explicado, la columna $q_n$ de $Q$ representa lo que busca cada parche en un momento dado, $k_n$ actúa como un identificativo
+de cada parche y $v_n$ contiene la información real que será transmitida si el parche resulta ser relevante. La columna $n$-ésima de la salida es
+$\sum_{m} a_{mn}\,v_m$, con pesos de atención
+\[
+  a_{mn} = \frac{\exp\bigl(k_m^{\top} q_n/\sqrt{D_q}\bigr)}{\sum_{m'=1}^{N}\exp\bigl(k_{m'}^{\top} q_n/\sqrt{D_q}\bigr)},
+\]
+que son positivos y suman $1$: cada salida es una combinación convexa de los valores, que da más peso a las entradas más relevantes para ella.
+Así, al multiplicar por los valores se obtiene una nueva representación de los parches donde cada uno se ha actualizado incorporando el contexto
+global ponderado de toda la imagen. La división entre $\sqrt{D_q}$ evita que el mayor de los productos escalares domine la función \emph{softmax},
+situación en la que los gradientes son muy pequeños~\cite[sec.~12.3.2]{prince2023understanding}. El número de parámetros no depende de $N$, de modo
+que el mismo bloque puede aplicarse a secuencias de cualquier longitud, pero el número de pesos de atención es $N^2$~\cite[sec.~12.2]{prince2023understanding}.
 
 \subsubsection{Atención multicabeza}
 
-En la práctica, no se usa un único mecanismo de autoatención, sino varios en paralelo; esto se conoce como \emph{autoatención multicabeza} (\emph{multi-head self-attention}). Cada uno de estos mecanismos, llamado \emph{cabeza}, tiene sus propios parámetros y calcula sus propios valores, consultas y claves.
+En la práctica no se usa un único mecanismo de autoatención, sino varios en paralelo, llamados \emph{cabezas}, cada uno con sus propios parámetros.
 
 \begin{definicion}[{Autoatención multicabeza~\cite[sec.~12.3.3]{prince2023understanding}}]\label{def:multicabeza}
-Sea $X\in\mathbb{R}^{D\times N}$ la matriz de entradas y sea $H\ge 1$ el número de cabezas. Para cada $h = 1,\dots,H$ se calculan
-\[
-  V_h = \beta_{v_h}\mathbf{1}^{\top} + \Omega_{v_h} X, \qquad
-  Q_h = \beta_{q_h}\mathbf{1}^{\top} + \Omega_{q_h} X, \qquad
-  K_h = \beta_{k_h}\mathbf{1}^{\top} + \Omega_{k_h} X,
-\]
-con parámetros $\{\beta_{v_h},\Omega_{v_h}\}$, $\{\beta_{q_h},\Omega_{q_h}\}$ y $\{\beta_{k_h},\Omega_{k_h}\}$ distintos para cada cabeza, y la salida de la cabeza $h$-ésima es
-\[
-  \operatorname{Sa}_h(X) = V_h\,\Softmax\!\left(\frac{K_h^{\top}Q_h}{\sqrt{D_q}}\right),
-\]
-donde $D_q$ es la dimensión de las consultas y las claves. La salida del bloque se obtiene concatenando verticalmente las salidas de todas las cabezas y combinándolas mediante una transformación lineal $\Omega_c$:
+Sea $H\ge 1$ el número de cabezas y sea $\operatorname{Sa}_h(X)$ la autoatención de
+la \cref{def:autoatencion} calculada con los parámetros
+$\{\beta_{v_h},\Omega_{v_h},\beta_{q_h},\Omega_{q_h},\beta_{k_h},\Omega_{k_h}\}$
+de la cabeza $h$. La \emph{autoatención multicabeza} concatena verticalmente las
+salidas de todas las cabezas y las combina mediante una transformación lineal
+$\Omega_c$, que devuelve la salida al tamaño $D\times N$ de la entrada:
 \[
   \operatorname{MhSa}(X) = \Omega_c
   \begin{bmatrix}
@@ -1254,20 +1129,14 @@ donde $D_q$ es la dimensión de las consultas y las claves. La salida del bloque
     \operatorname{Sa}_H(X)
   \end{bmatrix}.
 \]
-Si los valores de cada cabeza tienen dimensión $D_v$, cada
-$\operatorname{Sa}_h(X)\in\R^{D_v\times N}$, la concatenación está en
-$\R^{HD_v\times N}$ y $\Omega_c\in\R^{D\times HD_v}$, de modo que la salida tiene
-el mismo tamaño $D\times N$ que la entrada.
 \end{definicion}
 
-Habitualmente, si las entradas tienen dimensión $D$, los valores, las consultas y las claves de cada cabeza tienen dimensión $D/H$, lo que permite una implementación eficiente: el coste total es similar al de una única cabeza de dimensión $D$. Según Prince~\cite[sec.~12.3.3]{prince2023understanding}, el uso de varias cabezas parece necesario para que el transformer funcione bien, y se ha conjeturado que hace la red más robusta frente a malas inicializaciones.
+Habitualmente, los valores, las consultas y las claves de cada cabeza tienen dimensión $D/H$, de modo que el coste total es similar al de una única
+cabeza de dimensión $D$~\cite[sec.~12.3.3]{prince2023understanding}.
 
 \subsubsection{Codificación posicional}\label{sec:codificacion-posicional}
 
-% [agente] Texto redactado a partir de Prince, sec. 12.3.1 y problema 12.3. La demostración es propia.
-El mecanismo de autoatención descarta una información importante: el cálculo es
-el mismo sea cual sea el orden de las entradas $x_n$. Más precisamente, es
-equivariante respecto de las permutaciones de las entradas
+El cálculo de la autoatención es el mismo sea cual sea el orden de las entradas $x_n$: es equivariante respecto de sus permutaciones
 \cite[sec.~12.3.1]{prince2023understanding}.
 
 \begin{proposicion}[{Equivarianza a permutaciones~\cite[problema~12.3]{prince2023understanding}}]\label{prop:sa-permutaciones}
@@ -1278,7 +1147,7 @@ Entonces
 \[
   \operatorname{Sa}(XP) = \operatorname{Sa}(X)\,P,
 \]
-y lo mismo ocurre con la autoatención escalada y con la autoatención multicabeza.
+y lo mismo ocurre con la autoatención multicabeza.
 \end{proposicion}
 
 \begin{demostracion}
@@ -1288,7 +1157,7 @@ Por tanto, los valores calculados a partir de $XP$ son
   \beta_v\mathbf{1}^{\top} + \Omega_v XP = \bigl(\beta_v\mathbf{1}^{\top} + \Omega_v X\bigr)P = VP,
 \]
 y del mismo modo las consultas y las claves son $QP$ y $KP$. La matriz de
-compatibilidades pasa a ser $(KP)^{\top}QP = P^{\top}AP$, con $A = K^{\top}Q$.
+compatibilidades pasa a ser $(KP)^{\top}QP/\sqrt{D_q} = P^{\top}AP$, con $A = K^{\top}Q/\sqrt{D_q}$.
 
 Veamos que $\Softmax(P^{\top}AP) = P^{\top}\Softmax(A)P$. Para un vector
 $z\in\R^{N}$ se tiene
@@ -1319,97 +1188,55 @@ Finalmente, como $PP^{\top} = I$,
 \[
   \operatorname{Sa}(XP) = VP\,P^{\top}\Softmax(A)\,P = V\Softmax(A)\,P = \operatorname{Sa}(X)\,P.
 \]
-Dividir $A$ entre $\sqrt{D_q}$ no afecta al argumento. En la autoatención
+En la autoatención
 multicabeza, cada cabeza cumple $\operatorname{Sa}_h(XP) = \operatorname{Sa}_h(X)P$,
 de modo que la concatenación vertical de las cabezas queda multiplicada por $P$
 por la derecha, y también su producto por $\Omega_c$.
 \end{demostracion}
 
-Es decir, si se reordenan las entradas, las salidas se reordenan de la misma
-manera: el bloque no sabe en qué posición está cada entrada. Sin embargo, el
-orden importa: en una frase, cambiar el orden de las palabras cambia su
-significado y, en una imagen, cada parche ocupa una posición concreta. Prince
-\cite[sec.~12.3.1]{prince2023understanding} distingue dos formas principales de
-incorporar la posición:
-\begin{itemize}
-  \item \emph{Codificaciones posicionales absolutas}. Se suma a la entrada $X$ una
-  matriz $\Pi$ que codifica la posición. Cada columna de $\Pi$ es distinta, así que
-  contiene información sobre la posición absoluta en la secuencia. La matriz puede
-  elegirse a mano o aprenderse, y sumarse a la entrada de la red o en cada capa.
-  \item \emph{Codificaciones posicionales relativas}. Lo relevante suele ser la
-  posición relativa entre dos entradas, más que la absoluta. Cada elemento de la
-  matriz de atención corresponde a un desplazamiento concreto entre la posición
-  $a$ de la consulta y la posición $b$ de la clave; se aprende un parámetro
-  $\pi_{a,b}$ para cada desplazamiento, que modifica la matriz de atención, por
-  ejemplo sumándose a ella.
-\end{itemize}
-ViT usa una codificación absoluta aprendida (\cref{sec:vit}) y Swin, una relativa
+Es decir, el bloque no sabe en qué posición está cada entrada, aunque el orden importa: en una imagen, cada parche ocupa una posición concreta.
+Por eso se incorpora la posición con una codificación \emph{absoluta}, que suma a la entrada $X$ una matriz que codifica la posición, o
+\emph{relativa}, que modifica la matriz de atención según el desplazamiento entre las posiciones de la consulta y de la clave
+\cite[sec.~12.3.1]{prince2023understanding}. ViT usa una codificación absoluta aprendida (\cref{sec:vit}) y Swin, una relativa
 (\cref{sec:swin}).
 
 \subsubsection{La capa transformer}\label{sec:capa-transformer}
 
-% [agente] Texto redactado a partir de Prince, sec. 12.4 (ec. 12.13) y notas del cap. 12.
 La autoatención es solo una parte de una capa transformer, que consta de una
 unidad de autoatención multicabeza, que permite que las representaciones de las
 entradas interactúen entre sí, seguida de una red totalmente conectada
 $\operatorname{mlp}$ que actúa por separado sobre cada entrada. Ambas unidades
-son bloques residuales (\cref{def:residual}) y van seguidas de una LayerNorm
-(\cref{def:layernorm}).
+son bloques residuales (\cref{def:residual}) con una LayerNorm
+(\cref{def:layernorm}) antes de cada unidad.
 
-\begin{definicion}[{Capa transformer~\cite[sec.~12.4]{prince2023understanding}}]\label{def:capa-transformer}
+\begin{definicion}[{Capa transformer~\cite[sec.~12.4]{prince2023understanding}, \cite[ecs.~(2)--(3)]{dosovitskiy2021}}]\label{def:capa-transformer}
 Dada $X\in\R^{D\times N}$ con columnas $x_1,\dots,x_N$, una \emph{capa
 transformer} realiza las operaciones
 \begin{align*}
-  X   &\leftarrow X + \operatorname{MhSa}(X),\\
-  X   &\leftarrow \operatorname{LN}(X),\\
-  x_n &\leftarrow x_n + \operatorname{mlp}(x_n), \qquad n = 1,\dots,N,\\
-  X   &\leftarrow \operatorname{LN}(X),
+  X   &\leftarrow X + \operatorname{MhSa}\bigl(\operatorname{LN}(X)\bigr),\\
+  x_n &\leftarrow x_n + \operatorname{mlp}\bigl(\operatorname{LN}(x_n)\bigr), \qquad n = 1,\dots,N,
 \end{align*}
 donde $\operatorname{LN}$ se aplica a cada columna y $\operatorname{mlp}$ es la
 misma red totalmente conectada para todas las columnas.
 \end{definicion}
 
-Una red transformer aplica varias de estas capas consecutivas. La salida de cada
-capa tiene el mismo tamaño $D\times N$ que su entrada, y el número de parámetros
-no depende de $N$.
-
-\begin{observacion}\label{obs:prenorm}
-En la \cref{def:capa-transformer} la LayerNorm se aplica después de cada suma
-residual. ViT y Swin, en cambio, aplican la LayerNorm \emph{antes} de cada
-unidad y la conexión residual después~\cite[ecs.~(2)--(3)]{dosovitskiy2021},
-\cite[ec.~(3)]{liu2021swin}:
-\[
-  X \leftarrow X + \operatorname{MhSa}\bigl(\operatorname{LN}(X)\bigr), \qquad
-  x_n \leftarrow x_n + \operatorname{mlp}\bigl(\operatorname{LN}(x_n)\bigr).
-\]
-Prince señala que colocar la LayerNorm fuera del bloque residual hace que los
-gradientes se reduzcan al propagarse hacia atrás por la red, y que cambiar la
-posición de la LayerNorm es una de las propuestas para estabilizar el
-entrenamiento de los transformers~\cite[cap.~12, notas]{prince2023understanding}.
-\end{observacion}
+Una red transformer aplica varias de estas capas consecutivas, y la salida de cada una tiene el mismo tamaño $D\times N$ que su entrada.
+Prince presenta la capa con la LayerNorm después de cada suma residual y señala que cambiar su posición es una de las propuestas para estabilizar
+el entrenamiento~\cite[sec.~12.4 y cap.~12, notas]{prince2023understanding}; ViT y Swin la colocan antes de cada unidad, como en la
+\cref{def:capa-transformer}~\cite[ecs.~(2)--(3)]{dosovitskiy2021}, \cite[ec.~(3)]{liu2021swin}.
 
 \subsection{Vision Transformer}\label{sec:vit}
 
-% [agente] Texto redactado a partir de Dosovitskiy et al. (2021), secs. 3.1, 3.2 y 4.1, tabla 1 y
-% apéndice D.4. Las ecuaciones (1)-(4) del artículo se han traspuesto a la notación por columnas de
-% Prince (el artículo coloca los tokens en filas). Comprobado en param0_*/resultados.txt: entrada de
-% 224x224, proyección de parches Conv2d con 590592 = 768*(16*16*3) + 768 parámetros, salida de
-% 768 x 14 x 14, y 12 GELU.
+% [agente] Texto redactado a partir de Dosovitskiy et al. (2021), secs. 3 y 3.1 y tabla 1.
+% Comprobado en param0_*/resultados.txt: entrada de 224x224, proyección de parches Conv2d con
+% 590592 = 768*(16*16*3) + 768 parámetros, salida de 768 x 14 x 14, y 12 GELU.
 El \emph{Vision Transformer} (ViT) de Dosovitskiy et al.~\cite{dosovitskiy2021}
 aplica a imágenes un transformer que sigue lo más fielmente posible el
-transformer original del procesamiento del lenguaje. La ventaja de esta elección
-es que las arquitecturas escalables de procesamiento del lenguaje, y sus
-implementaciones eficientes, pueden usarse casi directamente
-\cite[sec.~3]{dosovitskiy2021}. Adaptamos la notación del artículo a la de
-Prince, con los tokens en columnas.
-
-El transformer recibe una secuencia de vectores. Para aplicarlo a una imagen
-$x\in\R^{H\times W\times C}$, donde $(H,W)$ es la resolución y $C$ el número de
-canales, la imagen se divide en $N = HW/P^2$ parches de $P\times P$ píxeles, que
+transformer original del procesamiento del lenguaje~\cite[sec.~3]{dosovitskiy2021}.
+La imagen $x\in\R^{H\times W\times C}$, donde $(H,W)$ es la resolución y $C$ el número de
+canales, se divide en $N = HW/P^2$ parches de $P\times P$ píxeles, que
 se aplanan en vectores $x_p^1,\dots,x_p^N\in\R^{P^2C}$ (esta $P$, la del
-artículo, no es la matriz de permutación de la \cref{prop:sa-permutaciones}). $N$ es la longitud de la
-secuencia que recibe el transformer. Como el transformer usa la misma dimensión
-$D$ en todas sus capas, cada parche se proyecta a $\R^{D}$ con una matriz
+artículo, no es la matriz de permutación de la \cref{prop:sa-permutaciones}) y se proyectan a $\R^{D}$ con una matriz
 aprendida $E$; el resultado se llama \emph{embedding} del parche
 \cite[sec.~3.1]{dosovitskiy2021}.
 
@@ -1417,84 +1244,25 @@ aprendida $E$; el resultado se llama \emph{embedding} del parche
 Sean $E\in\R^{D\times P^2C}$ la proyección de los parches,
 $x_{\mathrm{class}}\in\R^{D}$ un vector aprendido (el \emph{token de clase}) y
 $E_{\mathrm{pos}}\in\R^{D\times(N+1)}$ una matriz de embeddings de posición
-aprendidos. El ViT con $L$ capas calcula
-\begin{align*}
-  Z_0 &= \bigl[\,x_{\mathrm{class}}\ \ Ex_p^1\ \ Ex_p^2\ \cdots\ Ex_p^N\,\bigr] + E_{\mathrm{pos}},\\
-  Z'_\ell &= Z_{\ell-1} + \operatorname{MhSa}\bigl(\operatorname{LN}(Z_{\ell-1})\bigr), && \ell = 1,\dots,L,\\
-  Z_\ell &= Z'_\ell + \operatorname{MLP}\bigl(\operatorname{LN}(Z'_\ell)\bigr), && \ell = 1,\dots,L,\\
-  y &= \operatorname{LN}\bigl(z_L^{0}\bigr),
-\end{align*}
-donde $\operatorname{LN}$ y $\operatorname{MLP}$ se aplican a cada columna por
-separado, $\operatorname{MLP}$ es una red con dos capas y activación GELU
-(\cref{def:gelu}) y $z_L^{0}$ es la primera columna de $Z_L$, la que corresponde
-al token de clase.
+aprendidos. El ViT con $L$ capas parte de
+\[
+  Z_0 = \bigl[\,x_{\mathrm{class}}\ \ Ex_p^1\ \ Ex_p^2\ \cdots\ Ex_p^N\,\bigr] + E_{\mathrm{pos}},
+\]
+le aplica $L$ capas transformer (\cref{def:capa-transformer}), cuyo
+$\operatorname{mlp}$ tiene dos capas y activación GELU (\cref{def:gelu}), y
+devuelve $y = \operatorname{LN}\bigl(z_L^{0}\bigr)$, donde $z_L^{0}$ es la
+primera columna de la salida $Z_L$, la que corresponde al token de clase.
 \end{definicion}
 
-Las capas de la \cref{def:vit} son capas transformer con la LayerNorm antes de
-cada unidad (\cref{obs:prenorm}). Igual que el token \texttt{[class]} de BERT, el
-token de clase no corresponde a ningún parche: su estado a la salida del
+El token de clase no corresponde a ningún parche: su estado a la salida del
 transformer, $y$, es la representación de la imagen, y a él se conecta la cabeza
-de clasificación. En el artículo, esta cabeza es un MLP con una capa oculta
-durante el preentrenamiento y una única capa lineal durante el ajuste fino
-\cite[sec.~3.1]{dosovitskiy2021}.
-
-\begin{observacion}
-Los embeddings de posición son una codificación posicional absoluta y aprendida
-(\cref{sec:codificacion-posicional}). Dosovitskiy et al.\ usan embeddings
-unidimensionales, que tratan los parches como una secuencia en orden de lectura,
-porque no observaron mejoras significativas con embeddings bidimensionales.
-En sus experimentos hay una gran diferencia entre no usar información posicional y
-usarla, pero apenas hay diferencias entre las distintas formas de codificarla
-(unidimensional, bidimensional o relativa). Los autores lo atribuyen a que el
-transformer trabaja con parches y no con píxeles, de modo que la forma de
-codificar la información espacial es menos importante~\cite[ap.~D.4]{dosovitskiy2021}.
-\end{observacion}
-
-Para adaptar a una tarea concreta un modelo preentrenado, se elimina la cabeza de
-predicción y se añade una capa de $D\times K$ inicializada a cero, donde $K$ es el
-número de clases. Si las imágenes del ajuste fino tienen mayor resolución que las
-del preentrenamiento, se mantiene el tamaño de los parches, de modo que la
-secuencia es más larga; como los embeddings de posición preentrenados pueden
-dejar de tener sentido, se interpolan en dos dimensiones según su posición en la
-imagen original~\cite[sec.~3.2]{dosovitskiy2021}.
-
-Dosovitskiy et al.\ definen tres variantes a partir de las de BERT, y la notación
-ViT-B/16 indica la variante \emph{Base} con parches de $16\times16$. ViT-B tiene
+de clasificación~\cite[sec.~3.1]{dosovitskiy2021}. La notación ViT-B/16 indica la
+variante \emph{Base} con parches de $16\times16$, que tiene
 $L = 12$ capas, dimensión $D = 768$, MLP de dimensión $3072$, $12$ cabezas y
-$86$ millones de parámetros~\cite[tabla~1]{dosovitskiy2021}. Como la longitud de
-la secuencia es inversamente proporcional al cuadrado del tamaño de los parches,
-los modelos con parches más pequeños son más costosos
-\cite[sec.~4.1]{dosovitskiy2021}. En el ViT-B/16 usado en este trabajo, con
+$86$ millones de parámetros~\cite[tabla~1]{dosovitskiy2021}. En el ViT-B/16 usado en este trabajo, con
 imágenes de $224\times224$, la secuencia tiene $N = 224^2/16^2 = 196$ parches,
 más el token de clase. La cabeza de clasificación no es la del artículo, sino la
 que añade fastai (\cref{sec:learner}).
-
-\subsubsection{Sesgo inductivo: transformers frente a redes convolucionales}
-
-Se llama \emph{sesgo inductivo} de un modelo a su tendencia a preferir unas soluciones frente a otras al extrapolar entre los datos de entrenamiento~\cite[sec.~8.4]{prince2023understanding}; viene determinado, en gran medida, por la arquitectura.
-Las redes convolucionales tienen un sesgo inductivo muy adecuado para las imágenes: cada capa es equivariante por traslaciones y solo relaciona píxeles cercanos, de modo que la estructura bidimensional de la imagen está incorporada en la propia arquitectura.
-La autoatención, en cambio, no hace ninguna de estas suposiciones: cada parche puede relacionarse con cualquier otro desde la primera capa, y la intensidad de esas relaciones se aprende a partir de los datos. Esto permite modelar relaciones de largo alcance en la imagen,
-pero obliga al modelo a aprender la estructura espacial que una red convolucional tiene de partida. Por eso, como señala Prince~\cite[sec.~12.10]{prince2023understanding}, los transformers solo superan a las redes convolucionales cuando se entrenan con cantidades muy grandes de datos,
-habitualmente mediante un preentrenamiento a gran escala.
-
-% [agente] Párrafo redactado a partir de Dosovitskiy et al. (2021), sec. 1, párrafo «Inductive bias»
-% de la sec. 3.1 y sec. 4.3.
-Dosovitskiy et al.\ precisan este argumento para ViT. En una red convolucional,
-la localidad, la estructura bidimensional de vecindad y la equivarianza a
-traslaciones están incorporadas en cada capa. En ViT, solo las capas MLP son
-locales y equivariantes a traslaciones, mientras que las capas de autoatención
-son globales. La estructura bidimensional se usa muy poco: al principio, al
-dividir la imagen en parches, y en el ajuste fino, al interpolar los embeddings
-de posición para imágenes de otra resolución. Por lo demás, los embeddings de
-posición no contienen al inicializarse información sobre la posición
-bidimensional de los parches, y todas las relaciones espaciales entre ellos
-tienen que aprenderse desde cero~\cite[sec.~3.1]{dosovitskiy2021}. En
-consecuencia, cuando se entrenan en conjuntos de tamaño medio como ImageNet sin
-una regularización fuerte, los ViT obtienen exactitudes unos puntos porcentuales
-por debajo de las de ResNet de tamaño comparable~\cite[sec.~1]{dosovitskiy2021}.
-Con preentrenamiento en ImageNet, ViT-Large rinde peor que ViT-Base, y solo con
-el preentrenamiento en JFT-300M, con unos 303 millones de imágenes, se aprecia
-todo el beneficio de los modelos más grandes~\cite[secs.~4.1 y~4.3]{dosovitskiy2021}.
 
 \subsection{Swin Transformer}\label{sec:swin}
 
@@ -1541,7 +1309,7 @@ ResNet~\cite[sec.~3.1]{liu2021swin}. La fusión de parches desempeña así un pa
 análogo al del \emph{pooling} en una red convolucional.
 
 Un \emph{bloque Swin} es una capa transformer con LayerNorm antes de cada unidad
-(\cref{obs:prenorm}) en la que la autoatención multicabeza se sustituye por una
+(\cref{def:capa-transformer}) en la que la autoatención multicabeza se sustituye por una
 autoatención por ventanas; el MLP tiene dos capas con GELU. Los bloques
 consecutivos alternan dos particiones en ventanas, la regular (W-MSA) y la
 desplazada (SW-MSA), que se describen a continuación:
@@ -1660,31 +1428,10 @@ Liu et al.\ definen cuatro variantes, Swin-T, Swin-S, Swin-B y Swin-L. En todas,
 $M = 7$, la dimensión de las consultas de cada cabeza es $d = 32$ y la capa
 oculta del MLP tiene $4$ veces la dimensión de la entrada. Swin-S tiene $C = 96$
 y $\{2, 2, 18, 2\}$ bloques en sus cuatro etapas, y su complejidad es similar a la
-de ResNet-101~\cite[sec.~3.3]{liu2021swin}. La \cref{tab:swin-s} resume el
-Swin-S usado en este trabajo; como cada cabeza tiene dimensión $d = 32$, el
+de ResNet-101~\cite[sec.~3.3]{liu2021swin}. Como cada cabeza tiene dimensión $d = 32$, el
 número de cabezas de cada etapa es su número de canales dividido entre
 $32$~\cite[sec.~3.3]{liu2021swin}. Su salida, tras el promedio, tiene $768$
 características.
-
-\begin{table}[tbp]
-  \centering
-  \caption{Etapas del Swin-S usado en este trabajo, con imágenes de entrada de
-    $224\times224$: resolución del mapa de tokens, número de canales, número de
-    bloques Swin y número de cabezas.}
-  \label{tab:swin-s}
-  \begin{tabular}{ccccc}
-    \toprule
-    Etapa & Resolución & Canales & Bloques & Cabezas\\
-    \midrule
-    1 & $56\times56$ & $96$  & $2$  & $3$\\
-    2 & $28\times28$ & $192$ & $2$  & $6$\\
-    3 & $14\times14$ & $384$ & $18$ & $12$\\
-    4 & $7\times7$   & $768$ & $2$  & $24$\\
-    \bottomrule
-  \end{tabular}
-\end{table}
-% Resolución, canales y bloques: resumen de capas de param4_*/resultados.txt.
-% Cabezas: canales/d con d = 32 (Liu et al., sec. 3.3); no aparecen en el resumen de capas.
 
 \subsection{ConvNeXt}\label{sec:convnext}
 
@@ -1695,21 +1442,10 @@ características.
 % reducción entre etapas LayerNorm2d + Conv2d 73920 = 96*192*2*2 + 192 (2x2); etapas de 3, 3, 27
 % y 3 bloques (36 GELU) con 96, 192, 384 y 768 canales; salida de 768 x 8 x 8.
 
-En 2020 las redes neuronales convolucionales parecían estancadas ante la superioridad de los transformers. ¿Y si realmente,
-no es que fueran peores, y solo es que estaban desactualizadas? Esta pregunta fue respondida en 2022, cuando unos investigadores de Facebook presentaron una familia de redes
-convolucionales, llamada ConvNeXt, que superó a los vision transformers en
-clasificación de imágenes~\cite{liu2022convnext,todi2023convnext}. Para construirla, partieron de
+En 2022, investigadores de Facebook presentaron una familia de redes
+convolucionales, llamada ConvNeXt~\cite{liu2022convnext,todi2023convnext}. Para construirla, partieron de
 una ResNet y la adaptaron para que se pareciera más a un vision
-transformer. Para esto aplicaron diversas implementaciones, como pasar de entrenar con 90 épocas a 300, utilizar
-como optimizador AdamW en vez de SGD, nuevas técnicas de aumento de datos (\emph{data augmentation}), \emph{stochastic depth} y \emph{label smoothing} (\cref{sec:perdida}). También empleó en cada una de las cuatro etapas principales de la red neuronal una distribución de 
-bloques residuales en donde se dedica mucha más capacidad de procesamiento a extraer características complejas en una resolución intermedia. Con este cambio, la exactitud en ImageNet-1K pasó del 78,8\,\% al 79,4\,\%~\cite[sec.~2.2]{liu2022convnext}. Entre otras implementaciones, como utilizar como función 
-de activación GELU en vez de ReLU, la estructura final del bloque ConvNeXt es la siguiente:
-
-\textit{Input $\rightarrow$ 7x7 DWConv $\rightarrow$ Capa de normalización $\rightarrow$ 1x1 Conv $\rightarrow$ Función de activación GELU $\rightarrow$ 1x1 Conv $\rightarrow$ suma con el Input (conexión residual)}
-\cite{liu2022convnext}
-El modelo resultante se entrenó y evaluó en ImageNet-1k e
-ImageNet-22k y tiene varias variantes~\cite{todi2023convnext}. ConvNeXt es, por
-tanto, una red puramente convolucional que incorpora decisiones de diseño de los
+transformer. Es, por tanto, una red puramente convolucional que incorpora decisiones de diseño de los
 transformers~\cite{todi2023convnext}.
 
 \subsubsection{Convoluciones por canal y puntuales}
@@ -1739,22 +1475,8 @@ espacial aplica la misma transformación lineal $\R^{C}\to\R^{C'}$ al vector de
 canales. Es, por tanto, equivalente a una capa totalmente conectada aplicada a
 cada posición por separado, como el MLP de una capa transformer a cada token.
 
-\begin{proposicion}\label{prop:conv-depthwise-param}
-Sin contar los sesgos, una convolución de $k\times k$ de $C$ a $C'$ canales tiene
-$C\,C'\,k^2$ parámetros, mientras que una convolución por canal de $k\times k$
-seguida de una convolución puntual de $C$ a $C'$ canales tiene
-$C\,k^2 + C\,C'$.
-\end{proposicion}
-
-\begin{demostracion}
-Basta contar los elementos de los núcleos: el de la convolución de la
-\cref{eq:conv-multicanal} tiene un peso $\mathsf{K}_{i,c,m,n}$ por cada canal de
-salida $i$, canal de entrada $c$ y posición $(m,n)$ del núcleo, es decir,
-$C'\,C\,k^2$; los de la \cref{def:conv-depthwise} tienen $C\,k^2$ y $C'\,C$
-elementos.
-\end{demostracion}
-
-Por ejemplo, en la primera etapa del ConvNeXt-S usado en este trabajo, con
+Esta factorización reduce mucho el número de parámetros: sin contar los sesgos,
+en la primera etapa del ConvNeXt-S usado en este trabajo, con
 $C = C' = 96$ y $k = 7$, una convolución completa tendría
 $96^2\cdot 49 = 451\,584$ pesos, mientras que la convolución por canal tiene
 $96\cdot 49 = 4704$.
@@ -1784,62 +1506,33 @@ este trabajo lo incluye: cada uno de sus $36$ bloques tiene un parámetro
 Touvron et al.~(2021), \emph{Going deeper with image transformers}, ICCV (ref.~[74] de
 Liu et al.), que no está en tfg-referencias/papers}
 
-Liu et al.\ parten de una ResNet-50 y la modifican paso a paso siguiendo el
-diseño de Swin, comprobando en ImageNet-1K el efecto de cada cambio
-\cite[sec.~2]{liu2022convnext}. La comparación con las arquitecturas anteriores
-muestra qué se ha tomado de cada una:
+Liu et al.\ modifican paso a paso una ResNet-50 siguiendo el diseño de Swin y
+comprueban en ImageNet-1K el efecto de cada cambio~\cite[sec.~2]{liu2022convnext}:
 % [agente] Lista redactada a partir de Liu et al. (2022), secs. 2.2-2.6 y fig. 4.
 \begin{itemize}
-  \item \emph{Diseño por etapas.} De ResNet-50 (\cref{sec:resnet}) conserva la
-  estructura convolucional en cuatro etapas con conexiones residuales, que reducen
-  la resolución y aumentan los canales. El número de bloques por etapa pasa de
-  $(3, 4, 6, 3)$ en ResNet-50 a $(3, 3, 9, 3)$, siguiendo la proporción $1:1:3:1$
-  de Swin-T~\cite[sec.~2.2]{liu2022convnext}. El ConvNeXt-S usado en este trabajo
-  tiene $(3, 3, 27, 3)$ bloques~\cite[sec.~3]{liu2022convnext}.
-  \item \emph{Entrada por parches.} ResNet empieza con una convolución de
-  $7\times7$ con paso $2$ seguida de \emph{max pooling}, que reduce la resolución
-  a la cuarta parte. ConvNeXt la sustituye por una convolución de $4\times4$ con
-  paso $4$, que divide la imagen en parches de $4\times4$ que no se solapan, como
-  la división en parches de ViT y de Swin~\cite[sec.~2.2]{liu2022convnext}.
-  \item \emph{Convolución por canal.} Liu et al.\ señalan que la convolución por
-  canal se parece a la suma ponderada de la autoatención, que actúa canal a canal
-  y solo mezcla información en la dimensión espacial. Combinada con las
-  convoluciones de $1\times1$, separa la mezcla espacial de la mezcla entre
-  canales, como en los vision transformers. Para compensar la pérdida de
-  capacidad, la anchura de la primera etapa pasa de $64$ a $96$ canales, como en
-  Swin-T~\cite[sec.~2.3]{liu2022convnext}.
-  \item \emph{Cuello de botella invertido.} En cada bloque transformer, la capa
-  oculta del MLP tiene cuatro veces la dimensión de la entrada. Del mismo modo,
-  $\operatorname{PW}_1$ y $\operatorname{PW}_2$ expanden los canales a $4C$ y
-  los reducen de nuevo a $C$, al contrario que el cuello de botella de ResNet, que
-  los reduce en la capa intermedia~\cite[sec.~2.4]{liu2022convnext}. Además, la
-  convolución por canal se coloca al principio del bloque, igual que en un
-  transformer la autoatención va antes del MLP~\cite[sec.~2.5]{liu2022convnext}.
-  \item \emph{Núcleos grandes.} Las ventanas de Swin son de al menos $7\times7$,
-  mucho mayores que los núcleos de $3\times3$ de ResNet. Liu et al.\ prueban
-  núcleos de $3$, $5$, $7$, $9$ y $11$: la exactitud mejora hasta $7\times7$ y a
-  partir de ahí se satura~\cite[sec.~2.5]{liu2022convnext}. Así, la convolución
-  por canal mezcla la información de una vecindad del mismo tamaño que las
-  ventanas de Swin ($M = 7$), pero con pesos que no dependen de la entrada.
-  \item \emph{Microdiseño.} La ReLU se sustituye por la GELU, se deja una sola
-  activación por bloque, entre las dos convoluciones de $1\times1$, como en el MLP
-  de un transformer, y una sola normalización, que pasa de BatchNorm a LayerNorm.
-  El bloque con cuello de botella de ResNet tiene, en cambio, tres de cada tipo
+  \item \emph{Diseño por etapas.} Cuatro etapas con conexiones residuales, como
+  ResNet-50 (\cref{sec:resnet}), pero con la proporción de bloques $1:1:3:1$ de
+  Swin-T~\cite[sec.~2.2]{liu2022convnext}; el ConvNeXt-S usado aquí tiene
+  $(3, 3, 27, 3)$ bloques~\cite[sec.~3]{liu2022convnext}.
+  \item \emph{Entrada por parches.} Una convolución de $4\times4$ con paso $4$,
+  como la división en parches de ViT y Swin, sustituye a la convolución de
+  $7\times7$ y al \emph{max pooling} iniciales~\cite[sec.~2.2]{liu2022convnext}.
+  \item \emph{Convolución por canal y cuello de botella invertido.} La convolución
+  por canal mezcla solo información espacial, como la suma ponderada de la
+  autoatención, y las convoluciones puntuales expanden los canales a $4C$ y los
+  reducen a $C$, como el MLP de un transformer~\cite[secs.~2.3--2.4]{liu2022convnext}.
+  \item \emph{Núcleos grandes.} Núcleos de $7\times7$, del tamaño de las ventanas
+  de Swin; con núcleos mayores la exactitud se satura~\cite[sec.~2.5]{liu2022convnext}.
+  \item \emph{Microdiseño.} GELU en lugar de ReLU, una sola activación y una sola
+  normalización por bloque, y LayerNorm en lugar de BatchNorm
   \cite[sec.~2.6, fig.~4]{liu2022convnext}.
-  \item \emph{Capas de reducción separadas.} ResNet reduce la resolución en el
-  primer bloque de cada etapa con una convolución de $3\times3$ y paso $2$. Como
-  Swin, ConvNeXt usa capas separadas: convoluciones de $2\times2$ con paso $2$,
-  que reducen la resolución a la mitad y duplican los canales, igual que la fusión
-  de parches. Con ellas el entrenamiento divergía, y se estabilizó añadiendo
-  LayerNorm donde cambia la resolución: antes de cada capa de reducción, después
-  de la primera capa y después del promedio global final
-  \cite[sec.~2.6]{liu2022convnext}.
+  \item \emph{Capas de reducción separadas.} Convoluciones de $2\times2$ con paso
+  $2$ entre etapas, como la fusión de parches de Swin, precedidas de una LayerNorm
+  para estabilizar el entrenamiento~\cite[sec.~2.6]{liu2022convnext}.
 \end{itemize}
 Con todos estos cambios, ConvNeXt supera a Swin-T en ImageNet-1K con un coste
 similar y sin módulos especializados como la atención por ventanas desplazadas o
-el sesgo de posición relativa. Liu et al.\ señalan que ninguna de estas
-decisiones es nueva en la literatura de redes convolucionales: se habían estudiado
-por separado, pero no conjuntamente~\cite[sec.~2]{liu2022convnext}.
+el sesgo de posición relativa~\cite[sec.~2]{liu2022convnext}.
 
 El ConvNeXt-S usado en este trabajo tiene cuatro etapas de $3$, $3$, $27$ y $3$
 bloques con $96$, $192$, $384$ y $768$ canales. Con las imágenes de

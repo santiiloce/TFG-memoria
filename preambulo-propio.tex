@@ -29,6 +29,14 @@
 \sisetup{output-decimal-marker={,}, group-separator={.}, group-minimum-digits=4}
 \usepackage{subcaption}
 \usepackage{float}
+% Flotante para pseudocódigo (no hay algorithm/algpseudocode en la instalación)
+\floatstyle{ruled}
+\newfloat{algoritmo}{tbp}{loa}[chapter]
+\floatname{algoritmo}{Algoritmo}
+\floatstyle{plain}
+% Las tablas generadas no fijan posición: por defecto [tbp]; \inputH{fichero} las coloca justo ahí ([H]).
+\floatplacement{table}{tbp}
+\newcommand{\inputH}[1]{{\floatplacement{table}{H}\input{#1}}}
 \usepackage{multirow}
 \usepackage{tabularx}
 \usepackage{longtable}
@@ -39,6 +47,8 @@
 % cleveref siempre después de hyperref (que carga la clase)
 \usepackage[spanish, noabbrev]{cleveref}
 \crefname{teorema}{teorema}{teoremas}
+\crefname{algoritmo}{algoritmo}{algoritmos}
+\Crefname{algoritmo}{Algoritmo}{Algoritmos}
 \Crefname{teorema}{Teorema}{Teoremas}
 \crefname{proposicion}{proposición}{proposiciones}
 \Crefname{proposicion}{Proposición}{Proposiciones}

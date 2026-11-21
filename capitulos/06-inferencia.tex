@@ -7,7 +7,7 @@
 
 \chapter{Inferencia estadística}\label{cap:inferencia}
 
-La inferencia estadística se usa en el contexto de la herramienta STOOD-X haciendo uso de diferentes tests y estadísticos con los que poder corroborar estadísticamente las distribuciones que siguen las muestras, siendo así capaces de distinguir entre las muestras ID y las OOD. Las mismas herramientas aparecen en otros puntos del trabajo: el test de McNemar compara dos clasificadores evaluados sobre las mismas imágenes (\cref{sec:eleccion-swin}), los intervalos \emph{bootstrap} cuantifican la incertidumbre de las métricas de los \cref{cap:clasificacion-id,cap:deteccion-ood,cap:stoodx}, y la predicción conforme construye conjuntos de predicción y umbrales de detección con garantías de cobertura (\cref{cap:conforme}).
+La inferencia estadística se usa en el contexto de la herramienta STOOD-X haciendo uso de diferentes tests y estadísticos con los que poder corroborar estadísticamente las distribuciones que siguen las muestras, siendo así capaces de distinguir entre las muestras ID y las OOD. Las mismas herramientas aparecen en otros puntos del trabajo: el test de McNemar compara dos clasificadores evaluados sobre las mismas imágenes (\cref{sec:eleccion-swin}), los intervalos \emph{bootstrap} cuantifican la incertidumbre de las métricas de los \cref{cap:clasificacion-id,cap:deteccion-ood,cap:stoodx}, y la predicción conforme construye conjuntos de predicción y umbrales de detección con garantías de cobertura (\cref{sec:conforme-ood}).
 
 %=======================================================
 \section{Fundamentos de los contrastes de hipótesis}\label{sec:contrastes}
@@ -134,7 +134,7 @@ Si $H_0$ es cierta y no hay empates, la variable
 converge en distribución a la normal estándar $N(0, 1)$ cuando $n_1$ y $n_2$ tienden a infinito.
 \end{teorema}
 
-No se incluye la demostración, que se encuentra en el trabajo de Mann y Whitney~\cite[sec.~4]{mann1947}. Allí, a partir de una relación de recurrencia para la distribución exacta de $U$, obtienen la media y la varianza de la \cref{prop:u-momentos} y prueban que todos los momentos de la variable tipificada convergen a los de la normal estándar, de donde se sigue que la distribución límite es normal cuando $n_1$ y $n_2$ tienden a infinito de cualquier manera~\cite[sec.~4]{mann1947}. A diferencia de la $\bar X$ del \cref{teo:tcl}, $U$ no es una suma de variables independientes, porque cada $X_i$ se compara con todas las $Y_j$, y el resultado no se sigue directamente del teorema central del límite. En la práctica, Canavos considera adecuada la aproximación cuando $n_1$ y $n_2$ son mayores que 10; para muestras más pequeñas, la distribución exacta de $U$ está tabulada~\cite[sec.~15.2.1]{canavos2003}. Para una alternativa bilateral se rechaza $H_0$ si $U$ es muy grande o muy pequeño, es decir, si $|z| \ge z_{1-\alpha/2}$.
+No se incluye la demostración, que se encuentra en el trabajo de Mann y Whitney~\cite[sec.~4]{mann1947}. Allí, a partir de una relación de recurrencia para la distribución exacta de $U$, obtienen la media y la varianza de la \cref{prop:u-momentos} y prueban que todos los momentos de la variable tipificada convergen a los de la normal estándar, de donde se sigue que la distribución límite es normal cuando $n_1$ y $n_2$ tienden a infinito de cualquier manera~\cite[sec.~4]{mann1947}. A diferencia de la media muestral, $U$ no es una suma de variables independientes, porque cada $X_i$ se compara con todas las $Y_j$, y el resultado no se sigue directamente del teorema central del límite. En la práctica, Canavos considera adecuada la aproximación cuando $n_1$ y $n_2$ son mayores que 10; para muestras más pequeñas, la distribución exacta de $U$ está tabulada~\cite[sec.~15.2.1]{canavos2003}. Para una alternativa bilateral se rechaza $H_0$ si $U$ es muy grande o muy pequeño, es decir, si $|z| \ge z_{1-\alpha/2}$.
 
 \begin{proposicion}[Relación entre $U$ y el AUROC]\label{prop:auroc-u}
 Si la primera muestra son las puntuaciones de $n_1$ imágenes ID y la segunda, las de $n_2$ imágenes OOD, entonces $\widehat{\AUROC} = U/(n_1 n_2)$.
@@ -155,7 +155,7 @@ Es el \cref{cor:auroc-u}.
 \]
 que es la varianza usada en la \cref{def:stoodx}. Sin empates, todos los $t_g$ valen $1$ y se recupera la \cref{prop:u-momentos}.
 
-\textbf{Corrección de continuidad.} $U$ es discreta (sin empates, toma valores enteros), mientras que la aproximación del \cref{teo:u-normal} es continua. Igual que en la aproximación de la binomial por la normal (\cref{teo:tml}), la probabilidad de la cola se aproxima mejor desplazando medio punto el valor observado:
+\textbf{Corrección de continuidad.} $U$ es discreta (sin empates, toma valores enteros), mientras que la aproximación del \cref{teo:u-normal} es continua. Igual que en la aproximación de la binomial por la normal (teorema de De Moivre-Laplace~\cite{canavos2003}), la probabilidad de la cola se aproxima mejor desplazando medio punto el valor observado:
 \[
   \Prob_{H_0}(U \ge u) \approx 1 - \Phi\left(\frac{u - \frac12 - n_1 n_2/2}{\sigma_U}\right).
 \]
@@ -219,7 +219,7 @@ $\frac{n(n+1)(2n+1)}{6} - \frac{n(n+1)^2}{4} = \frac{n(n^2-1)}{12}$, de modo que
 y el numerador es $\frac{n(n^2-1)}{12} - \frac12\sum_i d_i^2$. Dividiendo se obtiene la expresión del enunciado. Por ella, $r_S = 1$ si y solo si todos los $d_i$ son nulos, es decir, si $X'_i = Y'_i$ para todo $i$. Para el otro caso, si se sustituye cada $Y'_i$ por $n + 1 - Y'_i$ (los rangos de $-Y_i$), el numerador cambia de signo y el denominador no varía, luego $r_S$ cambia de signo; por tanto, $r_S = -1$ si y solo si $X'_i = n + 1 - Y'_i$ para todo $i$.
 \end{demostracion}
 
-En este trabajo, $r_S$ se usa para medir si la caída de exactitud del clasificador y el \AUROC de los detectores varían de forma monótona a lo largo de las celdas de corrupciones sintéticas (\cref{sec:corrupciones,sec:ood-corr-errores}).
+En este trabajo, $r_S$ se usa para medir si la caída de exactitud del clasificador y el \AUROC de los detectores varían de forma monótona a lo largo de las celdas de corrupciones sintéticas (\cref{sec:corrupciones,fig:apc-corr-dispersion}).
 
 %=======================================================
 \section{El test de McNemar}\label{sec:mcnemar}
@@ -261,36 +261,53 @@ Dividiendo,
 que es la función de probabilidad de una $\mathrm{Bin}(m, \theta)$. Bajo $H_0$, $\theta = \tfrac12$.
 \end{demostracion}
 
-Como $H_0$ equivale a $\theta = \tfrac12$, el test de McNemar es la prueba del signo sobre los pares discordantes, con $S = b$. El $p$-valor exacto bilateral es $\min\bigl\{1,\ 2\,\Prob\bigl(S \ge \max(b, c)\bigr)\bigr\}$, con $S \sim \mathrm{Bin}(b + c, \tfrac12)$. Cuando $m = b + c$ es grande, la binomial se aproxima por la normal (\cref{teo:tml}): bajo $H_0$, $\E(b) = m/2$ y $\Var(b) = m/4$, de modo que
+Como $H_0$ equivale a $\theta = \tfrac12$, el test de McNemar es la prueba del signo sobre los pares discordantes, con $S = b$. El $p$-valor exacto bilateral es $\min\bigl\{1,\ 2\,\Prob\bigl(S \ge \max(b, c)\bigr)\bigr\}$, con $S \sim \mathrm{Bin}(b + c, \tfrac12)$. Cuando $m = b + c$ es grande, la binomial se aproxima por la normal (teorema de De Moivre-Laplace~\cite{canavos2003}): bajo $H_0$, $\E(b) = m/2$ y $\Var(b) = m/4$, de modo que
 \[
   Z = \frac{b - m/2}{\sqrt{m/4}} = \frac{b - c}{\sqrt{b + c}}
 \]
 es aproximadamente $N(0, 1)$. Con la corrección de continuidad se usa $Z_c = (|b - c| - 1)/\sqrt{b + c}$, y $Z_c^2$, por ser el cuadrado de una normal estándar, sigue aproximadamente una distribución $\chi^2$ con un grado de libertad. Estas son las versiones que se aplican en la \cref{sec:eleccion-swin}. Como el modelo multinomial supone que las imágenes son independientes, el test hereda esa hipótesis.
 
-\begin{teorema}[Teorema central del límite]\label{teo:tcl}
-Sean $X_1, X_2, \dots, X_n$ $n$ variables aleatorias i.i.d.\ cuya distribución no está especificada y que presentan una media $\mu$ y una varianza $\sigma^2$ finitas. El promedio muestral $\bar{X} = \frac{1}{n}\sum_{i=1}^{n} X_i$ tiene una distribución con media $\mu$ y varianza $\frac{\sigma^2}{n}$.
-
-De esta forma, para $n$ grande, la distribución de $\frac{\bar{X} - \mu}{\sigma/\sqrt{n}}$ es aproximadamente una normal con media cero y desviación estándar uno, independientemente del modelo de probabilidad del que se tomó la muestra. Por tanto, concluimos que para valores de $n$ suficientemente grandes la variable aleatoria
-\[
-Z = \frac{\bar{X} - \mu}{\sigma / \sqrt{n}}
-\]
-es aproximadamente $N(0,1)$.
-\end{teorema}
-\begin{teorema}[Teorema de De Moivre-Laplace]\label{teo:tml}
-Sea $X \sim \mathrm{Bin}(n, p)$ una variable aleatoria binomial, con media $np$ y desviación estándar $\sqrt{np(1 - p)}$. Entonces, cuando $n \to \infty$, la distribución de la variable
-\[
-  Y = \frac{X - np}{\sqrt{np(1-p)}}
-\]
-tiende a la normal estándar $N(0,1)$.
-
-
-Se considera esta aproximación adecuada tanto para $np > 5$ como para $p \le 1/2$, o cuando $n(1 - p) > 5$ para $p > 1/2$. Esto es
-\[
-\Prob(a \le X_B \le b) \approx \Prob\left( \frac{a - np}{\sqrt{np(1-p)}} \le Z_N \le \frac{b - np}{\sqrt{np(1-p)}} \right)
-\]
-
-\end{teorema}
 \paragraph{Aplicación en el estudio.} Se ha usado para comprobar si realmente existe una diferencia entre los modelos Swin-S y ConvNeXt-S, evaluados sobre las mismas \num{12618} imágenes del test ID (\cref{tab:mcnemar-swin-convnext}).
+
+%=======================================================
+\section{Comparación de varios métodos: tests de Friedman y de Nemenyi}\label{sec:friedman-nemenyi}
+%=======================================================
+
+% Fuente: demsar2006, sec. 3.2 (error de familia), sec. 3.2.2 (Friedman, Iman-Davenport, Nemenyi y
+% tabla 5(a) de valores críticos), sec. 3.2.4 (diagrama CD), sec. 3 (independencia de los conjuntos).
+% Cálculo: scripts/figura_cd_nemenyi.py (q_alpha con scipy.stats.studentized_range / sqrt(2); para k = 7
+% coincide con la tabla 5(a): 2,949).
+
+Sean $k$ métodos evaluados sobre los mismos $N$ conjuntos de datos, y sea $c_i^j$ el resultado del método $j$ en el conjunto $i$. Comparar todos los pares con un test para dos métodos lleva a hacer $k(k-1)/2$ contrastes, y una parte de las hipótesis nulas se rechazaría solo por azar. Por eso se controla el \emph{error de familia} (\emph{family-wise error}), la probabilidad de cometer al menos un error de tipo I en el conjunto de las comparaciones~\cite[sec.~3.2]{demsar2006}. En el esquema de Demšar se aplica primero un test global, el de Friedman, y solo si este rechaza se aplica un test \emph{post hoc}, el de Nemenyi~\cite[sec.~3.2.2]{demsar2006}.
+
+\begin{definicion}[{Estadístico de Friedman~\cite[sec.~3.2.2]{demsar2006}}]\label{def:friedman}
+En cada conjunto $i$ se ordenan los $k$ métodos de mejor a peor y se asigna el rango $r_i^j \in \{1, \dots, k\}$ al método $j$ (rango 1 al mejor; en caso de empate, el rango medio). El \emph{rango medio} del método $j$ es $R_j = \frac{1}{N} \sum_{i=1}^{N} r_i^j$, y el estadístico de Friedman es
+\[
+  \chi^2_F = \frac{12N}{k(k+1)} \left[ \sum_{j=1}^{k} R_j^2 - \frac{k(k+1)^2}{4} \right].
+\]
+\end{definicion}
+
+La hipótesis nula es que todos los métodos son equivalentes, de modo que sus rangos medios deberían coincidir y ser iguales a $(k+1)/2$. Bajo $H_0$, $\chi^2_F$ sigue aproximadamente una distribución $\chi^2$ con $k - 1$ grados de libertad cuando $N$ y $k$ son grandes (como regla práctica, $N > 10$ y $k > 5$). Iman y Davenport mostraron que $\chi^2_F$ es demasiado conservador y propusieron el estadístico
+\[
+  F_F = \frac{(N - 1)\, \chi^2_F}{N(k - 1) - \chi^2_F},
+\]
+que sigue una distribución $F$ con $k - 1$ y $(k - 1)(N - 1)$ grados de libertad~\cite[sec.~3.2.2]{demsar2006}.
+
+\begin{definicion}[{Test de Nemenyi y diferencia crítica~\cite[sec.~3.2.2]{demsar2006}}]\label{def:nemenyi}
+Si se rechaza la hipótesis nula del test de Friedman, dos métodos $j$ y $l$ tienen un rendimiento significativamente distinto al nivel $\alpha$ si sus rangos medios difieren al menos en la \emph{diferencia crítica} (\emph{critical difference}, CD)
+\[
+  |R_j - R_l| \ge \mathrm{CD} = q_\alpha \sqrt{\frac{k(k+1)}{6N}},
+\]
+donde $q_\alpha$ es el valor crítico del estadístico del rango estudentizado (\emph{Studentized range}) para $k$ grupos, dividido por $\sqrt{2}$.
+\end{definicion}
+
+El test de Nemenyi compara todos los métodos entre sí y es el análogo no paramétrico del test de Tukey para el análisis de varianza~\cite[sec.~3.2.2]{demsar2006}. Puede ocurrir que el test de Friedman rechace la hipótesis nula y el de Nemenyi no detecte ninguna diferencia, porque este último es menos potente; en ese caso solo puede concluirse que algunos métodos difieren~\cite[sec.~3.2.2]{demsar2006}.
+
+El resultado se representa con un \emph{diagrama de diferencia crítica} (\emph{critical difference diagram})~\cite[sec.~3.2.4]{demsar2006}. Sobre un eje se marcan los rangos medios de los métodos, con los mejores rangos a la derecha; se unen con una barra horizontal los grupos de métodos que no son significativamente distintos y se dibuja la longitud de la CD sobre el eje.
+
+Los tests de Friedman y de Nemenyi trabajan con los rangos y no con los valores, así que no suponen que los resultados sean normales ni que tengan la misma varianza en todos los conjuntos. Sí suponen que los conjuntos de datos son independientes entre sí~\cite[sec.~3]{demsar2006}.
+
+\paragraph{Aplicación en el estudio.} Se ha usado para comparar el \AUROC de siete detectores sobre ocho conjuntos OOD (\cref{fig:ood-cd-nemenyi}).
 
 %=======================================================
 \section{Gráficos cuantil-cuantil}\label{sec:qq-plot}
@@ -331,7 +348,7 @@ Como $\Sigma$ es simétrica y definida positiva, tiene una raíz cuadrada simét
 %   * estratificado: se remuestrean ID y OOD por separado (mantiene n_1 y n_2);
 %   * pareado: los mismos índices para dos métodos (diferencia de AUROC, RMDS frente a cada método);
 %   * por lámina: se remuestrean láminas completas, porque los parches de una misma lámina no son
-%     independientes (enlace con la fuga por lámina).
+%     independientes.
 % - En el trabajo: 1000 remuestras, semilla 0.
 
 Para construir un intervalo de confianza hace falta conocer, al menos de forma aproximada, la distribución muestral del estimador. Para muchas de las métricas de este trabajo, como el \AUROC o el \FPRn{95}, no se dispone de una expresión sencilla de esa distribución. El método \emph{bootstrap}, propuesto por Efron~\cite{efron1979}, la aproxima por simulación: sustituye la distribución desconocida de la población por la distribución empírica de la muestra y estudia cómo varía el estimador al extraer muestras de esta última~\cite{pena2008fundamentos}.
@@ -389,7 +406,7 @@ El procedimiento anterior parte de una única muestra de observaciones i.i.d. En
 \begin{enumerate}
   \item \emph{Estratificado.} Las métricas de detección dependen de dos muestras: $n_1$ puntuaciones ID y $n_2$ OOD. En cada réplica se remuestrean con reemplazo, por separado, $n_1$ puntuaciones ID y $n_2$ OOD, de modo que se conservan los tamaños de ambos grupos. Así se obtienen los intervalos de \AUROC y \FPRn{95} de los \cref{cap:deteccion-ood,cap:stoodx}.
   \item \emph{Pareado.} Para comparar dos métodos evaluados sobre las mismas imágenes, en cada réplica se usan los mismos índices para ambos y se calcula la diferencia de la métrica, $\Delta^*_b = \hat\theta^*_{A,b} - \hat\theta^*_{B,b}$. Como $\Var(\hat\theta_A - \hat\theta_B) = \Var(\hat\theta_A) + \Var(\hat\theta_B) - 2\operatorname{Cov}(\hat\theta_A, \hat\theta_B)$, tratar las dos métricas como independientes ignoraría su covarianza; al remuestrear las mismas imágenes, las réplicas la conservan. El intervalo por percentiles de $\Delta^*_1, \dots, \Delta^*_B$ y el $p$-valor bilateral $p^* = \min\bigl\{1,\ 2\min(\hat\pi_{\le}, \hat\pi_{\ge})\bigr\}$, donde $\hat\pi_{\le}$ y $\hat\pi_{\ge}$ son las proporciones de réplicas con $\Delta^*_b \le 0$ y $\Delta^*_b \ge 0$, permiten decidir si la diferencia es significativa (\cref{sec:eleccion-swin}).
-  \item \emph{Por lámina.} Los parches de una misma lámina no son independientes (\cref{cap:fuga}). Si se remuestrean imágenes, el \emph{bootstrap} los trata como si lo fueran y puede subestimar la variabilidad del estimador. Remuestreando láminas completas, con todas sus imágenes, se conserva la dependencia dentro de cada lámina; a cambio, el número de imágenes varía de una réplica a otra (\cref{sec:eleccion-swin}).
+  \item \emph{Por lámina.} Los parches de una misma lámina no son independientes. Si se remuestrean imágenes, el \emph{bootstrap} los trata como si lo fueran y puede subestimar la variabilidad del estimador. Remuestreando láminas completas, con todas sus imágenes, se conserva la dependencia dentro de cada lámina; a cambio, el número de imágenes varía de una réplica a otra (\cref{sec:eleccion-swin}).
 \end{enumerate}
 En todos los casos se usan $B = \num{1000}$ réplicas con semilla 0, y los extremos del intervalo se calculan como percentiles con interpolación lineal entre las dos réplicas ordenadas más próximas, una variante de la \cref{def:bootstrap} que solo difiere de ella en la forma de redondear el índice.
 \end{observacion}
@@ -405,8 +422,7 @@ En todos los casos se usan $B = \num{1000}$ réplicas con semilla 0, y los extre
 % - angelopoulos2021: «A Gentle Introduction to Conformal Prediction...», versión del 8 de diciembre
 %   de 2022 (arXiv:2107.07511); página del PDF.
 % - vovk2022: 2.ª edición (Springer, 2022); página impresa.
-% - angelopoulos2021raps: versión arXiv:2009.14193v5; página del PDF.
-% [agente] Sección redactada por el agente a partir de estas tres fuentes (encargo del autor).
+% [agente] Sección redactada por el agente a partir de estas dos fuentes (encargo del autor).
 
 Un clasificador como el de la \cref{def:entropia-cruzada} devuelve, para cada
 imagen, una distribución sobre las clases, pero sus probabilidades son una medida
@@ -526,7 +542,7 @@ nueva. Cuanto menor es, menos se parece el nuevo dato a los de calibración, y
 rechazar cuando $p \le \alpha$ es un contraste de la hipótesis de que el dato es
 intercambiable con los de calibración, con probabilidad de error de tipo~I a lo
 sumo $\alpha$~\cite{angelopoulos2021,vovk2022}. Este es el fundamento de la
-detección OOD conforme del \cref{cap:conforme}. Como el $p$-valor solo toma los
+detección OOD conforme de la \cref{sec:conforme-ood}. Como el $p$-valor solo toma los
 valores $1/(n+1), 2/(n+1), \dots, 1$, no es exactamente uniforme (compárese con la
 \cref{prop:p-valor-uniforme}); Vovk et al.\ obtienen un $p$-valor exactamente
 uniforme rompiendo los empates con una variable aleatoria uniforme
@@ -565,7 +581,7 @@ $\Prob\bigl(Y_{n+1} \notin C(X_{n+1})\bigr) \le \Prob(p \le \alpha) \le \alpha$.
 
 La garantía es \emph{marginal}: la probabilidad se toma a la vez sobre los datos
 de calibración y sobre el de prueba, de modo que se cumple en promedio y no para
-cada imagen ni para cada clase~\cite{angelopoulos2021,angelopoulos2021raps}.
+cada imagen ni para cada clase~\cite{angelopoulos2021}.
 Además, la garantía se cumple para cualquier puntuación, pero la utilidad de los
 conjuntos depende de ella: si la puntuación ordena bien los datos según el error
 del modelo, los conjuntos son pequeños para las entradas fáciles y grandes para
@@ -574,207 +590,9 @@ correcta~\cite{angelopoulos2021}.
 % Fuente: angelopoulos2021, §1, p. 4 (cobertura marginal), y p. 6 («Choice of score function»);
 % angelopoulos2021raps, §1, p. 2 (garantía marginal sobre X e Y).
 
-\begin{observacion}[Cota superior]\label{obs:cobertura-superior}
-Si las puntuaciones tienen una distribución conjunta continua, de modo que no hay
-empates, la cobertura está también acotada superiormente:
-\[
-  \Prob\bigl(Y_{n+1} \in C(X_{n+1})\bigr) \le 1 - \alpha + \frac{1}{n+1}.
-\]
-Angelopoulos y Bates enuncian este resultado y remiten su demostración a Lei et
-al.\ (2018); en la práctica, la condición de continuidad puede asegurarse
-añadiendo a la puntuación un ruido aleatorio
-despreciable~\cite{angelopoulos2021}. Así, con calibraciones grandes la cobertura
-es prácticamente $1-\alpha$.
-\end{observacion}
-% Fuente: angelopoulos2021, ec. (1), p. 4; teorema D.2, p. 51 (remite al teorema 2.2 de Lei et al.,
-% 2018, que no está en library.bib). También angelopoulos2021raps, §2.1, p. 5.
-
-\begin{observacion}[Cobertura condicionada a la calibración]\label{obs:cobertura-beta}
-El \cref{teo:cobertura} promedia también sobre el conjunto de calibración. Fijado
-este, la cobertura sobre infinitos datos de prueba es una variable aleatoria que,
-según Angelopoulos y Bates, que atribuyen el resultado a Vovk, sigue una
-distribución
-\[
-  \mathrm{Beta}(n+1-l,\; l), \qquad l = \bigl\lfloor (n+1)\alpha \bigr\rfloor ,
-\]
-de media $1 - l/(n+1)$~\cite{angelopoulos2021}. Como $n+1-l = k$, se trata de una
-$\mathrm{Beta}(k,\, n+1-k)$. Su dispersión decrece como $O(n^{-1/2})$: con
-calibraciones pequeñas, la cobertura obtenida con una calibración concreta puede
-alejarse bastante de $1-\alpha$~\cite{angelopoulos2021}. Si además la cobertura se
-estima con $n_{\mathrm{val}}$ datos de prueba, la proporción observada sigue una
-distribución beta-binomial, con media $1 - l/(n+1)$ y desviación típica
-\[
-  \sqrt{\frac{l\,(n+1-l)\,(n+n_{\mathrm{val}}+1)}{n_{\mathrm{val}}\,(n+1)^2\,(n+2)}} ;
-\]
-estas expresiones permiten comprobar si una cobertura observada es compatible con
-la teoría~\cite{angelopoulos2021}.
-\end{observacion}
-% Fuente: angelopoulos2021, §3.2, pp. 14-15 (distribución Beta, atribuida a Vovk 2012, y figura 11);
-% apéndice C, pp. 49-50 (beta-binomial; media y varianza de la media de R ensayos, aquí con R = 1).
-% Relación con vovk2022: validez condicionada al entrenamiento, §4.7.2, proposición 4.8, p. 138.
-
-\subsection{Puntuaciones para clasificación}\label{sec:conforme-puntuaciones}
-
-En clasificación, la puntuación se construye a partir de las probabilidades del
-modelo. Sea $\hat\pi_x(y)$ la probabilidad que el modelo asigna a la clase $y$
-para la entrada $x$ (\cref{def:softmax}), sea $o_x(y)$ el rango de $y$ al ordenar
-las clases de más a menos probable ($o_x(y) = 1$ para la más probable) y sea
-\[
-  \rho_x(y) = \sum_{y' \,:\, \hat\pi_x(y') > \hat\pi_x(y)} \hat\pi_x(y')
-\]
-la probabilidad total de las clases más probables que
-$y$~\cite{angelopoulos2021raps}.
-% Fuente: angelopoulos2021raps, §2.2, p. 5 (definiciones de \rho_x(y) y o_x(y)).
-
-\begin{definicion}[{Puntuaciones LAC y APS~\cite{angelopoulos2021,angelopoulos2021raps,romano2020}}]\label{def:lac-aps}
-La \emph{puntuación LAC} es uno menos la probabilidad de la clase:
-\[
-  s_{\mathrm{LAC}}(x,y) = 1 - \hat\pi_x(y).
-\]
-La \emph{puntuación APS} (\emph{Adaptive Prediction Sets}) es la probabilidad
-acumulada de las clases que preceden a $y$, más una fracción aleatoria de la
-probabilidad de $y$:
-\[
-  s_{\mathrm{APS}}(x,y,u) = \rho_x(y) + u\,\hat\pi_x(y), \qquad u \sim U(0,1),
-\]
-donde $u$ es independiente de todo lo demás y se genera una vez por dato.
-\end{definicion}
-% Fuente: angelopoulos2021, §1, p. 4 (puntuación 1 - softmax de la clase verdadera); §2.1, pp. 6-7
-% (puntuación APS acumulada); angelopoulos2021raps, §1, p. 2 (APS introducido por Romano et al.,
-% 2020 = romano2020) y §2.2, ec. (4) con \lambda = 0, p. 5 (versión aleatorizada).
-% El nombre «LAC» no aparece en las fuentes: se toma del trabajo de Sadinle et al. (2019), «Least
-% ambiguous set-valued classifiers», que angelopoulos2021 (p. 6) cita por dar los conjuntos de menor
-% tamaño medio.
-
-Con la puntuación LAC, el conjunto de predicción contiene todas las clases cuya
-probabilidad supera $1-\hat q$~\cite{angelopoulos2021}. Angelopoulos y Bates
-indican que esta puntuación da los conjuntos de menor tamaño medio, pero tiende a
-infracubrir los subgrupos difíciles y a sobrecubrir los
-fáciles~\cite{angelopoulos2021}. La puntuación APS, propuesta por Romano et al.\ y
-presentada por Angelopoulos y Bates, imita el procedimiento que se usaría si las
-probabilidades fueran exactas: añadir clases de más a menos probable hasta reunir
-una probabilidad $1-\alpha$. Así usa las probabilidades de todas las clases, y no
-solo la de la clase verdadera~\cite{angelopoulos2021,romano2020}. El término
-aleatorio $u\,\hat\pi_x(y)$ suaviza el salto discreto que produce la inclusión de
-cada clase y afecta como mucho a una de ellas~\cite{angelopoulos2021raps}; con él,
-el conjunto puede llegar a ser vacío.
-% Fuente: angelopoulos2021, §1, p. 4 (conjunto con \hat\pi \ge 1 - \hat q); §2.1, p. 6 (menor tamaño
-% medio, infracobertura de subgrupos difíciles; oráculo); p. 7 (usa todas las clases);
-% angelopoulos2021raps, §2.2, p. 5 (término aleatorio). La posibilidad de conjuntos vacíos se deduce de
-% la ec. (4) de angelopoulos2021raps; angelopoulos2021 (ec. (3), p. 7) modifica APS para evitarlos.
-
-\begin{definicion}[{RAPS~\cite[sec.~2.2]{angelopoulos2021raps}}]\label{def:raps}
-Dados $\lambda \ge 0$ y $k_{\mathrm{reg}} \ge 0$, la puntuación RAPS
-(\emph{Regularized Adaptive Prediction Sets}) es
-\[
-  s_{\mathrm{RAPS}}(x,y,u) = \rho_x(y) + u\,\hat\pi_x(y)
-  + \lambda\,\bigl(o_x(y) - k_{\mathrm{reg}}\bigr)^{+},
-\]
-donde $(z)^+ = \max\{z, 0\}$. Para $\lambda = 0$ coincide con la puntuación APS.
-\end{definicion}
-% Fuente: angelopoulos2021raps, §2.2, ec. (4), p. 5, y algoritmos 2-3, p. 6.
-
-Angelopoulos et al.\ observan que los conjuntos APS son a menudo más grandes de lo
-necesario, porque dependen de las probabilidades pequeñas y ruidosas de las clases
-poco probables, cuyo orden es en buena parte aleatorio. La penalización añade
-$\lambda$ por cada posición más allá de la $k_{\mathrm{reg}}$, de modo que esas
-clases solo entran si el umbral es mucho mayor~\cite{angelopoulos2021raps}. RAPS
-conserva la cobertura del \cref{teo:cobertura} y, según sus experimentos en
-ImageNet, da conjuntos mucho más pequeños que APS con la misma
-cobertura~\cite{angelopoulos2021raps}. Los autores proponen elegir
-$k_{\mathrm{reg}}$ y $\lambda$ con un conjunto de ajuste separado del de
-calibración~\cite{angelopoulos2021raps}. A cambio de conjuntos más pequeños, una
-penalización fuerte reduce la adaptatividad: los conjuntos varían menos con la
-dificultad de la imagen~\cite{angelopoulos2021raps}.
-% Fuente: angelopoulos2021raps, §2.3, p. 6 (por qué regularizar); proposición 1, p. 6 (cobertura);
-% §1, p. 2, y tabla 1, p. 7 (tamaños menores que APS); ap. E, p. 15 (elección de k_reg y \lambda con
-% datos de ajuste); §2, p. 4, y ap. D, tabla 8, p. 15 (tensión entre tamaño y adaptatividad).
-
-\subsection{Predicción conforme condicionada por clase (Mondrian)}\label{sec:conforme-mondrian-teoria}
-
-La garantía del \cref{teo:cobertura} es marginal y puede repartirse de forma
-desigual entre clases: una cobertura muy alta en las clases frecuentes puede
-compensar una cobertura baja en las raras. Vovk et al.\ señalan que, cuando los
-errores en distintas categorías tienen consecuencias distintas, no se puede
-permitir que tasas de error bajas en unas compensen tasas excesivas en
-otras~\cite{vovk2022}. Para obtener la cobertura en cada clase basta calibrar por
-separado dentro de cada una~\cite{angelopoulos2021}. Vovk et al.\ estudian esta
-construcción dentro de los predictores conformes \emph{Mondrian}, que dividen los
-datos en categorías y calibran dentro de cada categoría; el caso en que la
-categoría es la etiqueta es el predictor conforme Mondrian condicionado por la
-etiqueta~\cite{vovk2022}.
-% Fuente: vovk2022, §4.6.2, p. 128 (clasificación asimétrica; taxonomías de Mondrian), §4.6.7, p. 134
-% (Mondrian por etiqueta); angelopoulos2021, §4.2, p. 17 (cobertura por clase).
-
-\begin{definicion}[{Predicción conforme Mondrian~\cite[sec.~4.2]{angelopoulos2021}, \cite[sec.~4.6]{vovk2022}}]\label{def:mondrian}
-Para cada clase $y$, sean $n_y$ el número de datos de calibración de la clase,
-$s^{(y)}_{(1)} \le \dots \le s^{(y)}_{(n_y)}$ sus puntuaciones ordenadas y
-$k_y = \lceil (n_y+1)(1-\alpha) \rceil$. El umbral de la clase es
-$\hat q_y = s^{(y)}_{(k_y)}$ si $k_y \le n_y$ y $\hat q_y = +\infty$ si
-$k_y > n_y$, y el conjunto de predicción es
-\[
-  C(x) = \bigl\{\, y \in \mathcal{Y} : s(x,y) \le \hat q_y \,\bigr\}.
-\]
-\end{definicion}
-
-En la prueba no se conoce la clase verdadera, de modo que cada clase candidata
-$y$ se compara con su propio umbral $\hat q_y$~\cite{angelopoulos2021}. Si los
-datos de calibración y el de prueba son i.i.d., el conjunto cumple la garantía por
-clase
-\[
-  \Prob\bigl(Y_{n+1} \in C(X_{n+1}) \mid Y_{n+1} = y\bigr) \ge 1 - \alpha
-  \qquad \text{para toda clase } y ,
-\]
-resultado que Angelopoulos y Bates atribuyen a Vovk y que Vovk et al.\ obtienen
-como caso particular de la validez de los predictores
-Mondrian~\cite{angelopoulos2021,vovk2022}. Intuitivamente, condicionado a las
-etiquetas, los datos de calibración de la clase $y$ y un dato de prueba de esa
-clase son intercambiables, y basta aplicar el \cref{teo:cobertura} dentro de la
-clase. El precio es que cada umbral se calcula con menos datos que el umbral
-marginal.
-% Fuente: angelopoulos2021, §4.2, pp. 17-18 (algoritmo, ec. (9), proposición 2, atribuida a Vovk
-% 2012); vovk2022, §4.6.2, ec. (4.31) y proposición 4.6, pp. 128-130; §4.6.7, p. 134. El argumento
-% intuitivo es del agente.
-
-El tamaño de la calibración de cada clase condiciona el umbral, como precisa el
-siguiente resultado.
-
-\begin{proposicion}[Umbral infinito y umbral máximo en Mondrian]\label{prop:mondrian-ny}
-Con la notación de la \cref{def:mondrian}:
-\begin{enumerate}
-  \item El umbral de la clase $y$ es infinito ($k_y > n_y$) si y solo si
-  $n_y < (1-\alpha)/\alpha$.
-  \item El umbral es la mayor puntuación de calibración de la clase ($k_y = n_y$)
-  si y solo si $(1-\alpha)/\alpha \le n_y < (2-\alpha)/\alpha$.
-\end{enumerate}
-Con $\alpha = 0{,}05$, el umbral es infinito si $n_y \le 18$ y es el máximo si
-$19 \le n_y \le 38$; con $\alpha = 0{,}10$, si $n_y \le 8$ y si
-$9 \le n_y \le 18$, respectivamente.
-\end{proposicion}
-
-\begin{demostracion}
-Como $n_y$ es entero, $\lceil t \rceil > n_y$ si y solo si $t > n_y$, y
-$\lceil t \rceil = n_y$ si y solo si $n_y - 1 < t \le n_y$. Con
-$t = (n_y+1)(1-\alpha)$:
-\begin{enumerate}
-  \item $(n_y+1)(1-\alpha) > n_y$ equivale a $1 > (n_y+1)\alpha$, es decir, a
-  $n_y < (1-\alpha)/\alpha$.
-  \item $(n_y+1)(1-\alpha) \le n_y$ equivale a $n_y \ge (1-\alpha)/\alpha$, y
-  $(n_y+1)(1-\alpha) > n_y - 1$ equivale a $2 > (n_y+1)\alpha$, es decir, a
-  $n_y < (2-\alpha)/\alpha$.
-\end{enumerate}
-Para $\alpha = 0{,}05$, $(1-\alpha)/\alpha = 19$ y $(2-\alpha)/\alpha = 39$;
-para $\alpha = 0{,}10$, $9$ y $19$.
-\end{demostracion}
-% Fuente: consecuencia directa de la definición del cuantil (angelopoulos2021, §4.2, p. 18, y
-% apéndice D, p. 51, caso \hat q = \infty; vovk2022, observación 4.2, ec. (4.6), p. 110). Enunciado y
-% demostración del agente. Comprobado numéricamente en results_conforme/mondrian/
-% condicion_umbral_maximo.csv (columna comprobacion_formula).
-
-Cuando el umbral es la mayor puntuación de calibración de la clase, basta un solo
-dato de calibración con una puntuación muy alta (una imagen de la clase a la que el
-modelo asigna una probabilidad muy baja) para que la clase entre en casi todos los
-conjuntos de predicción. Este efecto se observa en la \cref{sec:conforme-mondrian}.
-% Interpretación del agente a partir de la proposición; el caso concreto se analiza en el capítulo 12.
+Si no hay empates entre las puntuaciones, la cobertura está también acotada
+superiormente por $1-\alpha+1/(n+1)$, de modo que con calibraciones grandes es
+prácticamente $1-\alpha$~\cite{angelopoulos2021}.
+% Fuente: angelopoulos2021, ec. (1), p. 4; teorema D.2, p. 51 (remite al teorema 2.2 de Lei et al., 2018).
 
 \endinput

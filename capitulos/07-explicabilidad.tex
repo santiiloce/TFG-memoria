@@ -21,7 +21,7 @@ resolver operaciones aritméticas cuando en realidad respondía a gestos
 involuntarios de su dueño~\cite{lapuschkin2019}. En histopatología, por ejemplo,
 un clasificador podría apoyarse en la tinción, el escáner o el centro de origen
 de las imágenes en lugar de en la morfología del tejido.
-\pendiente{enlazar con los resultados propios: control interno del capítulo de detección OOD y firma de lámina del capítulo de fuga por lámina}
+\pendiente{enlazar con los resultados propios: control interno del capítulo de detección OOD}
 
 Una solución posible es la selección de características, que consiste en
 proporcionar al modelo solo un conjunto reducido de variables
@@ -81,7 +81,7 @@ relevancia que recibe una neurona debe repartirse íntegramente entre las neuron
 de la capa anterior, sin que se cree ni se pierda relevancia por el camino. Este
 comportamiento es análogo al de las leyes de conservación de Kirchhoff en los
 circuitos eléctricos, y lo comparten también otros métodos de explicación
-\cite{landecker2013,shrikumar2017,zhang2018excitation}.
+\cite{landecker2013,shrikumar2017,zhang2016excitation}.
 
 Sean $j$ y $k$ neuronas de dos capas consecutivas de la red, de modo que $j$
 pertenece a la capa inferior. Dadas las puntuaciones de relevancia $(R_k)_k$ de
@@ -236,7 +236,7 @@ la \cref{eq:lrp-gamma} entre $\gamma$ y hacer $\gamma \to \infty$ se obtiene
 \]
 que es la regla $z^{+}$~\cite{montavon2017}. Esta regla equivale a
 LRP-$\alpha_1\beta_0$~\cite{bach2015} y a \emph{excitation
-backprop}~\cite{zhang2018excitation,montavon2019lrp}.
+backprop}~\cite{zhang2016excitation,montavon2019lrp}.
 \end{observacion}
 
 La expresión anterior supone activaciones no negativas, como las que produce la
@@ -388,25 +388,205 @@ considerablemente~\cite{montavon2019lrp}.
 \pendiente{canonización: BatchNorm, sesgos, conexiones residuales y particularidades de ConvNeXt}
 
 \subsection{Interpretación probabilística de la regla $z^{+}$}\label{sec:lrp-markov}
-% - Excitation Backprop (Zhang et al. 2018): P(j|k) = a_j w+_jk / sum_j a_j w+_jk, equivalente a z+.
-% - Cada capa con z+ es una matriz estocástica por columnas; la relevancia normalizada es la ley de una cadena de Markov inhomogénea.
-% - Coeficiente de ergodicidad de Dobrushin: submultiplicativo; productos de matrices estocásticas tienden a rango 1 (olvido del vector inicial).
-% - Consecuencia: insensibilidad a la clase de z+ (Sixt et al. 2020). Comprobación empírica en results_crp/fase5 (Markov).
-\pendiente{definición, proposición (submultiplicatividad del coeficiente de Dobrushin) y su relación con la insensibilidad a la clase}
+
+Sea $R^{(l)}$ el vector de relevancias de las neuronas de la capa $l$. Si en la capa $l$ se aplica la regla $z^{+}$ (\cref{def:lrp-zplus}) y el denominador es positivo para todo $k$, la propagación es lineal,
+\begin{equation}\label{eq:zplus-matriz}
+  R^{(l-1)} = P^{(l)} R^{(l)},
+  \qquad
+  p^{(l)}_{jk} = \frac{\bigl(a_j w_{jk}\bigr)^{+}}{\sum_{j'} \bigl(a_{j'} w_{j'k}\bigr)^{+}} ,
+\end{equation}
+y la matriz $P^{(l)}$ depende de la entrada $x$, a través de las activaciones, pero no de la relevancia que se propaga ni, por tanto, de la clase o el concepto desde el que se inicia la propagación.
+
+\begin{definicion}[Matriz estocástica por columnas]\label{def:estocastica-columnas}
+Una matriz $P \in \R^{n \times m}$ es \emph{estocástica por columnas} si $p_{jk} \geq 0$ para todo $j, k$ y $\sum_{j} p_{jk} = 1$ para todo $k$, es decir, si cada columna $p_{\cdot k}$ es una distribución de probabilidad sobre $\{1, \dots, n\}$.
+\end{definicion}
+
+La matriz de la \cref{eq:zplus-matriz} es estocástica por columnas: sus entradas son no negativas y cada columna suma 1, que es la propiedad de conservación (\cref{prop:lrp-conservacion}). Como $\mathbf{1}^{\top} P = \mathbf{1}^{\top}$, una matriz así conserva la suma de cualquier vector, y el producto de matrices estocásticas por columnas también lo es. Por tanto, si la relevancia inicial es no negativa y suma 1, la relevancia de cada capa es una distribución de probabilidad, y $p^{(l)}_{jk}$ puede leerse como la probabilidad de pasar de la neurona $k$ de la capa $l$ a la neurona $j$ de la capa $l-1$. La propagación es entonces la evolución de la ley de una cadena de Markov no homogénea que recorre la red desde la salida hacia la entrada, y el mapa de relevancia es la ley de la posición final de la cadena. Es la interpretación probabilística de \emph{excitation backprop}, equivalente a la regla $z^{+}$ (\cref{obs:lrp-zplus}): Zhang et al.\ modelan la atención descendente de una red como un proceso probabilístico en el que, si la neurona $a_i$ es «ganadora», la siguiente ganadora se elige entre las neuronas de la capa inferior con probabilidad $P(a_j \mid a_i) = a_j w_{ji} / \sum_{j' : w_{j'i} \geq 0} a_{j'} w_{j'i}$ si $w_{ji} \geq 0$ y $0$ en otro caso; la probabilidad marginal de cada neurona se calcula capa a capa, y los autores señalan que esta formulación equivale a una cadena de Markov absorbente~\cite[ecs.~(1) y~(4)]{zhang2016excitation}.
+
+Para medir cuánto se parecen las columnas de una matriz estocástica, y por tanto cuánto contrae las diferencias entre los vectores que propaga, se usa el coeficiente de ergodicidad de Dobrushin.
+
+\begin{definicion}[Coeficiente de Dobrushin]\label{def:dobrushin}
+Para una matriz $P \in \R^{n \times m}$ estocástica por columnas se define
+\[
+  \delta(P) = \frac12 \max_{k, k'} \bigl\lVert p_{\cdot k} - p_{\cdot k'} \bigr\rVert_1 ,
+\]
+la mayor distancia en variación total entre dos de sus columnas.
+\end{definicion}
+
+\begin{proposicion}[Contracción y submultiplicatividad]\label{prop:dobrushin}
+Sean $P \in \R^{n \times m}$ y $Q \in \R^{m \times r}$ estocásticas por columnas. Entonces:
+\begin{enumerate}
+  \item $0 \leq \delta(P) \leq 1$.
+  \item Para todo $u \in \R^{m}$ con $\sum_{k} u_k = 0$, $\lVert P u \rVert_1 \leq \delta(P)\, \lVert u \rVert_1$.
+  \item $\delta(PQ) \leq \delta(P)\, \delta(Q)$.
+\end{enumerate}
+\end{proposicion}
+
+\begin{proof}
+(1) Cada columna tiene norma 1 y entradas no negativas, así que $\lVert p_{\cdot k} - p_{\cdot k'} \rVert_1 \leq \lVert p_{\cdot k} \rVert_1 + \lVert p_{\cdot k'} \rVert_1 = 2$.
+
+(2) Se escribe $u = u^{+} - u^{-}$, con $u^{+}, u^{-} \geq 0$ sus partes positiva y negativa. Como $\sum_k u_k = 0$, ambas tienen la misma suma, $s = \lVert u^{+} \rVert_1 = \lVert u^{-} \rVert_1 = \lVert u \rVert_1 / 2$. Si $s = 0$ no hay nada que probar. En otro caso, como $\sum_{k'} u^{-}_{k'} / s = 1$ y $\sum_{k} u^{+}_{k} / s = 1$,
+\[
+  P u = \sum_{k} u^{+}_{k}\, p_{\cdot k} - \sum_{k'} u^{-}_{k'}\, p_{\cdot k'}
+      = \frac{1}{s} \sum_{k, k'} u^{+}_{k}\, u^{-}_{k'} \bigl(p_{\cdot k} - p_{\cdot k'}\bigr),
+\]
+y por la desigualdad triangular
+\[
+  \lVert P u \rVert_1 \leq \frac{1}{s} \sum_{k, k'} u^{+}_{k}\, u^{-}_{k'}\, 2\delta(P)
+  = \frac{1}{s}\, s^2\, 2 \delta(P) = \delta(P)\, \lVert u \rVert_1 .
+\]
+
+(3) La columna $k$ de $PQ$ es $P q_{\cdot k}$, así que $(PQ)_{\cdot k} - (PQ)_{\cdot k'} = P\,(q_{\cdot k} - q_{\cdot k'})$. El vector $q_{\cdot k} - q_{\cdot k'}$ suma cero, y por (2)
+\[
+  \bigl\lVert P\,(q_{\cdot k} - q_{\cdot k'}) \bigr\rVert_1 \leq \delta(P)\, \bigl\lVert q_{\cdot k} - q_{\cdot k'} \bigr\rVert_1 \leq \delta(P)\, 2 \delta(Q).
+\]
+Dividiendo entre 2 y tomando el máximo en $k, k'$ se obtiene el resultado.
+\end{proof}
+
+\begin{corolario}[Olvido de la relevancia inicial]\label{cor:olvido}
+Sean $P^{(1)}, \dots, P^{(L)}$ estocásticas por columnas, $\Pi = P^{(1)} \cdots P^{(L)}$, $u$ un vector de relevancia inicial con $s = \sum_k u_k$ y $r$ una distribución de probabilidad cualquiera. Entonces
+\[
+  \bigl\lVert \Pi u - s\, \Pi r \bigr\rVert_1 \leq \Bigl( \prod_{l=1}^{L} \delta\bigl(P^{(l)}\bigr) \Bigr) \lVert u - s\, r \rVert_1 .
+\]
+\end{corolario}
+
+\begin{proof}
+El vector $v = u - s\,r$ suma cero, y cada matriz estocástica por columnas conserva esa propiedad, así que basta aplicar el apartado (2) de la \cref{prop:dobrushin} capa a capa: $\lVert P^{(1)} \cdots P^{(L)} v \rVert_1 \leq \delta(P^{(1)}) \lVert P^{(2)} \cdots P^{(L)} v \rVert_1 \leq \dots \leq \prod_{l} \delta(P^{(l)}) \lVert v \rVert_1$.
+\end{proof}
+
+El corolario dice que, si en muchas capas $\delta(P^{(l)}) < 1$, el mapa en la entrada se aproxima a $s\, \pi$, con $\pi = \Pi r$ una distribución que solo depende de la imagen $x$: la relevancia inicial solo influye a través de su suma total $s$. Con la conservación, $s$ es la salida desde la que se inicia la propagación, así que mapas iniciados desde clases distintas, o condicionados a canales distintos con CRP (\cref{sec:crp}), tenderían a tener la misma forma y a diferir solo en magnitud y signo. Sixt et al.\ llegan a la misma conclusión por otra vía: la regla $z^{+}$, empleada por DTD, \emph{excitation backprop} y LRP-$\alpha_1\beta_0$, convierte la explicación en el producto de una cadena de matrices no negativas, y demuestran que, normalizado, ese producto converge a una matriz de rango~1, $C = c\,\gamma^{\top}$; entonces $C v = (\gamma^{\top} v)\, c$ para cualquier vector $v$, de modo que la relevancia que se propaga desde la salida solo puede cambiar la escala o el signo del mapa~\cite[sec.~2 y teorema~1]{sixt2020}. Comprueban empíricamente la convergencia en VGG-16 y ResNet-50 y muestran que los mapas de LRP-$\alpha_1\beta_0$ se vuelven insensibles a la clase, y apuntan a las relevancias negativas como la forma de evitarla~\cite{sixt2020}. El \cref{cor:olvido} es una versión cuantitativa de ese resultado para matrices estocásticas por columnas, con la velocidad de convergencia acotada por los coeficientes de Dobrushin.
+
+Se trata de una cota superior: la rapidez del olvido depende de cuánto se solapen las columnas de cada $P^{(l)}$, y si en alguna capa las columnas tienen soportes disjuntos, su coeficiente vale 1 y esa capa no contrae.
+
+En la configuración de LRP empleada con ConvNeXt-S en el \cref{cap:xai-sesgos} (variante A), las capas convolucionales y lineales del cuerpo usan la regla $z^{+}$, la primera capa usa la regla \emph{flat}, la LayerNorm y la GELU se tratan como la identidad, y en cada suma residual la relevancia se reparte entre las dos ramas en proporción al valor absoluto de cada una. Todas estas operaciones son estocásticas por columnas, así que la propagación por el cuerpo de la red es un producto de matrices como las de la \cref{eq:zplus-matriz} y el \cref{cor:olvido} se aplica a ella; solo las capas lineales de la cabeza usan otra regla.
+
+Para comprobarlo empíricamente se inyectaron en la salida de las etapas 1, 2 y 3 de ConvNeXt-S diez vectores aleatorios por imagen, con la forma de la activación, en 28 imágenes, y se propagaron hasta la entrada con la variante A y con Gradiente $\times$ Entrada; se mide la mediana de $|\rho|$ de Spearman entre los mapas obtenidos con vectores distintos. Con vectores no negativos ($s > 0$), los mapas de la variante A son prácticamente idénticos desde cualquier etapa ($|\rho|$ de 1,000, 1,000 y 0,998 desde las etapas 3, 2 y 1), como predice el corolario, frente a 0,970, 0,941 y 0,737 con Gradiente $\times$ Entrada; estos vectores comparten una componente constante, lo que puede explicar parte de los valores altos de ambos métodos. Con vectores con signo, de suma cercana a cero, el corolario no fuerza una forma común, pero $|\rho|$ sigue siendo entre 4 y 7 veces mayor con la variante A (0,390, 0,349 y 0,065) que con Gradiente $\times$ Entrada (0,079, 0,088 y 0,009); en ambos métodos la $\rho$ media es cercana a 0, con cerca de la mitad de pares negativos, lo que en la variante A es compatible con una forma común cuyo signo cambia. Estos resultados concuerdan con el olvido de la relevancia inicial, aunque no demuestran que sea la causa de que los mapas de la variante A dependan poco de la clase (\cref{sec:xai-casos}).
+% Fuente de la comprobación: results_crp/fase5/resumen.md, sec. 7, y fase5/decisiones.md (vectores
+% uniformes en [0, 1] o normales, normalizados a sum|v| = 1; 28 imágenes, 10 vectores por imagen).
+% Fuentes: zhang2016excitation (topdown.pdf), ecs. (1) y (4) y párrafo siguiente (cadena de Markov
+% absorbente); sixt2020 (zmas.pdf), §1, §2.1 (z+), §2 y teorema 1 (rango 1, prueba en el apéndice A).
+% El coeficiente de Dobrushin se deja sin cita (el autor no ha encontrado la referencia).
 
 \section{Concept Relevance Propagation}\label{sec:crp}
 
-% Puntos que debería cubrir:
-% - CRP (Achtibat et al., 2023): condicionar la propagación de relevancia a un concepto (canal o
-%   neurona) para obtener mapas de relevancia por concepto.
-% - Explicaciones glocales: local (dónde) + global (qué).
-% - Selección de ejemplos de referencia por relevancia: RelMax frente a ActMax; normalización de la
-%   relevancia por capa (ec. 54 de Achtibat et al.).
+Los métodos de explicación local, como LRP, indican \emph{dónde} se encuentra la
+información relevante para una predicción concreta, pero no \emph{qué} representa
+esa información: interpretar el mapa de relevancia queda en manos del usuario. Los
+métodos de explicación global, en cambio, tratan de describir los conceptos que la
+red codifica en sus capas internas, pero no dicen cuáles de ellos intervienen en una
+predicción concreta ni en qué parte de la entrada. \emph{Concept Relevance
+Propagation} (CRP)~\cite{achtibat2023} une los dos puntos de vista en lo que sus
+autores llaman explicaciones \emph{glocales}: para una predicción, determina qué
+conceptos internos han sido relevantes, cuánto ha aportado cada uno y en qué región
+de la entrada se apoya.
+
+\subsection{Propagación condicionada}\label{sec:crp-condicionada}
+
+CRP parte de la observación de que LRP no solo asigna relevancia a las variables de
+entrada, sino también a cada neurona intermedia, y de que las neuronas o canales de
+las capas superiores tienden a codificar conceptos abstractos. La relevancia de un
+canal puede entonces leerse como la importancia de su concepto en la
+predicción~\cite{achtibat2023}.
+
+Para separar la contribución de cada concepto, CRP introduce un conjunto de
+condiciones $\theta$. Cada condición $c \in \theta$ identifica un elemento de la red,
+por ejemplo una salida concreta desde la que iniciar la propagación o un canal de una
+capa intermedia. Si $\theta_l$ son las condiciones de la capa $l$, la regla de
+propagación de LRP pasa a ser
+\begin{equation}\label{eq:crp-regla}
+  R_{j\leftarrow k}(x \mid \theta \cup \theta_l)
+  = \frac{z_{jk}}{\sum_{j} z_{jk}} \sum_{c \in \theta_l} \delta_{kc}\, R_k(x \mid \theta),
+\end{equation}
+donde $R_k(x \mid \theta)$ es la relevancia que la neurona $k$ de la capa $l$ recibe
+de las capas superiores bajo las condiciones $\theta$ y $\delta_{kc}$ es la delta de
+Kronecker. Solo se propaga la relevancia de las neuronas que corresponden a algún
+concepto de $\theta_l$; en las capas sin condiciones, las deltas valen siempre $1$ y
+la propagación es la de LRP. La relevancia de una neurona $j$ de la capa inferior se
+obtiene, como en LRP, sumando los mensajes que recibe:
+$R_j(x \mid \theta \cup \theta_l) = \sum_k R_{j\leftarrow k}(x \mid \theta \cup \theta_l)$.
+
+En una red convolucional, la activación de una capa es un tensor con dos ejes
+espaciales y un eje de canales. Si se supone que cada canal corresponde a un
+concepto, las condiciones se aplican solo al eje de canales: cada neurona se indexa
+como $(p,q,k)$, con $(p,q)$ la posición espacial y $k$ el canal, y la regla
+anterior se aplica con $\delta_{kc}$, de modo que se conserva la relevancia
+de todas las posiciones del canal elegido y se anula la del resto. Así, por ejemplo,
+la condición $\theta = \{y\}$, con $y$ la salida de una clase, da el mapa de LRP de
+esa clase, mientras que $\theta = \{L\colon \{y\},\; l\colon \{c\}\}$ da el mapa
+\emph{condicionado} al concepto $c$ de la capa $l$, que solo es posible con
+CRP~\cite{achtibat2023}. En la práctica, CRP se implementa con un único paso hacia
+atrás en el que los tensores de relevancia se multiplican por máscaras binarias, y es
+compatible con las combinaciones de reglas recomendadas para LRP
+(\cref{sec:lrp-reglas}). Los autores ofrecen una implementación basada en la
+biblioteca Zennit (\url{https://github.com/rachtibat/zennit-crp}).
+
+Como CRP hereda la propiedad de conservación de LRP
+(\cref{prop:lrp-conservacion}), la relevancia global de un concepto en la
+predicción de $x$ se mide sumando la relevancia de sus neuronas en cualquier capa
+$l$ en la que $\theta$ ya haya actuado,
+\begin{equation}\label{eq:crp-relevancia-concepto}
+  R^{l}(x \mid \theta) = \sum_{i} R^{l}_{i}(x \mid \theta),
+\end{equation}
+y, si la suma se restringe a las neuronas de una región de interés $I$, se obtiene
+la importancia del concepto en esa región,
+$R^{l}_{I}(x \mid \theta) = \sum_{i \in I} R^{l}_{i}(x \mid \theta)$.
+Ordenando los canales de una capa por su relevancia en la predicción se eligen los
+conceptos que se van a explicar, y para cada uno se calcula su mapa
+condicionado~\cite{achtibat2023}.
+
+\subsection{Ejemplos de referencia: RelMax}\label{sec:crp-relmax}
+
+El mapa condicionado dice dónde actúa un concepto, pero no qué es. Para comunicar el
+significado de un canal se buscan imágenes de un conjunto de datos $X_d$ que lo
+representen. El enfoque habitual, la maximización de la activación (\emph{Activation
+Maximization}, ActMax), ordena las imágenes según un objetivo basado en la activación
+$z_i(x)$ de las neuronas $i$ del canal, como
+\begin{equation}\label{eq:crp-actmax}
+  T^{\mathrm{act}}_{\mathrm{sum}}(x) = \sum_{i} z_i(x)
+  \qquad\text{o}\qquad
+  T^{\mathrm{act}}_{\mathrm{max}}(x) = \max_{i} z_i(x),
+\end{equation}
+ordena $X_d$ de mayor a menor según ese objetivo y toma como referencias las $k$
+primeras imágenes, $X^{\star}_{k} = \{x^{\star}_1, \dots, x^{\star}_k\}$. La primera
+variante favorece imágenes en las que el concepto aparece repartido por muchas
+posiciones; la segunda, imágenes en las que aparece de forma más localizada.
+
+Sin embargo, una activación alta no implica que el concepto sea útil para el modelo
+en la predicción~\cite{achtibat2023}. La maximización de la relevancia
+(\emph{Relevance Maximization}, RelMax) sustituye la activación por la relevancia
+condicionada de CRP:
+\begin{equation}\label{eq:crp-relmax}
+  T^{\mathrm{rel}}_{\mathrm{sum}}(x) = \sum_{i} R_i(x \mid \theta)
+  \qquad\text{o}\qquad
+  T^{\mathrm{rel}}_{\mathrm{max}}(x) = \max_{i} R_i(x \mid \theta).
+\end{equation}
+Como la relevancia depende de la salida desde la que se propaga, las referencias
+obtenidas son específicas del modelo, de la clase (real, predicha o elegida) y,
+según $\theta$, del concepto: un mismo canal puede tener conjuntos de referencias
+distintos para clases distintas, y las referencias muestran solo las facetas del
+concepto que el modelo usa al predecir. Relevancia y activación no están
+necesariamente correlacionadas, porque la relevancia depende también de la que llega
+desde las capas superiores~\cite{achtibat2023}. Además, el mapa condicionado de cada
+referencia puede usarse como máscara para resaltar en ella la parte que define el
+concepto.
+
+Por último, la relevancia de una imagen es proporcional a la salida del modelo, de
+modo que las imágenes predichas con poca confianza quedan relegadas en el
+ordenamiento. Para que la comparación entre imágenes no dependa de esa confianza, la
+relevancia condicionada puede normalizarse en cada capa $l$ por la suma de los
+valores absolutos,
+\begin{equation}\label{eq:crp-normalizacion}
+  R^{(l)}_{\mathrm{norm}}(x \mid \theta_c)
+  = \frac{R^{(l)}(x \mid \theta_c)}{\sum_{k} \left| R^{(l)}_{k}(x \mid \theta_c) \right|},
+\end{equation}
+con lo que cada atribución queda acotada en $[-1, 1]$ y la importancia del concepto
+deja de depender de la salida del modelo, sin perder su especificidad de
+clase~\cite{achtibat2023}.
+
 % - Uso en la segunda etapa de STOOD-X: mapas CRP de las características más presentes compartidas
 %   con los vecinos (capítulo 11 / 14).
 % - Decisión del TFG: dos formatos de explicación, (i) vecinos + 4 características al estilo de STOOD-X y (ii) atlas RelMax.
 % - Producción con la variante A (protocolo) y con Gradiente x Entrada condicional (comparación), results_crp/fase4.
 % - Limitación: con z+ los mapas condicionales de distintos conceptos se parecen (|rho| = 0,735 entre 4 canales).
-\pendiente{CRP}
 
 \endinput

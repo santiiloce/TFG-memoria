@@ -123,7 +123,7 @@ def escribir(salida, nombre, lineas, origen):
 
 def tabla(caption, label, columnas, cuerpo, tamano='\\small', sep=None, entorno='tabular', ancho=None,
           notas=None):
-    l = ['\\begin{table}[tbp]', '\\centering', tamano]
+    l = ['\\begin{table}', '\\centering', tamano]
     if sep:
         l.append('\\setlength{\\tabcolsep}{%s}' % sep)
     l += ['\\caption{%s}' % caption, '\\label{%s}' % label]
@@ -149,7 +149,7 @@ def mejores(datos, metodos, conjunto, columna, mayor):
     return max(vals) if mayor else min(vals)
 
 
-def filas_familias(metodos_validos, fila_de, ncol):
+def filas_familias(metodos_validos, fila_de, ncol, fila_media=None):
     cuerpo = []
     primera = True
     for nombre, lista in FAMILIAS:
@@ -162,6 +162,8 @@ def filas_familias(metodos_validos, fila_de, ncol):
         cuerpo.append('\\multicolumn{%d}{@{}l}{\\textit{%s}} \\\\' % (ncol, nombre))
         for m in lista:
             cuerpo.append(fila_de(m))
+        if fila_media:
+            cuerpo.append(fila_media(lista))
     return cuerpo
 
 
@@ -414,22 +416,33 @@ def t10_bloque(R, S, datos, conjunto, nombre_fich, label, titulo):
 def t10_control_interno(R, S, datos):
     conjuntos = ['near_nct_tum', 'near_nct_norm', 'afin_nct_str', 'afin_nct_lym', 'afin_nct_mus']
     metodos = [m for m in METODOS]
-    cab = ' & '.join(CONJUNTOS[c] for c in conjuntos)
+    cab = ' & '.join(CONJUNTOS[c] for c in conjuntos) + ' & Media'
+
+    def valores(m, k):
+        v = [float(datos[(m, c)][k]) for c in conjuntos]
+        return v + [sum(v) / len(v)]
+
+    def celdas(vals):
+        return ' & '.join(n(x) for x in vals)
 
     def fila(m):
-        a = [n(datos[(m, c)]['AUROC']) for c in conjuntos]
-        fp = [n(datos[(m, c)]['FPR@95']) for c in conjuntos]
-        return '%s & %s & %s \\\\' % (METODOS[m], ' & '.join(a), ' & '.join(fp))
+        return '%s & %s & %s \\\\' % (METODOS[m], celdas(valores(m, 'AUROC')), celdas(valores(m, 'FPR@95')))
+
+    def fila_media(lista):
+        med = {k: [sum(col) / len(lista) for col in zip(*(valores(m, k) for m in lista))]
+               for k in ('AUROC', 'FPR@95')}
+        return '\\textit{Media del grupo} & %s & %s \\\\' % (celdas(med['AUROC']), celdas(med['FPR@95']))
 
     cuerpo = ['\\toprule',
-              '& \\multicolumn{5}{c}{\\AUROC $\\uparrow$} & \\multicolumn{5}{c}{\\FPRn{95} $\\downarrow$} \\\\',
-              '\\cmidrule(lr){2-6}\\cmidrule(lr){7-11}', 'Método & %s & %s \\\\' % (cab, cab), '\\midrule']
-    cuerpo += filas_familias(set(metodos), fila, 11)
+              '& \\multicolumn{6}{c}{\\AUROC $\\uparrow$} & \\multicolumn{6}{c}{\\FPRn{95} $\\downarrow$} \\\\',
+              '\\cmidrule(lr){2-7}\\cmidrule(lr){8-13}', 'Método & %s & %s \\\\' % (cab, cab), '\\midrule']
+    cuerpo += filas_familias(set(metodos), fila, 13, fila_media)
     cuerpo.append('\\bottomrule')
     cap = ('Control interno con las clases de \\nctcrc: tejido glandular de colon (TUM y NORM) frente a tejidos '
            'análogos a clases ID (STR, LYM y MUS). \\AUROC (más alto es mejor) y \\FPRn{95} (más bajo es mejor). '
-           'Clase positiva: OOD. %s') % NOTA_MARCAS.replace('{acc_ash}', acc_ash(datos))
-    escribir(S, 't10_control_interno.tex', tabla(cap, 'tab:ood-control-interno', 'l' + 'c' * 10, cuerpo,
+           'Clase positiva: OOD. Media: media aritmética de los cinco conjuntos. Media del grupo: media '
+           'aritmética de todas las filas del grupo. %s') % NOTA_MARCAS.replace('{acc_ash}', acc_ash(datos))
+    escribir(S, 't10_control_interno.tex', tabla(cap, 'tab:ood-control-interno', 'l' + 'c' * 12, cuerpo,
                                                  '\\scriptsize', '2.5pt'),
              FASE_C + '/tabla_principal.csv')
 
@@ -487,10 +500,10 @@ def t10_bootstrap_rmds(R, S):
         p = float(f['p_bootstrap'])
         cuerpo.append('%s & %s%s & %s & %s \\\\' % (
             METODOS[f['metodo']], '+' if d >= 0 else '$-$', n(abs(d)), ic(f['IC_inf'], f['IC_sup']),
-            '$<0{,}001$' if p == 0 else n(p, 2)))
+            '$<0{,}001$' if p == 0 else n(p, 3)))
     cuerpo.append('\\bottomrule')
     cap = ('\\emph{Bootstrap} pareado (1.000 remuestreos, semilla 0) de la diferencia \\AUROC(RMDS) $-$ '
-           '\\AUROC(método) en el near-OOD principal (TUM+NORM). Diferencia positiva: RMDS es mejor. '
+           '\\AUROC(método) en el near-OOD principal (TUM+NORM); RMDS es el método de referencia, por lo que no tiene fila propia. Diferencia positiva: RMDS es mejor. '
            '$p<0{,}001$: ninguna réplica cruzó el cero. $^{a}$, $^{\\dagger}$: como en \\cref{tab:ood-near}.')
     escribir(S, 't10_bootstrap_rmds.tex', tabla(cap, 'tab:ood-bootstrap-rmds', 'lccc', cuerpo, '\\footnotesize'),
              FASE_C + '/bootstrap_pareado_rmds.csv')
@@ -645,138 +658,36 @@ def t10_corr_saturacion(R, S):
                                                  '6pt'), origen)
 
 
-def t10_corr_auroc_err(R, S):
-    origen = CORR + '/fase8b/auroc_err_celda.csv y stoodx_variantes_auroc_err_celda.csv'
-    a = {(f['detector'], f['corrupcion'], f['nivel']): f
-         for f in leer_csv(os.path.join(R, CORR, 'fase8b/auroc_err_celda.csv'))}
-    v = {(f['variante'], f['corrupcion'], f['nivel']): f
-         for f in leer_csv(os.path.join(R, CORR, 'fase8b/stoodx_variantes_auroc_err_celda.csv'))}
+def tC_corr_k144(R, S):
+    """FPR@95 y AUROC de STOOD-X (100 %) con K = 500 y K = 144 frente al mejor de los otros 13 detectores."""
+    origen = CORR + '/stoodx_K144/comparacion_fpr95.csv'
+    m = {(f['corrupcion'], f['nivel']): f for f in leer_csv(os.path.join(R, origen))}
     nombres = nombres_corr(R)
-    nombres['limpia'] = 'Limpia'
-
-    def val(d, c, l):
-        if d == 'stoodx_100':
-            f = v[('empates_reales', c, l)]
-            return f['AUROC_err'], f['IC_inf'], f['IC_sup']
-        f = a[(d, c, l)]
-        return f['AUROC_err'], f['IC_inf'], f['IC_sup']
-
-    cuerpo = ['\\toprule', 'Corrupción & Nivel & Errores & %s \\\\' % ' & '.join(
-        nombre_det(d) + ('$^{\\ast}$' if d == 'stoodx_100' else '') for d in CORR_PRINCIPALES), '\\midrule']
-    for i, (c, l) in enumerate([('limpia', '0')] + celdas_corr(R)):
-        vals = [val(d, c, l) for d in CORR_PRINCIPALES]
-        mejor = max(round(float(x[0]), 3) for x in vals)
-        if i == 1:
-            cuerpo.append('\\midrule')
-        else:
-            cuerpo += separador_corr(c, l, i <= 1)
-        nombre = '%s & %s' % (nombres[c] if l in ('0', '1') else '', '--' if l == '0' else l)
-        cuerpo.append('%s & %s & %s \\\\' % (nombre, entero(a[('msp', c, l)]['n_errores']), ' & '.join(
-            negrita(n(x[0]), round(float(x[0]), 3) == mejor) for x in vals)))
-        cuerpo.append('& & & %s \\\\[1pt]' % ' & '.join('{\\tiny %s}' % ic(x[1], x[2]) for x in vals))
-    cuerpo.append('\\bottomrule')
-    o = v[('original', 'pixelate', '5')]
-    e = v[('empates_reales', 'pixelate', '5')]
-    notas = ('$^{\\ast}$Las imágenes con la puntuación saturada reciben la misma puntuación (empate real, que el AUROC '
-             'cuenta como $\\tfrac{1}{2}$); con la puntuación $-z$ original, su orden lo decide un término del orden '
-             'de $10^{-8}$ (por ejemplo, pixelado 5: %s con empates reales frente a %s con la original; la variante '
-             'original está en \\texttt{stoodx\\_variantes\\_auroc\\_err\\_celda.csv}).') % (n(e['AUROC_err']),
-                                                                                         n(o['AUROC_err']))
-    cap = ('\\AUROC de detección de errores de clasificación (clase positiva: imagen mal clasificada; más alto es '
-           'mejor) de los seis detectores principales, en la imagen limpia y en cada corrupción y nivel, con su IC '
-           'debajo. Errores: número de imágenes mal clasificadas de las \\num{12618} de la celda. En negrita, el '
-           'mejor valor de cada fila. %s') % NOTA_BOOT_CORR
-    escribir(S, 't10_corr_auroc_err.tex', tabla(cap, 'tab:ood-corr-auroc-err', 'llrcccccc', cuerpo,
-                                                '\\scriptsize', '2.5pt', notas=notas), CORR + '/' + origen)
-
-
-def t10_corr_aurc(R, S):
-    origen = CORR + '/fase8b/aurc.csv'
-    filas = {(f['detector'], f['variante']): f for f in leer_csv(os.path.join(R, origen))}
-    orden = [('oraculo', 'bruta', 'Oráculo'), ('knn', 'bruta', None), ('mds', 'bruta', None), ('vim', 'bruta', None),
-             ('rmds', 'bruta', None), ('stoodx_100', 'saturadas_empatadas', None), ('msp', 'bruta', None),
-             ('azar', 'bruta', 'Azar')]
-    cuerpo = ['\\toprule', 'Detector & AURC $\\downarrow$ & IC 95\\,\\% \\\\', '\\midrule']
-    for d, var, rot in orden:
-        f = filas[(d, var)]
-        nombre = rot or nombre_det(d) + ('$^{\\ast}$' if d == 'stoodx_100' else '')
-        if d == 'azar':
-            cuerpo.append('\\midrule')
-        cuerpo.append('%s & %s & %s \\\\' % (nombre, n(f['AURC']), ic(f['IC_inf'], f['IC_sup'])))
-        if d == 'oraculo':
-            cuerpo.append('\\midrule')
-    cuerpo.append('\\bottomrule')
-    o = filas[('stoodx_100', 'bruta')]
-    total = float(filas[('oraculo', 'bruta')]['n_puntos'])
-    assert int(total) == 12618 * 28
-    notas = ('$^{\\ast}$Imágenes saturadas con la misma puntuación (empate real); con la puntuación original, %s %s.') % (
-        n(o['AURC']), ic(o['IC_inf'], o['IC_sup']))
-    cap = ('Área bajo la curva riesgo-cobertura (AURC; más bajo es mejor) conjunta de las imágenes limpias y las 27 '
-           'celdas (\\num{%d} imágenes; tasa de error global %s), al aceptar las imágenes de mayor a menor '
-           'puntuación. Oráculo: rechaza primero los errores; azar: riesgo constante. IC del 95\\,\\%% por '
-           '\\emph{bootstrap} por imagen original (cada réplica arrastra sus 28 versiones).') % (
-        int(total), n(filas[('azar', 'bruta')]['tasa_error_total']))
-    escribir(S, 't10_corr_aurc.tex', tabla(cap, 'tab:ood-corr-aurc', 'lcc', cuerpo, '\\footnotesize', '4pt',
-                                           notas=notas), origen)
-
-
-UMBRAL_DETECTORES = ['stoodx_100', 'msp', 'vim']
-UMBRAL_CELDAS = [('limpia', '0'), ('brightness', '5'), ('jpeg_compression', '5'), ('pixelate', '5'),
-                 ('defocus_blur', '3'), ('motion_blur', '5')]
-
-
-def filas_umbral(R, celdas, con_ic):
-    origen = CORR + '/fase8b/umbral_fijo_celda.csv'
-    u = {(f['detector'], f['corrupcion'], f['nivel']): f for f in leer_csv(os.path.join(R, origen))
-         if f['origen_umbral'] == 'id_val'}
-    nombres = nombres_corr(R)
-    nombres['limpia'] = 'Limpia'
-    cuerpo = []
-    for i, (c, l) in enumerate(celdas):
+    assert len(m) == 27 and all((c, nv) in m for c in nombres for nv in ('1', '3', '5'))
+    neg = lambda x, g: '\\textbf{%s}' % n(x) if g == 'True' else n(x)
+    cuerpo = ['\\toprule',
+              '& & \\multicolumn{3}{c}{\\FPRn{95} $\\downarrow$} & & \\multicolumn{2}{c}{\\AUROC\\ de \\stoodx $\\uparrow$} \\\\',
+              '\\cmidrule(lr){3-5}\\cmidrule(lr){7-8}',
+              'Corrupción & Nivel & $K=500$ & $K=144$ & Mejor otro & Detector & $K=500$ & $K=144$ \\\\', '\\midrule']
+    for i, c in enumerate(nombres):
         if i:
-            cuerpo.append('\\midrule' if con_ic else '\\addlinespace[2pt]')
-        for j, d in enumerate(UMBRAL_DETECTORES):
-            f = u[(d, c, l)]
-            g = float(f['ganancia_selectiva'])
-            gan = ('+' if g >= 0 else '$-$') + n(abs(g))
-            if con_ic:
-                gan += ' {\\tiny %s}' % ic_signo(f['ganancia_selectiva_IC_inf'], f['ganancia_selectiva_IC_sup'])
-            celda = ('%s %s' % (nombres[c], '' if l == '0' else l)).strip() if j == 0 else ''
+            cuerpo.append('\\midrule')
+        for j, nv in enumerate(('1', '3', '5')):
+            f = m[(c, nv)]
             cuerpo.append('%s & %s & %s & %s & %s & %s & %s & %s \\\\' % (
-                celda, n(f['exactitud_celda']) if j == 0 else '', nombre_det(d), n(f['aceptacion']),
-                n(f['exactitud_aceptadas']), n(f['exactitud_rechazadas']), gan, n(f['captura_errores'])))
-    return cuerpo, u
-
-
-CAB_UMBRAL = ('Celda & Exact.\\ & Detector & Acept. & Exact.\\ acept.\\ $\\uparrow$ & '
-              'Exact.\\ rech. & Ganancia $\\uparrow$ & Captura $\\uparrow$ \\\\')
-NOTA_UMBRAL = ('Exact.: exactitud de toda la celda; acept.: aceptación (fracción aceptada) y aceptadas; rech.: '
-               'rechazadas. Umbral: percentil 5 de las puntuaciones de la validación ID (acepta el 95\\,\\% de \\texttt{id\\_val}); '
-               'se acepta si la puntuación es mayor o igual. Ganancia (selectiva): exactitud de las aceptadas menos la de '
-               'toda la celda. Captura (de errores): fracción de las imágenes mal clasificadas que se rechazan.')
-
-
-def t10_corr_umbral(R, S):
-    cuerpo, u = filas_umbral(R, UMBRAL_CELDAS, True)
-    cap = ('Clasificación selectiva con un umbral fijo en una selección de celdas, para \\stoodx (100\\,\\%%), MSP y '
-           'ViM (más alto es mejor en exactitud de las aceptadas, ganancia y captura). %s Ganancia con su IC del '
-           '95\\,\\%% por \\emph{bootstrap} por imagen (1.000 réplicas). Todas las celdas, en la '
-           '\\cref{tab:apc-corr-umbral}.') % NOTA_UMBRAL
-    escribir(S, 't10_corr_umbral.tex', tabla(cap, 'tab:ood-corr-umbral', 'lllccccc',
-                                             ['\\toprule', CAB_UMBRAL, '\\midrule'] + cuerpo + ['\\bottomrule'],
-                                             '\\scriptsize', '2.5pt'), CORR + '/fase8b/umbral_fijo_celda.csv')
-
-
-def tC_corr_umbral(R, S):
-    cuerpo, u = filas_umbral(R, [('limpia', '0')] + celdas_corr(R), False)
-    cap = ('Clasificación selectiva con el umbral fijo de la \\cref{tab:ood-corr-umbral} en todas las celdas, para '
-           '\\stoodx (100\\,\\%%), MSP y ViM. %s Los IC están en \\texttt{umbral\\_fijo\\_celda.csv}.') % NOTA_UMBRAL
-    cab = ['\\toprule', CAB_UMBRAL, '\\midrule']
-    l = ['{\\scriptsize', '\\setlength{\\tabcolsep}{2.5pt}', '\\begin{longtable}{lllccccc}',
-         '\\caption{%s}\\label{tab:apc-corr-umbral} \\\\' % cap] + cab + [
-        '\\endfirsthead', '\\multicolumn{8}{@{}l}{\\textit{(continuación)}} \\\\'] + cab + [
-        '\\endhead', '\\bottomrule', '\\endlastfoot'] + cuerpo + ['\\end{longtable}', '}']
-    escribir(S, 'tC_corr_umbral.tex', l, CORR + '/fase8b/umbral_fijo_celda.csv')
+                nombres[c] if j == 0 else '', nv, neg(f['FPR95_K500'], f['gana_K500']),
+                neg(f['FPR95_K144'], f['gana_K144']), n(f['FPR95_mejor_otro']), nombre_det(f['mejor_otro']),
+                n(f['AUROC_K500']), n(f['AUROC_K144'])))
+    cuerpo.append('\\bottomrule')
+    g500 = sum(f['gana_K500'] == 'True' for f in m.values())
+    g144 = sum(f['gana_K144'] == 'True' for f in m.values())
+    cap = ('\\FPRn{95} (más bajo es mejor) de \\stoodx (100\\,\\%% de las características) con $K=500$ y con $K=144$ '
+           '(\\cref{sec:stoodx-seleccion-k}) en cada corrupción y nivel de severidad, frente al mejor de los otros 13 '
+           'detectores en esa celda, y \\AUROC (más alto es mejor) de \\stoodx con ambos valores de $K$. ID: las '
+           'imágenes limpias del test; OOD: sus versiones corruptas. En negrita, el \\FPRn{95} de \\stoodx cuando es '
+           'menor que el del mejor otro detector (%d de 27 celdas con $K=500$ y %d con $K=144$). Sin IC.') % (g500, g144)
+    escribir(S, 'tC_corr_k144.tex', tabla(cap, 'tab:apc-corr-k144', 'llcccccc', cuerpo, '\\scriptsize', '3pt'),
+             origen + ' (fase8_stoodx_k.py)')
 
 
 # ---------------------------------------------------------------------------
@@ -951,9 +862,9 @@ def t11_saturacion(R, S, fase=FASE_B, k=500, fich='t11_saturacion.tex', label='t
 
 
 # ---------------------------------------------------------------------------
-# Capítulo 12: predicción conforme
+# Capítulo 11: detección OOD conforme (sección de STOOD-X)
 # ---------------------------------------------------------------------------
-def t12_ood_conforme(R, S):
+def t11_ood_conforme(R, S):
     filas = leer_csv(os.path.join(R, 'results_conforme/deteccion_ood_conforme.csv'))
     conj = ['near_nct_tum_norm', 'afin_nct_lym', 'cov_panda', 'control_res_128', 'far_dtd']
     cuerpo = ['\\toprule', 'Método & $\\alpha$ & Falsas alarmas test ID [IC 95\\,\\%] & ' +
@@ -972,200 +883,109 @@ def t12_ood_conforme(R, S):
            'proporción del test ID marcada como OOD, con IC exacto del 95\\,\\% (debe ser compatible con $\\alpha$ '
            'si validación y test son intercambiables). Resto de columnas: proporción detectada como OOD en cada '
            'conjunto (más alto es mejor).')
-    escribir(S, 't12_ood_conforme.tex', tabla(cap, 'tab:conforme-ood', 'llcccccc', cuerpo,
+    escribir(S, 't11_ood_conforme.tex', tabla(cap, 'tab:conforme-ood', 'llcccccc', cuerpo,
                                               '\\scriptsize', '3pt'),
              'results_conforme/deteccion_ood_conforme.csv')
 
 
-def t12_aps_raps(R, S):
-    filas = leer_csv(os.path.join(R, 'results_conforme/aps_raps_resumen.csv'))
-    d = {(f['metodo'], f['alfa'], f['conjunto']): f for f in filas}
-    cuerpo = ['\\toprule',
-              '& & \\multicolumn{3}{c}{Test ID} & \\multicolumn{2}{c}{Control 128\\,px} \\\\',
-              '\\cmidrule(lr){3-5}\\cmidrule(lr){6-7}',
-              'Método & $\\alpha$ & Cobertura [IC 95\\,\\%] & Tamaño & Vacíos & Cobertura & Tamaño \\\\', '\\midrule']
-    for alfa in sorted({f['alfa'] for f in filas}, key=float):
-        for met in ['APS', 'RAPS']:
-            t, c = d.get((met, alfa, 'id_test')), d.get((met, alfa, 'control_res_128'))
-            if t is None:
-                continue
-            cuerpo.append('%s & %s & %s %s & %s & %s\\,\\%% & %s & %s \\\\' % (
-                met, n(alfa, 2), n(t['cobertura']), ic(t['cob_IC_inf'], t['cob_IC_sup']), n(t['tamano_medio'], 2),
-                pct(t['frac_vacio']), n(c['cobertura']) if c else '--', n(c['tamano_medio'], 2) if c else '--'))
-    cuerpo.append('\\bottomrule')
-    cap = ('Conjuntos de predicción APS y RAPS sobre las probabilidades del Swin-S, calibrados con el 80\\,\\% de la '
-           'validación ID. Cobertura: proporción de imágenes cuya clase verdadera está en el conjunto (objetivo '
-           '$1-\\alpha$), con IC exacto del 95\\,\\%; tamaño medio del conjunto (más pequeño es mejor a igual '
-           'cobertura) y proporción de conjuntos vacíos.')
-    escribir(S, 't12_aps_raps.tex', tabla(cap, 'tab:conforme-aps', 'llccccc', cuerpo, '\\footnotesize', '3pt'),
-             'results_conforme/aps_raps_resumen.csv')
-
-
-def t12_aps_tamano_ood(R, S):
-    filas = leer_csv(os.path.join(R, 'results_conforme/aps_raps_resumen.csv'))
-    d = {(f['metodo'], f['alfa'], f['conjunto']): f for f in filas}
-    conj = ['id_test'] + [c for c in CONJUNTOS if any(k[2] == c for k in d)]
-    nombres = dict(CONJUNTOS, id_test='Test ID')
-    cuerpo = ['\\toprule', 'Método & $\\alpha$ & ' + ' & '.join(nombres[c] for c in conj) + ' \\\\', '\\midrule']
-    for alfa in sorted({f['alfa'] for f in filas}, key=float):
-        for met in ['APS', 'RAPS']:
-            if (met, alfa, 'id_test') not in d:
-                continue
-            cuerpo.append('%s & %s & %s \\\\' % (met, n(alfa, 2), ' & '.join(
-                n(d[(met, alfa, c)]['tamano_medio'], 2) if (met, alfa, c) in d else '--' for c in conj)))
-    cuerpo.append('\\bottomrule')
-    cap = ('Tamaño medio de los conjuntos de predicción APS y RAPS en el test ID y en los conjuntos OOD. Un '
-           'tamaño mayor fuera de distribución indica que el conjunto refleja la incertidumbre ante entradas OOD.')
-    escribir(S, 't12_aps_tamano_ood.tex', tabla(cap, 'tab:conforme-tamano-ood', 'll' + 'c' * len(conj), cuerpo,
-                                                '\\scriptsize', '3pt'),
-             'results_conforme/aps_raps_resumen.csv')
-
-
-def t12_mondrian_global(R, S):
-    filas = leer_csv(os.path.join(R, 'results_conforme/mondrian/global.csv'))
-    cuerpo = ['\\toprule', 'Puntuación & $\\alpha$ & Versión & Cobertura test ID [IC 95\\,\\%] & Tamaño medio & '
-              'Clases $<1-\\alpha$ & Cobertura control 128\\,px \\\\', '\\midrule']
-    ctrl = {(f['puntuacion'], f['alfa'], f['version']): f for f in filas if f['conjunto'] == 'control_res_128'}
-    previo = None
-    for f in filas:
-        if f['conjunto'] != 'id_test':
-            continue
-        clave = (f['puntuacion'], f['alfa'])
-        if previo is not None and clave != previo:
-            cuerpo.append('\\midrule')
-        c = ctrl.get((f['puntuacion'], f['alfa'], f['version']))
-        cuerpo.append('%s & %s & %s & %s %s & %s & %s / 14 & %s \\\\' % (
-            f['puntuacion'], n(f['alfa'], 2), f['version'].capitalize(), n(f['cobertura']),
-            ic(f['cob_IC_inf'], f['cob_IC_sup']), n(f['tamano_medio'], 2), f['clases_por_debajo_1_menos_alfa'],
-            n(c['cobertura']) if c else '--'))
-        previo = clave
-    cuerpo.append('\\bottomrule')
-    cap = ('Predicción conforme marginal frente a Mondrian (condicionada por clase) con las puntuaciones LAC y APS. '
-           'Cobertura (objetivo $1-\\alpha$) con IC exacto del 95\\,\\%, tamaño medio del conjunto, número de '
-           'clases con cobertura puntual por debajo de $1-\\alpha$ en el test ID y cobertura en el control de '
-           'resolución (\\emph{covariate shift} con las mismas etiquetas).')
-    escribir(S, 't12_mondrian_global.tex', tabla(cap, 'tab:mondrian-global', 'lllcccc', cuerpo,
-                                                 '\\scriptsize', '3pt'),
-             'results_conforme/mondrian/global.csv')
-
-
-def t12_mondrian_clase(R, S):
-    filas = [f for f in leer_csv(os.path.join(R, 'results_conforme/mondrian/por_clase.csv'))
-             if f['puntuacion'] == 'LAC' and f['alfa'] == '0.05' and f['conjunto'] == 'id_test']
-    d = {(f['clase'], f['version']): f for f in filas}
-    clases = sorted({f['clase'] for f in filas}, key=lambda c: (int(d[(c, 'mondrian')]['n_cal']), c))
-    cuerpo = ['\\toprule', '& & & \\multicolumn{2}{c}{Cobertura} & \\multicolumn{2}{c}{Tamaño medio} \\\\',
-              '\\cmidrule(lr){4-5}\\cmidrule(lr){6-7}',
-              'Clase & $n_y$ & $k_y$ & Marginal & Mondrian & Marginal & Mondrian \\\\', '\\midrule']
-    for c in clases:
-        mg, mo = d[(c, 'marginal')], d[(c, 'mondrian')]
-        k = entero(mo['k_y']) + ('$^{\\max}$' if mo['umbral_es_maximo'] == 'True' else '')
-        cuerpo.append('%s & %s & %s & %s & %s & %s & %s \\\\' % (
-            clase(c), entero(mo['n_cal']), k, n(mg['cobertura']), n(mo['cobertura']),
-            n(mg['tamano_medio'], 2), n(mo['tamano_medio'], 2)))
-    cuerpo.append('\\bottomrule')
-    cap = ('Cobertura por clase en el test ID con la puntuación LAC y $\\alpha=0{,}05$: versión marginal frente '
-           'a Mondrian (objetivo: $0{,}95$ en cada clase). $n_y$: imágenes de calibración de la clase; '
-           '$k_y=\\lceil (n_y+1)(1-\\alpha)\\rceil$. $^{\\max}$: $k_y=n_y$, el umbral es la mayor puntuación de '
-           'calibración de la clase.')
-    escribir(S, 't12_mondrian_clase.tex', tabla(cap, 'tab:mondrian-clase', 'lrrcccc', cuerpo,
-                                                '\\scriptsize', '3pt'),
-             'results_conforme/mondrian/por_clase.csv')
-
-
 # ---------------------------------------------------------------------------
-# Capítulo 13: fuga por lámina
+# Capítulo 12: explicabilidad
 # ---------------------------------------------------------------------------
-def t13_contiguidad(R, S):
-    d = leer_json(os.path.join(R, 'results_integridad/informe.json'))
-    c = d['contiguidad']
-    filas = [('\\texttt{val} original respecto a \\texttt{train} original', 'orig_train∩orig_val',
-              'orig_val_respecto_a_orig_train', 'orig_val'),
-             ('Validación respecto a entrenamiento (TFG)', 'train∩val', 'val_respecto_a_train', 'val'),
-             ('Test respecto a entrenamiento (TFG)', 'train∩test', 'test_respecto_a_train', 'test')]
-    cuerpo = ['\\toprule', 'Comparación & Láminas compartidas & Con su lámina en la referencia & '
-              'Con un parche contiguo en la referencia \\\\', '\\midrule']
-    for nombre, kl, kc, kp in filas:
-        cuerpo.append('%s & %d / %d & %s\\,\\%% & %s\\,\\%% \\\\' % (
-            nombre, d['laminas_compartidas'][kl], d['laminas'][kp], pct(c[kc]['frac_con_lamina_en_ref']),
-            pct(c[kc]['frac_contiguo_8_vecinos'])))
-    cuerpo.append('\\bottomrule')
-    cap = ('Fuga entre particiones por lámina, deducida de los nombres de fichero '
-           '(\\texttt{<lámina>\\_<x>\\_<y>\\_<tamaño>.png}): láminas compartidas, proporción de parches cuya '
-           'lámina aparece en la partición de referencia y proporción con un parche contiguo (8 vecinos a 224\\,px) '
-           'en ella.')
-    escribir(S, 't13_contiguidad.tex', tabla(cap, 'tab:fuga-contiguidad', '>{\\raggedright\\arraybackslash}X ccc',
-                                             cuerpo, '\\scriptsize', None, 'tabularx'),
-             'results_integridad/informe.json')
+CRP = 'results_crp'
 
 
-def t13_vecino(R, S):
-    filas = leer_csv(os.path.join(R, 'results_ood_laminas/fuga_vecino_mas_cercano.csv'))
-    cuerpo = ['\\toprule', 'Clase & $n$ & Misma lámina & Misma lámina y contiguo & Misma clase & '
-              'Azar (misma lámina) \\\\', '\\midrule']
-    for f in filas:
-        nombre = '\\textbf{Todas}' if f['clase'] == 'todas' else clase(f['clase'])
-        cuerpo.append('%s & %s & %s & %s & %s & %s \\\\' % (
-            nombre, entero(f['n']), n(f['nn_misma_lamina']), n(f['nn_misma_lamina_y_contiguo']),
-            n(f['nn_misma_clase']), n(f['azar_misma_lamina_dentro_de_la_clase'])))
-        if f['clase'] == 'todas':
-            cuerpo.append('\\midrule')
-    cuerpo.append('\\bottomrule')
-    cap = ('Vecino más cercano en entrenamiento (distancia coseno, características de 768 dimensiones del Swin-S) '
-           'de cada parche del test ID: proporción que es de la misma lámina, de la misma lámina y contiguo, y de '
-           'la misma clase. Azar: proporción esperada de misma lámina eligiendo el vecino al azar dentro de la '
-           'clase.')
-    escribir(S, 't13_vecino.tex', tabla(cap, 'tab:fuga-vecino', 'lrcccc', cuerpo, '\\scriptsize', '3pt'),
-             'results_ood_laminas/fuga_vecino_mas_cercano.csv')
+def ic_tupla(texto, d=3, escala=1.0):
+    """'(a, b)' de los CSV de results_crp -> [a; b]."""
+    a, b = [float(v) * escala for v in texto.strip('()').split(',')]
+    return ic(a, b, d)
 
 
-def t13_loso(R, S):
-    filas = leer_csv(os.path.join(R, 'results_ood_laminas/comparacion_original_vs_loso.csv'))
-    d = {(f['metodo'], f['conjunto']): f for f in filas}
-    conj = [c for c in CONJUNTOS if ('knn', c) in d]
+def t12_controles(R, S):
+    origen = CRP + '/explicaciones_f9/M/controles_resumen.csv'
+    filas = {(f['metodo'], f['criterio']): f for f in leer_csv(os.path.join(R, origen))}
     cuerpo = ['\\toprule',
-              '& \\multicolumn{3}{c}{KNN} & \\multicolumn{3}{c}{MDS} \\\\',
-              '\\cmidrule(lr){2-4}\\cmidrule(lr){5-7}',
-              'Conjunto & \\AUROC & \\FPRn{95} & \\CCRn{5} & \\AUROC & \\FPRn{95} & \\CCRn{5} \\\\', '\\midrule']
-    for c in conj:
-        celdas = []
-        for m in ['knn', 'mds']:
-            f = d[(m, c)]
-            for k in ['AUROC', 'FPR@95', 'CCR@FPR5']:
-                celdas.append('%s $\\to$ %s' % (n(f[k + '_original']), n(f[k + '_loso'])))
-        cuerpo.append('%s & %s \\\\' % (CONJUNTOS[c], ' & '.join(celdas)))
-    cuerpo.append('\\bottomrule')
-    cap = ('Sensibilidad de la detección OOD a la fuga por lámina: KNN y MDS con todo el entrenamiento como '
-           'referencia (original) $\\to$ excluyendo, para cada parche del test ID, los parches de entrenamiento de '
-           'su lámina (\\emph{leave-one-slide-out}). \\AUROC y \\CCRn{5}: más alto es mejor; \\FPRn{95}: más bajo '
-           'es mejor. Los conjuntos OOD se puntúan con todo el entrenamiento.')
-    escribir(S, 't13_loso.tex', tabla(cap, 'tab:fuga-loso', 'lcccccc', cuerpo, '\\scriptsize', '2.5pt'),
-             'results_ood_laminas/comparacion_original_vs_loso.csv')
-
-
-def t13_control_interno(R, S):
-    filas = leer_csv(os.path.join(R, 'results_ood_laminas/control_interno/resumen_control_interno.csv'))
-    cols = ['TUM', 'NORM', 'STR', 'LYM', 'MUS', 'PANDA', 'LYM_menos_media_TUM_NORM']
-    cuerpo = ['\\toprule', 'Método & Versión & TUM & NORM & STR & LYM & MUS & PANDA & LYM $-$ media(TUM, NORM) \\\\',
+              'Método & Presencia & Diversidad & Aleatorización & Cobertura (\\%) & Suelo de ruido \\\\',
               '\\midrule']
-    previo = None
-    for f in filas:
-        if previo is not None and f['metodo'] != previo:
+    for m in ('A', 'EG'):
+        for crit, nom in (('orig', 'original'), ('z', 'estandarizada')):
+            f = filas[(m, crit)]
+            suelo = '--' if not f['suelo_ruido_abs_rho'] else '%s %s' % (n(f['suelo_ruido_abs_rho']),
+                                                                          ic_tupla(f['IC_suelo']))
+            cuerpo.append('%s & %s & %s %s & %s %s & %s %s & %s \\\\' % (
+                m if crit == 'orig' else '', nom,
+                n(f['diversidad_abs_rho']), ic_tupla(f['IC_div']),
+                n(f['ale_abs_rho']), ic(f['ale_min'], f['ale_max']),
+                pct(f['cobertura_4'], 2), ic_tupla(f['IC_cob'], 2, 100), suelo))
+        if m == 'A':
             cuerpo.append('\\midrule')
-        celdas = []
-        for k in cols:
-            v = float(f[k])
-            celdas.append(('$-$' + n(-v)) if v < 0 else n(v))
-        cuerpo.append('%s & %s & %s \\\\' % (METODOS[f['metodo']] if f['metodo'] != previo else '',
-                                             'original' if f['version'] == 'original' else 'sin lámina',
-                                             ' & '.join(celdas)))
-        previo = f['metodo']
     cuerpo.append('\\bottomrule')
-    cap = ('Control interno de \\nctcrc con y sin la lámina de cada parche en la referencia: \\AUROC (más alto es '
-           'mejor) por clase y en PANDA, y diferencia entre LYM y la media de TUM y NORM.')
-    escribir(S, 't13_control_interno.tex', tabla(cap, 'tab:fuga-control-interno', 'llccccccc', cuerpo,
-                                                 '\\scriptsize', '3pt'),
-             'results_ood_laminas/control_interno/resumen_control_interno.csv')
+    cap = ('Controles de las explicaciones de ConvNeXt-S en el espacio M (16 casos, imagen y 3 vecinos, 4 canales), con la '
+           'variante A de LRP y con EG condicionado. Diversidad: $|\\rho|$ media entre los 4 mapas de cada fila (mediana de '
+           '64 filas; más bajo, mapas más distintos). Aleatorización: $|\\rho|$ con el mapa del modelo con la última etapa y '
+           'la cabeza aleatorizadas (mediana de 5 sorteos [mín.; máx.]; más bajo, el mapa depende más de los pesos). '
+           'Cobertura: fracción de la relevancia total que suman los 4 canales (la referencia uniforme es 0,52\\,\\%). '
+           'Suelo de ruido: $|\\rho|$ entre las semillas 0 y 1 de EG (más alto, más reproducible). Intervalos del 95\\,\\% '
+           'por bootstrap.')
+    escribir(S, 't12_controles.tex', tabla(cap, 'tab:xai-controles', 'llcccc', cuerpo, '\\scriptsize', '3pt'), origen)
+
+
+def t12_ablacion(R, S):
+    origen = CRP + '/fase10_eg/tabla/t3_ablacion.csv'
+    filas = {(f['variante'], f['k'], f['metodo']): f for f in leer_csv(os.path.join(R, origen))}
+    cuerpo = ['\\toprule', 'Sustitución & $k$ & A & EG & G$\\times$E & Azar \\\\', '\\midrule']
+    for var, nom in (('media_train', 'media de train'), ('cero', 'cero')):
+        for k in ('1', '3', '5', '10'):
+            celdas = []
+            for m in ('A', 'EG', 'G×E'):
+                f = filas[(var, k, m)]
+                celdas.append('%s %s' % (n(f['caida_media']), ic(f['IC_inf'], f['IC_sup'])))
+            azar = float(filas[(var, k, 'A')]['caida_azar'])
+            cuerpo.append('%s & %s & %s & %s \\\\' % (nom if k == '1' else '', k, ' & '.join(celdas),
+                                                       ('$-$' + n(-azar)) if azar < 0 else n(azar)))
+        if var == 'media_train':
+            cuerpo.append('\\midrule')
+    cuerpo.append('\\bottomrule')
+    cap = ('Ablación de conceptos en ConvNeXt-S (112 imágenes de test): caída media de la salida de la clase $f_c$ al '
+           'sustituir los $k$ canales más relevantes de la salida del último bloque (768 canales) según cada método (por la media de train o por '
+           'cero), con intervalo del 95\\,\\% por bootstrap. Más alto: los canales elegidos pesan más en la predicción. '
+           'Azar: media de 10 sorteos de $k$ canales.')
+    escribir(S, 't12_ablacion.tex', tabla(cap, 'tab:xai-ablacion', 'llcccc', cuerpo, '\\scriptsize', '3pt'), origen)
+
+
+def t12_atlas(R, S):
+    F10 = CRP + '/fase10_eg'
+    est = leer_json(os.path.join(R, F10, 'paso4/muestra/resultados/estabilidad_resumen.json'))
+    pur = {f['medida']: f for f in leer_csv(os.path.join(R, F10, 'tabla/t7_atlas_pureza.csv'))}
+    sem = {(f['medida'], f['fila']): f for f in leer_csv(os.path.join(R, F10, 'comprobaciones_finales/pureza_semillas.csv'))}
+    sref = {f['canales']: f for f in leer_csv(os.path.join(R, F10, 'tabla/t7_atlas_solape_referencias.csv'))}
+    scon = leer_csv(os.path.join(R, F10, 'tabla/t6_atlas_solape_conceptos.csv'))
+    kc, km = [k for k in pur if k.startswith('Pureza de clase')][0], [k for k in pur if k.startswith('Pureza de la clase')][0]
+    cuerpo = ['\\toprule', 'Atlas & Clase del concepto & Clase mayoritaria \\\\', '\\midrule']
+    for nom, col, fila in (('EG, muestra, semilla 0', 'EG (muestra)', None), ('EG, muestra, semilla 1', None, 'EG semilla 1'),
+                           ('A, muestra', 'A (muestra)', None), ('A, train completo', 'A (fase 4, train completo)', None),
+                           ('G$\\times$E, train completo', 'GxE (fase 4, train completo)', None)):
+        if fila:
+            v = (sem[('pureza_concepto', fila)]['mediana'], sem[('pureza_mayoritaria', fila)]['mediana'])
+        else:
+            v = (pur[kc][col], pur[km][col])
+        cuerpo.append('%s & %s & %s \\\\' % (nom, n(v[0]), n(v[1])))
+    cuerpo += ['\\midrule', '\\multicolumn{3}{@{}l}{\\textit{Estabilidad de EG entre semillas (%d canales concepto)}} \\\\' % est['conceptos'],
+               'Referencias comunes del top-8, mediana [mín.; máx.] & \\multicolumn{2}{c}{%s [%d; %d]} \\\\' % (
+                   n(est['solape_mediana'], 0), est['solape_min'], est['solape_max']),
+               'Conceptos con solape bajo ($\\le 4$ de 8) & \\multicolumn{2}{c}{%d de %d} \\\\' % (est['n_bajo_le4'], est['conceptos']),
+               'Spearman en las 50 candidatas, mediana & \\multicolumn{2}{c}{%s} \\\\' % n(est['spearman_mediana']),
+               '\\midrule', '\\multicolumn{3}{@{}l}{\\textit{Solapes}} \\\\',
+               'Conceptos comunes EG y A (de 56) & \\multicolumn{2}{c}{%d} \\\\' % sum(int(f['EG_y_A']) for f in scon),
+               'Referencias comunes EG y A (de 8, media) & \\multicolumn{2}{c}{%s} \\\\' % n(sref['concepto']['EGm_y_Am'], 2),
+               'Referencias comunes A muestra y A train completo (de 8, media) & \\multicolumn{2}{c}{%s} \\\\' % n(sref['concepto']['Am_y_A4'], 2),
+               '\\bottomrule']
+    cap = ('Atlas RelMax de ConvNeXt-S (4 conceptos por clase y 8 referencias por concepto). Pureza: mediana de la fracción '
+           'de las 8 referencias que son de la clase del concepto o de su clase mayoritaria (más alto, referencias más '
+           'homogéneas). Muestra: muestra estratificada del train (5\\,\\% por clase, mínimo 50; 4.654 imágenes). Con la '
+           'semilla 1, el top-8 se elige entre las 50 candidatas de la semilla 0. Los solapes de referencias se dan en los '
+           'canales concepto.')
+    escribir(S, 't12_atlas.tex', tabla(cap, 'tab:xai-atlas', 'lcc', cuerpo, '\\small'),
+             F10 + '/{paso4/muestra/resultados,tabla,comprobaciones_finales}')
 
 
 # ---------------------------------------------------------------------------
@@ -1426,7 +1246,7 @@ def tD_stoodx(R, S):
                              ic(pv[(mod, m)]['IC_inf'], pv[(mod, m)]['IC_sup'])) for mod in ('swin', 'convnext')]
         return '%s & %s \\\\' % (METODOS_CNX[m], ' & '.join(celdas))
 
-    l = ['\\begin{table}[tbp]', '\\centering', '\\footnotesize', '\\setlength{\\tabcolsep}{4pt}',
+    l = ['\\begin{table}', '\\centering', '\\footnotesize', '\\setlength{\\tabcolsep}{4pt}',
          '\\caption{\\stoodx y la saturación con los dos modelos. (a) \\AUROC con el control de 128\\,px como clase '
          'negativa y PANDA como positiva: por encima de 0,5, la puntuación coloca PANDA como más OOD que el control; '
          'ConvNeXt-S en el espacio M. %s %s (b) Porcentaje de imágenes con la puntuación $-z$ de \\stoodx ($K=500$) '
@@ -1515,9 +1335,6 @@ def main():
                      '\\FPRn{95} (más bajo es mejor)')
     t10_corr_cec(R, S)
     t10_corr_saturacion(R, S)
-    t10_corr_auroc_err(R, S)
-    t10_corr_aurc(R, S)
-    t10_corr_umbral(R, S)
 
     t11_stoodx(R, S, datos)
     t11_barrido_k(R, S)
@@ -1527,16 +1344,12 @@ def main():
     t11_saturacion(R, S)
     t11_saturacion(R, S, FASE_B_K144, 144, 't11_saturacion_k144.tex', 'tab:stoodx-saturacion-k144')
 
-    t12_ood_conforme(R, S)
-    t12_aps_raps(R, S)
-    t12_aps_tamano_ood(R, S)
-    t12_mondrian_global(R, S)
-    t12_mondrian_clase(R, S)
+    t11_ood_conforme(R, S)
 
-    t13_contiguidad(R, S)
-    t13_vecino(R, S)
-    t13_loso(R, S)
-    t13_control_interno(R, S)
+
+    t12_controles(R, S)
+    t12_ablacion(R, S)
+    t12_atlas(R, S)
 
     tA_aupr(R, S, datos, 'AUPR_In', 'tA_aupr_in.tex', 'tab:aupr-in', '\\AUPRin (clase positiva: ID)')
     tA_aupr(R, S, datos, 'AUPR_Out', 'tA_aupr_out.tex', 'tab:aupr-out', '\\AUPRout (clase positiva: OOD)')
@@ -1544,7 +1357,7 @@ def main():
 
     tC_corr_completa(R, S, 'AUROC', 'tC_corr_auroc.tex', 'tab:apc-corr-auroc', '\\AUROC (más alto es mejor)')
     tC_corr_completa(R, S, 'FPR95', 'tC_corr_fpr95.tex', 'tab:apc-corr-fpr95', '\\FPRn{95} (más bajo es mejor)')
-    tC_corr_umbral(R, S)
+    tC_corr_k144(R, S)
 
     cnx = por_metodo_conjunto(leer_csv_cnx(os.path.join(R, CONVNEXT, 'tabla_principal_convnext.csv')))
     tD_configuracion(R, S)

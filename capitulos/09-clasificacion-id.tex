@@ -18,14 +18,14 @@ En este capítulo se presentan los resultados y elección del mejor modelo para 
 % Cifras clave (results_fase1): exactitud Swin-S 0,9688 [0,9658; 0,9717], ConvNeXt-S 0,9668
 % [0,9635; 0,9700], EfficientNetV2-S 0,9538, ViT-B/16 0,9525, ResNet-50 0,8964. F1 macro: ConvNeXt-S
 % 0,9086 y Swin-S 0,9082. IC por lámina 2-3 veces más anchos que por imagen.
-% Swin-S − ConvNeXt-S: +0,0020, no significativa (McNemar p = 0,19, \cref{tab:mcnemar}).
+% Swin-S − ConvNeXt-S: +0,0020, no significativa (McNemar p = 0,19, \cref{tab:mcnemar-swin-convnext}).
 En la \cref{tab:modelos} se aprecia cómo los dos mejores resultados han sido ofrecidos por las arquitecturas modernas, donde Swin-S presenta una exactitud de 0,9688, resultado muy similar al de ConvNeXt-S, que presenta 0,9668. Esta similitud puede deberse a que, a pesar de que ambos provienen de naturalezas distintas, redes convolucionales frente a Transformer, ConvNeXt emplea adaptaciones y elementos que eran originales de los Transformer (\cref{sec:convnext}). Por otro lado, Swin supera a ViT como era de esperar, pues el primero es una mejora del otro, en donde se diseñó para resolver la falta de jerarquía multiescala (\cref{sec:swin}). Por otro lado, EfficientNetV2-S, con una exactitud de 0,9538, muestra un resultado realmente competitivo, mostrando el potencial de combinar la búsqueda de arquitectura con el escalado~\cite{tan2021}, pero siendo ligeramente superado por ConvNeXt. Finalmente, de ResNet-50, arquitectura que supuso una revolución y el estado del arte en su momento, se aprecia que actualmente no puede competir con los modelos actuales, presentando la exactitud más baja, de 0,8964.
 % Protocolos (tfg/executions/def1): clasificador.py (param0-3) frente a clasificador_svim.py (param4).
 % Épocas descongeladas hasta la parada temprana (training_history.csv): ViT 28, ResNet 22, ConvNeXt 40,
 % EfficientNetV2 51 (más 10 congeladas). Swin-S: 25/25 (slurm-123915.out), sin parada temprana.
 La comparación entre Swin-S y los otros cuatro modelos no es homogénea, ya que no se entrenaron con el mismo protocolo (\cref{sec:learner}). El \texttt{vision\_learner} de fastai no admitía correctamente el Swin-S de timm, por lo que este se entrenó con un \texttt{Learner} genérico. Esto cambia varios elementos a la vez: la cabeza de clasificación (la de timm, sin el \emph{dropout} con $p = 0{,}5$ que añade fastai),
  la ausencia de una fase previa con el cuerpo de la red congelado, la tasa de aprendizaje (fija en $10^{-4}$, en lugar de la sugerida por \texttt{lr\_find}) y el número de épocas: 25 con \texttt{fit\_one\_cycle}, que se completaron sin que llegara a actuar la parada temprana, frente a 10 épocas congeladas y entre 22 y 51 descongeladas en los otros cuatro modelos, en los que el entrenamiento sí se detuvo por parada temprana. 
- Por tanto, las diferencias entre Swin-S y el resto no pueden atribuirse solo a la arquitectura. Aun así, Swin-S obtiene la mayor exactitud con un protocolo en apariencia menos favorable, sin búsqueda de la tasa de aprendizaje y con menos épocas, aunque no puede saberse si con el mismo protocolo que los demás mejoraría o empeoraría. Además, su diferencia con ConvNeXt-S (+0,0020) no es estadísticamente significativa (McNemar, $p = 0{,}19$; \cref{tab:mcnemar}),
+ Por tanto, las diferencias entre Swin-S y el resto no pueden atribuirse solo a la arquitectura. Aun así, Swin-S obtiene la mayor exactitud con un protocolo en apariencia menos favorable, sin búsqueda de la tasa de aprendizaje y con menos épocas, aunque no puede saberse si con el mismo protocolo que los demás mejoraría o empeoraría. Además, su diferencia con ConvNeXt-S (+0,0020) no es estadísticamente significativa (McNemar, $p = 0{,}19$; \cref{tab:mcnemar-swin-convnext}),
   por lo que ambos modelos deben considerarse empatados y la elección de Swin-S no se apoya en una superioridad demostrada, si no en la mera casualidad de que ha ofrecido un resultado ligeramente mayor. 
 
 \input{tablas/t09_modelos}
@@ -133,8 +133,8 @@ Pérdida en test: 0,6424; exactitud en test: 0,9668.
 
 \begin{figure}[tbp]
   \centering
-  \includegraphics[width=\textwidth]{img/cap09/confusion_test_swin_small_patch4_window7_224.jpg}
-  \caption{Swin-S (\texttt{swin\_small\_patch4\_window7\_224}): matriz de confusión en el test.}
+  \includegraphics[width=\textwidth]{img/cap09/fig_confusion_swin_porcentajes.pdf}
+  \caption{Swin-S (\texttt{swin\_small\_patch4\_window7\_224}): matriz de confusión en el test, normalizada por filas (porcentaje de las imágenes de cada clase verdadera; la diagonal es la sensibilidad de cada clase).}
   \label{fig:confusion-swin}
 \end{figure}
 
@@ -167,22 +167,9 @@ Se puede observar que Swin-S gana o empata en 8 clases y en otras 3 la diferenci
 El modelo Swin Transformer obtiene la mayor exactitud (96,88\,\%), seguido muy de cerca por ConvNeXt (96,68\,\%). Dada la escasa diferencia entre ambos, cualquiera de los dos sería una base adecuada; se selecciona Swin por ser el que mejor resultado ha obtenido, aunque como ya se ha visto no se puede asegurar que sea el mejor modelo con certeza.
 
 \revisar{exactitud del Swin-S: 96,87\,\% en las notas, 96,88\,\% en results\_fase1 (valor único de la memoria)}
-\revisar{la diferencia no es estadísticamente significativa (McNemar $p = 0{,}19$, \cref{tab:mcnemar}; ConvNeXt-S tiene además mayor F1 macro y \emph{balanced accuracy}): la elección no puede justificarse por un mejor resultado, sino presentarse como elección entre dos modelos empatados}
+\revisar{la diferencia no es estadísticamente significativa (McNemar $p = 0{,}19$, \cref{tab:mcnemar-swin-convnext}; ConvNeXt-S tiene además mayor F1 macro y \emph{balanced accuracy}): la elección no puede justificarse por un mejor resultado, sino presentarse como elección entre dos modelos empatados}
 
-\input{tablas/t09_mcnemar}
-
-La superioridad de esta arquitectura radica en tres pilares fundamentales:
-
-\begin{enumerate}
-  \item \textbf{Jerarquización y ventanas desplazadas (\emph{shifted windows}).} A diferencia de los Vision Transformers (ViT) estándar, que operan con parches globales, el Swin Transformer utiliza un mecanismo de ventanas jerárquicas~\cite[sec.~1 y fig.~1]{liu2021swin}. Esto permite capturar relaciones espaciales tanto a nivel local (textura, morfología de tejidos) como global (anatomía estructural de la lesión).
-  \item \textbf{Eficiencia en el contexto local.} La capacidad de contextualizar parches mediante ventanas de $7 \times 7$ (\texttt{window7})~\cite[sec.~3.2]{liu2021swin} permite que el modelo se enfoque en características relevantes sin verse afectado por el ruido de fondo, algo que los modelos de atención global (como \texttt{vit\_base\_patch16}) pueden ignorar al tratar todas las regiones por igual. \revisar{«mediante window7» se ha desarrollado como «mediante ventanas de $7 \times 7$ (\texttt{window7})»}
-  \item \textbf{Inductividad de la imagen.} Al igual que ConvNeXt, el Swin Transformer integra principios de las redes convolucionales (sesgo inductivo)~\cite[sec.~4.4]{liu2021swin}, lo que facilita el aprendizaje de características jerárquicas desde resoluciones finas a gruesas. Esto permite una convergencia más eficiente y un mejor aprovechamiento de la información contenida en las imágenes médicas.
-\end{enumerate}
-
-\begin{itemize}
-  \item \textbf{Complementariedad de enfoques.} El hecho de que modelos basados en atención jerárquica y arquitecturas convolucionales modernas compitan por el primer puesto sugiere que las características más relevantes para el diagnóstico están siendo bien capturadas por ambos paradigmas.
-\end{itemize}
-
+%\input{tablas/t09_mcnemar}
 A pesar de que Swin-S sea el modelo que ha dado mejores resultados cabe preguntarse si esto realmente puede llegar a ser suficiente como para considerarlo mejor 
 que el segundo mejor modelo, ConvNeXt, habiendo sido ambos evaluados sobre las mismas \num{12618} imágenes del test ID. Para resolver esta cuestión se va a emplear el test de McNemar, siguiendo la teoría descrita en la \cref{sec:mcnemar}.
 
@@ -249,7 +236,7 @@ que coincide con el exacto. Sin la corrección se obtendría $p = 0{,}171$, que 
   \hat\Delta = \frac{a + b}{N} - \frac{a + c}{N} = \frac{b - c}{N} = \frac{179 - 154}{\num{12618}} = \frac{25}{\num{12618}} = 0{,}00198 \approx +0{,}0020.
 \]
 
-\textbf{Limitación.} El test supone que los pares discordantes son independientes. Esta hipótesis no se cumple del todo, porque las imágenes de una misma lámina están relacionadas (\cref{cap:fuga}). Por ello, para constratar este resultado se realizará un \emph{bootstrap} pareado por lámina (\cref{sec:bootstrap}):
+\textbf{Limitación.} El test supone que los pares discordantes son independientes. Esta hipótesis no se cumple del todo, porque las imágenes de una misma lámina están relacionadas. Por ello, para constratar este resultado se realizará un \emph{bootstrap} pareado por lámina (\cref{sec:bootstrap}):
 
 \textbf{\emph{Bootstrap} pareado por lámina.} Se aplica el procedimiento del \cref{sec:bootstrap} con dos particularidades (\cref{obs:bootstrap-variantes}): la unidad que se remuestrea es la lámina, no la imagen, y las dos exactitudes se calculan sobre la misma muestra remuestreada. Sean $L$ las láminas del test ID e $I_\ell$ el conjunto de imágenes de la lámina $\ell$. Para un multiconjunto de índices $J$, la exactitud del modelo $m$ es
 \[
@@ -342,7 +329,7 @@ En cuanto a la \cref{fig:confusion-5clases}, se aprecian resultados similares a 
 %   IC por imagen; con IC por lámina solo se separan claramente de ResNet-50.
 % - Las clases minoritarias (glomeruloide, pobremente formadas, Gleason_3) concentran los errores.
 % - En la agrupación clínica, Swin-S queda cerca del modelo del artículo.
-% - Limitación: el test comparte láminas con el entrenamiento (\cref{cap:fuga}); las métricas miden
+% - Limitación: el test comparte láminas con el entrenamiento; las métricas miden
 %   generalización dentro de lámina, no a pacientes nuevos.
 Ha quedado comprobado cómo las arquitecturas modernas (Swin-S y ConvNeXt-S) quedan por encima del resto de modelos, aunque con los IC por lámina solo se separan claramente de ResNet-50, que es el que ha ofrecido los peores resultados. Entre los dos mejores modelos, ha quedado visto que el resultado tiene que considerarse un empate, y se elegirá Swin-S sin que ofrezca ninguna ventaja clara. Ambos han llegado a acercarse a los resultados ofrecidos en~\cite{ayensa2026}. Los procesos de entrenamiento, por lo general, han concluido sin sobreajuste. La particularidad viene de ResNet-50, que presenta un comportamiento anómalo, probablemente debido a la parada temprana. Todos los modelos mejoran en la clasificación binaria y, respecto a la clasificación por categorías, G3 es la que presenta mayores dificultades.
 % Cifras: exactitud con IC por lámina (results_fase1/resumen.md): Swin-S {0,9589; 0,9768}, ConvNeXt-S

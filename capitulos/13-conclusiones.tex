@@ -1,0 +1,66 @@
+% !TeX root = ../tfg.tex
+% !TeX encoding = utf8
+%
+%*******************************************************
+% Capítulo 13. Conclusiones y trabajo futuro
+%*******************************************************
+
+\chapter{Conclusiones y trabajo futuro}\label{cap:conclusiones}
+
+\section{Conclusiones}\label{sec:conclusiones}
+
+% Revisar objetivo por objetivo (\cref{sec:objetivos}) si se ha alcanzado, y responder a las
+% preguntas de investigación (\cref{sec:preguntas}).
+Este trabajo ha estudiado la detección de datos fuera de distribución y la explicabilidad en un clasificador de imágenes histopatológicas de próstata de 14 clases. A continuación se responde a cada una de las preguntas de investigación planteadas en la \cref{sec:preguntas}.
+
+\paragraph{Clasificación ID.} De las cinco arquitecturas preentrenadas comparadas, las dos más modernas, Swin-S y ConvNeXt-S, obtienen la mayor exactitud, y entre ellas no hay una diferencia significativa: la exactitud del Swin-S es 0,9688 [0,9658; 0,9717], 0,0020 más que la de ConvNeXt-S (McNemar, $p = 0{,}19$; \cref{sec:eleccion-swin}). Con intervalos por lámina, ambos solo se separan claramente de ResNet-50. Al agrupar las clases en categorías clínicas y en la clasificación binaria, el Swin-S se acerca a los resultados del artículo del conjunto de datos~\cite{ayensa2026} (98,25\,\% y 99,33\,\%, frente a 98,34\,\% y 99,25\,\%). Los errores se concentran en las clases minoritarias.
+
+\paragraph{Detección OOD post hoc.} Los detectores que trabajan en el espacio de características superan de forma sistemática a los basados en logits y a los que modifican activaciones (\cref{sec:ood-discusion}). Estos últimos, diseñados para redes con ReLU y BatchNorm, no se trasladan bien a un Swin Transformer: ASH llega a reducir la exactitud ID al 68,3\,\%. Varias conclusiones dependen del modelo: al repetir el experimento con ConvNeXt-S cambian la ordenación en el near-OOD principal y el fallo de RMDS en LYM (\cref{ap:convnext}), lo que obliga a no generalizar las conclusiones a partir de un único clasificador. MDS funciona bien aunque las características no siguen la gaussiana que supone (\cref{sec:ood-mds-gaussiana}).
+
+\paragraph{Tejido frente a condiciones de adquisición.} El control interno con NCT-CRC muestra que los detectores responden sobre todo al cambio de centro y no al tipo de tejido: los linfocitos, presentes también en la próstata, se detectan casi igual que el tejido de colon (\cref{sec:ood-control-interno}). Esto confirma, en un problema de histopatología, la observación de Yang et al. de que los detectores son más sensibles al desplazamiento de covariables que al cambio semántico~\cite{yang2024}. En cambio, el cambio de resolución del control de 128\,px es el caso más difícil para todos los métodos, y Textures no siempre es el conjunto más fácil.
+
+\paragraph{STOOD-X.} Con el valor del artículo, $K = 500$, \stoodx es competitivo en el near-OOD principal (\AUROC 0,953, indistinguible de RMDS) y el mejor en varios conjuntos, pero con un \FPRn{95} alto. Seleccionando $K = 144$ solo con datos ID, mediante una validación \emph{leave-one-class-out}, pasa a ser el mejor método en las tres métricas, con un \AUROC de 0,991 y un \FPRn{95} de 0,026 en TUM+NORM y un \AUROC medio de 0,972 en los ocho conjuntos (\cref{sec:stoodx-resultados}). La mejora se explica porque, cuando $K$ se acerca al tamaño de la clase predicha, el vecindario deja de ser local (\cref{sec:stoodx-k}). Sus $p$-valores, en cambio, no están calibrados: con $K = 500$, el 82\,\% de la validación ID obtiene $p < 0{,}05$, por lo que sirven para ordenar las imágenes, pero no como nivel de significación (\cref{sec:stoodx-calibracion}). La saturación de su estadístico limita además su capacidad de graduar la severidad de una alteración. Desde el punto de vista matemático, el uso del estadístico tipificado $-z$ en lugar del $p$-valor evita el subdesbordamiento sin alterar la ordenación, y el test aplicable a las dos muestras de distancias es el de Mann-Whitney para muestras independientes (\cref{sec:metodo-stoodx}).
+
+\paragraph{Predicción conforme.} La calibración conforme del umbral con la validación ID convierte cualquier puntuación en un detector con una tasa de falsas alarmas controlada, sin usar datos OOD: en el test ID, las falsas alarmas son compatibles con el nivel $\alpha$ en los quince casos evaluados. Con ese control, \stoodx es el detector que más imágenes OOD señala en casi todos los conjuntos (\cref{sec:conforme-ood}).
+
+\paragraph{Explicabilidad.} Ninguno de los métodos probados en ConvNeXt-S da explicaciones por conceptos fiables. La variante A de LRP conserva la relevancia, pero sus mapas apenas dependen de la clase ni de los pesos, y los canales que elige pesan poco en la predicción; EG es más fiel, pero sus mapas condicionados están dominados por el ruido de muestreo (\cref{sec:xai-discusion}). El análisis sí ha permitido detectar que el criterio de presencia por suma de valores absolutos favorece un canal de gran magnitud y sin información de clase, el 102, y que el borde entre tejido y fondo aparece de forma repetida en las explicaciones.
+
+En conjunto, los resultados indican que la detección OOD post hoc es viable en este problema y que \stoodx, con un $K$ adecuado al tamaño de las clases, es el detector más eficaz de los evaluados. Sin embargo, el cambio en las condiciones de adquisición sigue produciendo tasas de falsas alarmas demasiado altas para un uso clínico, y explicar las decisiones del modelo sigue siendo, como señalan Yang et al., uno de los aspectos pendientes de la detección OOD~\cite{yang2024}.
+
+\section{Limitaciones}\label{sec:limitaciones}
+
+La detección OOD protege frente a imágenes raras o desconocidas, pero no frente a cambios en el criterio diagnóstico. Para eso hace falta revisar y reetiquetar los datos periódicamente.
+
+% Otras limitaciones a desarrollar:
+% - Fuga por lámina: la evaluación mide generalización dentro de lámina.
+% - Partición de entrenamiento y validación no reproducible (sin semilla).
+% - La validación se usó para elegir la época: intercambiabilidad no asegurada (\cref{sec:conforme-ood}).
+% - Hipótesis del label smoothing no comprobada (habría que entrenar sin él).
+% - Interpretación de STOOD-X pendiente de confirmar con los autores.
+% - Límites teóricos de la detección OOD: aprendibilidad (Fang et al., 2022).
+Además, la evaluación tiene las siguientes limitaciones:
+\begin{itemize}
+  \item \textbf{Fuga por lámina.} La partición del conjunto de datos es por parche y no por paciente: las 95 láminas aparecen en el entrenamiento, la validación y el test. Para el 93,3\,\% de los parches de test, el vecino más cercano en el entrenamiento, en el espacio de características del Swin-S, procede de la misma lámina. Al excluir de la referencia de KNN y MDS los parches de la lámina de cada imagen de test, el \AUROC baja entre 0,02 y 0,07 en los conjuntos OOD, aunque la conclusión del control interno se mantiene. Como la red se entrenó con todas las láminas, esa caída es solo una cota inferior del efecto: todas las métricas del trabajo miden la generalización dentro de las mismas láminas, no a pacientes nuevos.
+  \item \textbf{Partición no reproducible.} La división del entrenamiento original en entrenamiento y validación se hizo sin fijar una semilla.
+  \item \textbf{Intercambiabilidad.} La validación se usó para elegir la época, por lo que no está asegurado que sea intercambiable con el test, que es la hipótesis de las garantías conformes (\cref{sec:conforme-ood}).
+  \item \textbf{\emph{Label smoothing}.} La explicación propuesta para que MSP supere a MaxLogit y Energy no se ha comprobado, porque requeriría entrenar el modelo sin esta técnica.
+  \item \textbf{\stoodx.} La reimplementación sigue la descripción del artículo y no su código público, y esa interpretación está pendiente de confirmar con los autores. Además, la selección de $K = 144$ y su evaluación solo se han hecho con el Swin-S, y la calibración de los $p$-valores solo se ha estudiado con $K = 500$.
+  \item \textbf{Un único modelo.} Casi toda la evaluación se ha hecho con el Swin-S, y la repetición con ConvNeXt-S muestra que varias conclusiones dependen del modelo (\cref{ap:convnext}).
+  \item \textbf{Límites teóricos.} Fang et al. establecen, en el marco del aprendizaje PAC, condiciones necesarias y suficientes para que la detección OOD sea aprendible, y concluyen que solo es posible en determinadas condiciones prácticas~\cite{yang2024,fang2022}. Ninguna evaluación empírica puede garantizar el rendimiento frente a cualquier tipo de dato OOD.
+\end{itemize}
+
+\section{Trabajo futuro}\label{sec:trabajo-futuro}
+
+% - Explicabilidad y eliminación de sesgos con CRP (\cref{cap:xai-sesgos}).
+% - Reentrenar con partición por paciente o validar con un conjunto externo de próstata.
+% - Entrenar sin label smoothing para contrastar la hipótesis sobre MSP, MaxLogit y Energy.
+A partir de los resultados y las limitaciones anteriores, se proponen las siguientes líneas de trabajo:
+\begin{itemize}
+  \item Reentrenar el clasificador con una partición por paciente, o validarlo con un conjunto externo de próstata, para medir la generalización real del clasificador y de los detectores.
+  \item Entrenar sin \emph{label smoothing} para contrastar la hipótesis sobre MSP, MaxLogit y Energy.
+  \item Confirmar con los autores la interpretación de \stoodx, estudiar la calibración de sus $p$-valores con $K = 144$ y repetir la selección de $K$ con otros modelos.
+  \item Investigar por qué MDS funciona aunque no se cumpla su hipótesis gaussiana, en particular el papel de la compacidad y la separación de las clases (\cref{sec:ood-mds-gaussiana}).
+  \item En explicabilidad, adaptar las reglas de LRP a los bloques de atención para poder explicar el Swin-S, reducir el ruido de EG con más referencias y, sobre todo, intervenir sobre los conceptos sospechosos de sesgo, como los asociados al borde con el fondo, eliminándolos y midiendo su efecto sobre la exactitud y la detección OOD (\cref{cap:xai-sesgos}).
+\end{itemize}
+
+\endinput

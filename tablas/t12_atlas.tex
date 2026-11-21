@@ -1,0 +1,28 @@
+% Generado por scripts/generar_tablas.py a partir de results_crp/fase10_eg/{paso4/muestra/resultados,tabla,comprobaciones_finales}. No editar a mano.
+\begin{table}
+\centering
+\small
+\caption{Atlas RelMax de ConvNeXt-S (4 conceptos por clase y 8 referencias por concepto). Pureza: mediana de la fracción de las 8 referencias que son de la clase del concepto o de su clase mayoritaria (más alto, referencias más homogéneas). Muestra: muestra estratificada del train (5\,\% por clase, mínimo 50; 4.654 imágenes). Con la semilla 1, el top-8 se elige entre las 50 candidatas de la semilla 0. Los solapes de referencias se dan en los canales concepto.}
+\label{tab:xai-atlas}
+\begin{tabular}{lcc}
+\toprule
+Atlas & Clase del concepto & Clase mayoritaria \\
+\midrule
+EG, muestra, semilla 0 & 0{,}625 & 0{,}750 \\
+EG, muestra, semilla 1 & 0{,}750 & 0{,}750 \\
+A, muestra & 0{,}375 & 0{,}625 \\
+A, train completo & 0{,}500 & 0{,}625 \\
+G$\times$E, train completo & 0{,}625 & 1{,}000 \\
+\midrule
+\multicolumn{3}{@{}l}{\textit{Estabilidad de EG entre semillas (43 canales concepto)}} \\
+Referencias comunes del top-8, mediana [mín.; máx.] & \multicolumn{2}{c}{3 [0; 6]} \\
+Conceptos con solape bajo ($\le 4$ de 8) & \multicolumn{2}{c}{42 de 43} \\
+Spearman en las 50 candidatas, mediana & \multicolumn{2}{c}{0{,}295} \\
+\midrule
+\multicolumn{3}{@{}l}{\textit{Solapes}} \\
+Conceptos comunes EG y A (de 56) & \multicolumn{2}{c}{26} \\
+Referencias comunes EG y A (de 8, media) & \multicolumn{2}{c}{0{,}59} \\
+Referencias comunes A muestra y A train completo (de 8, media) & \multicolumn{2}{c}{0{,}54} \\
+\bottomrule
+\end{tabular}
+\end{table}

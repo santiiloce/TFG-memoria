@@ -41,17 +41,17 @@ Frontmatter: declaración de originalidad, dedicatoria, agradecimientos, índice
 
 - **Parte I. Introducción y estado del arte:** 1 Introducción; 2 Estado del arte.
 - **Parte II. Fundamentos matemáticos:** 3 Aprendizaje supervisado y redes profundas; 4 Formalización de la detección OOD y métricas; 5 Métodos de detección post hoc; 6 Inferencia estadística; 7 Explicabilidad.
-- **Parte III. Experimentación, resultados y discusión:** 8 Materiales y métodos; 9 Clasificación ID; 10 Detección OOD; 11 STOOD-X; 12 Predicción conforme; 13 Fuga por lámina; 14 Explicabilidad y eliminación de sesgos.
-- **Parte IV. Conclusiones y trabajo futuro:** 15 Conclusiones y trabajo futuro.
-- **Apéndices:** A Tablas de AUPR-In y AUPR-Out; B Anexo NCT-CRC (ADI, BACK, DEB, MUC); C Material complementario; D Detección OOD con ConvNeXt-S.
+- **Parte III. Experimentación, resultados y discusión:** 8 Materiales y métodos; 9 Clasificación ID; 10 Detección OOD; 11 STOOD-X (incluye la detección OOD conforme como sección); 12 Explicabilidad y eliminación de sesgos.
+- **Parte IV. Conclusiones y trabajo futuro:** 13 Conclusiones y trabajo futuro.
+- **Apéndices:** A Tablas de AUPR-In y AUPR-Out; B Anexo NCT-CRC (ADI, BACK, DEB, MUC); C Material complementario; D Detección OOD con ConvNeXt-S; E Glosario (definiciones auxiliares de la parte teórica, citadas con `\cref{def:...}`).
 
 Ficheros: `capitulos/NN-nombre.tex`, `apendices/X-nombre.tex`, figuras en `img/<capitulo>/`, tablas en `tablas/`.
 
-## Estructura de los capítulos de resultados (9 a 12)
+## Estructura de los capítulos de resultados (9 a 11)
 
 - No se ponen todas las tablas juntas. Cada sección sigue el patrón **tabla o figura → análisis breve de esa tabla**, sin conclusiones parciales (decisión del autor, 2026-11-18).
 - Debajo de cada tabla va el párrafo de análisis del autor que le corresponde. Donde falte, `\pendiente{análisis}` con las cifras clave en comentarios `%`.
-- Cada capítulo termina con una sección de **discusión global** que integra lo hallado en el capítulo. Las conclusiones de toda la experimentación van al capítulo 15.
+- Cada capítulo termina con una sección de **discusión global** que integra lo hallado en el capítulo. Las conclusiones de toda la experimentación van al capítulo 13.
 - Capítulo 10: la tabla principal OOD se divide en una tabla por bloque: near-OOD principal (TUM+NORM); control interno (TUM, NORM, STR, LYM, MUS: tabla compacta de AUROC y FPR@95, más `fig5_control_interno_nct`); cambio de centro y resolución (PANDA frente al control, más `fig4_panda_vs_control`); far-OOD (DTD); comparación de familias de métodos (logits y modificación de activaciones). El párrafo «Conclusión» del autor abre la discusión global.
 - Al apéndice solo van las tablas de AUPR-In/AUPR-Out y el anexo NCT-CRC (ADI, BACK, DEB, MUC). El apéndice D contiene la repetición de la detección OOD con ConvNeXt-S (`results_ood_convnext`), solo con tablas generadas y una conclusión breve; en el capítulo 10 solo hay una remisión a él.
 
@@ -59,6 +59,6 @@ Ficheros: `capitulos/NN-nombre.tex`, `apendices/X-nombre.tex`, figuras en `img/<
 
 - Notas del autor: `notas/memoria2-pandoc.tex` (conversión de `tfg-referencias/Memoria-2.docx`); `notas/` no se compila.
 - Curvas y matrices de confusión: `tfg/executions/def1/param0..4` (0 ViT-B/16, 1 ResNet-50, 2 ConvNeXt-S, 3 EfficientNetV2-S, 4 Swin-S).
-- Resultados: `OpenOOD/results_fase1`, `results_agrupaciones`, `results_ood` (fase C y `memoria/figuras.md` para captions), `results_ood_laminas`, `results_integridad`, `results_conforme` (y `mondrian/`).
+- Resultados: `OpenOOD/results_fase1`, `results_agrupaciones`, `results_ood` (fase C y `memoria/figuras.md` para captions), `results_ood_laminas`, `results_integridad`, `results_conforme` (solo la detección OOD conforme; APS, RAPS y Mondrian se eliminaron de la memoria por decisión del autor, 2026-11-21).
 - **Fuentes bibliográficas:** solo `tfg-referencias/papers/` (artículos) y `tfg-referencias/libros/` (libros). Toda información teórica o bibliográfica de la memoria sale de estos documentos. Si hace falta una fuente que no está ahí (un artículo, un libro, los datos de una referencia), **se le pide al autor**, que la descarga y la añade; no se busca en internet ni se completa de memoria. El autor irá actualizando ambas carpetas.
 - Varias referencias de `library.bib` aún no tienen documento en esas carpetas: lo que se diga de ellas debe comprobarse cuando el autor las añada.

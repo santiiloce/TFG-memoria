@@ -1,0 +1,51 @@
+% Generado por scripts/generar_tablas.py a partir de results_corrupciones/stoodx_K144/comparacion_fpr95.csv (fase8_stoodx_k.py). No editar a mano.
+\begin{table}
+\centering
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\caption{\FPRn{95} (más bajo es mejor) de \stoodx (100\,\% de las características) con $K=500$ y con $K=144$ (\cref{sec:stoodx-seleccion-k}) en cada corrupción y nivel de severidad, frente al mejor de los otros 13 detectores en esa celda, y \AUROC (más alto es mejor) de \stoodx con ambos valores de $K$. ID: las imágenes limpias del test; OOD: sus versiones corruptas. En negrita, el \FPRn{95} de \stoodx cuando es menor que el del mejor otro detector (22 de 27 celdas con $K=500$ y 26 con $K=144$). Sin IC.}
+\label{tab:apc-corr-k144}
+\begin{tabular}{llcccccc}
+\toprule
+& & \multicolumn{3}{c}{\FPRn{95} $\downarrow$} & & \multicolumn{2}{c}{\AUROC\ de \stoodx $\uparrow$} \\
+\cmidrule(lr){3-5}\cmidrule(lr){7-8}
+Corrupción & Nivel & $K=500$ & $K=144$ & Mejor otro & Detector & $K=500$ & $K=144$ \\
+\midrule
+Brillo & 1 & 0{,}928 & \textbf{0{,}926} & 0{,}927 & ViM & 0{,}546 & 0{,}554 \\
+ & 3 & \textbf{0{,}702} & \textbf{0{,}596} & 0{,}732 & ViM & 0{,}793 & 0{,}842 \\
+ & 5 & \textbf{0{,}401} & \textbf{0{,}208} & 0{,}482 & ViM & 0{,}922 & 0{,}951 \\
+\midrule
+Saturación & 1 & 0{,}872 & \textbf{0{,}833} & 0{,}863 & ViM & 0{,}658 & 0{,}693 \\
+ & 3 & \textbf{0{,}607} & \textbf{0{,}456} & 0{,}617 & ViM & 0{,}853 & 0{,}897 \\
+ & 5 & \textbf{0{,}349} & \textbf{0{,}205} & 0{,}413 & ViM & 0{,}932 & 0{,}955 \\
+\midrule
+Tono & 1 & \textbf{0{,}851} & \textbf{0{,}832} & 0{,}860 & MDS & 0{,}675 & 0{,}712 \\
+ & 3 & 0{,}624 & \textbf{0{,}490} & 0{,}621 & KNN & 0{,}865 & 0{,}902 \\
+ & 5 & \textbf{0{,}414} & \textbf{0{,}254} & 0{,}513 & KNN & 0{,}925 & 0{,}947 \\
+\midrule
+Marcas & 1 & \textbf{0{,}928} & \textbf{0{,}918} & 0{,}937 & ViM & 0{,}539 & 0{,}558 \\
+ & 3 & \textbf{0{,}763} & \textbf{0{,}695} & 0{,}784 & ViM & 0{,}741 & 0{,}798 \\
+ & 5 & \textbf{0{,}532} & \textbf{0{,}341} & 0{,}559 & ViM & 0{,}878 & 0{,}919 \\
+\midrule
+Burbujas & 1 & 0{,}934 & 0{,}930 & 0{,}925 & ViM & 0{,}535 & 0{,}546 \\
+ & 3 & \textbf{0{,}521} & \textbf{0{,}369} & 0{,}571 & ViM & 0{,}891 & 0{,}924 \\
+ & 5 & \textbf{0{,}167} & \textbf{0{,}086} & 0{,}348 & RMDS & 0{,}959 & 0{,}974 \\
+\midrule
+JPEG & 1 & \textbf{0{,}480} & \textbf{0{,}320} & 0{,}633 & SHE (prod.\ escalar) & 0{,}897 & 0{,}931 \\
+ & 3 & \textbf{0{,}306} & \textbf{0{,}176} & 0{,}443 & RMDS & 0{,}936 & 0{,}958 \\
+ & 5 & \textbf{0{,}055} & \textbf{0{,}052} & 0{,}224 & RMDS & 0{,}983 & 0{,}984 \\
+\midrule
+Pixelado & 1 & \textbf{0{,}537} & \textbf{0{,}379} & 0{,}687 & ViM & 0{,}868 & 0{,}913 \\
+ & 3 & \textbf{0{,}226} & \textbf{0{,}130} & 0{,}495 & ViM & 0{,}951 & 0{,}968 \\
+ & 5 & \textbf{0{,}016} & \textbf{0{,}015} & 0{,}041 & ViM & 0{,}992 & 0{,}989 \\
+\midrule
+Desenfoque & 1 & \textbf{0{,}158} & \textbf{0{,}066} & 0{,}224 & RMDS & 0{,}970 & 0{,}983 \\
+ & 3 & \textbf{0{,}047} & \textbf{0{,}027} & 0{,}098 & ViM & 0{,}985 & 0{,}990 \\
+ & 5 & \textbf{0{,}019} & \textbf{0{,}012} & 0{,}033 & ViM & 0{,}991 & 0{,}993 \\
+\midrule
+Movimiento & 1 & 0{,}535 & \textbf{0{,}366} & 0{,}508 & ViM & 0{,}883 & 0{,}925 \\
+ & 3 & \textbf{0{,}108} & \textbf{0{,}063} & 0{,}200 & RMDS & 0{,}974 & 0{,}983 \\
+ & 5 & \textbf{0{,}040} & \textbf{0{,}024} & 0{,}116 & ViM & 0{,}981 & 0{,}991 \\
+\bottomrule
+\end{tabular}
+\end{table}

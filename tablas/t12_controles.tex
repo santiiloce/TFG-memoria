@@ -1,0 +1,19 @@
+% Generado por scripts/generar_tablas.py a partir de results_crp/explicaciones_f9/M/controles_resumen.csv. No editar a mano.
+\begin{table}
+\centering
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\caption{Controles de las explicaciones de ConvNeXt-S en el espacio M (16 casos, imagen y 3 vecinos, 4 canales), con la variante A de LRP y con EG condicionado. Diversidad: $|\rho|$ media entre los 4 mapas de cada fila (mediana de 64 filas; más bajo, mapas más distintos). Aleatorización: $|\rho|$ con el mapa del modelo con la última etapa y la cabeza aleatorizadas (mediana de 5 sorteos [mín.; máx.]; más bajo, el mapa depende más de los pesos). Cobertura: fracción de la relevancia total que suman los 4 canales (la referencia uniforme es 0,52\,\%). Suelo de ruido: $|\rho|$ entre las semillas 0 y 1 de EG (más alto, más reproducible). Intervalos del 95\,\% por bootstrap.}
+\label{tab:xai-controles}
+\begin{tabular}{llcccc}
+\toprule
+Método & Presencia & Diversidad & Aleatorización & Cobertura (\%) & Suelo de ruido \\
+\midrule
+A & original & 0{,}564 [0{,}517; 0{,}629] & 0{,}526 [0{,}464; 0{,}753] & 0{,}59 [0{,}52; 0{,}84] & -- \\
+ & estandarizada & 0{,}685 [0{,}572; 0{,}773] & 0{,}573 [0{,}456; 0{,}724] & 1{,}28 [1{,}16; 1{,}67] & -- \\
+\midrule
+EG & original & 0{,}071 [0{,}063; 0{,}079] & 0{,}024 [0{,}015; 0{,}037] & 0{,}96 [0{,}86; 1{,}18] & 0{,}218 [0{,}150; 0{,}291] \\
+ & estandarizada & 0{,}053 [0{,}045; 0{,}063] & 0{,}027 [0{,}025; 0{,}032] & 1{,}07 [0{,}98; 1{,}20] & 0{,}333 [0{,}272; 0{,}424] \\
+\bottomrule
+\end{tabular}
+\end{table}

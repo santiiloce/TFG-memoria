@@ -80,9 +80,6 @@ Gleason 3
 \end{minipage}
 \end{table}
 
-% La discrepancia con los nombres de fichero (identificación de las láminas y rejilla de 224 px) se trata en
-% \cref{sec:fuga-laminas}.
-
 % En el preámbulo:
 % \usepackage{booktabs}
 % \usepackage{multirow}
@@ -114,34 +111,9 @@ El reparto se hizo sin fijar una semilla aleatoria, por lo que no es reproducibl
 % - Las cifras por clase coinciden con la regla \lfloor 0,2 n \rfloor del script de partición
 %   (p. ej., Adenocarcinoma_ductal: 18.917 \to val 3.783, train 15.134).
 % - El script usa random.shuffle sin semilla y copia (no mueve) los ficheros.
-% - La fuga por lámina de la partición original se trata en el \cref{cap:fuga}.
 \pendiente{verificación de la integridad de la partición}
 
 \section{Conjuntos OOD}\label{sec:conjuntos-ood}
-
-\Cref{tab:diseno-ood} resume los conjuntos OOD empleados, el papel de cada uno y qué cambia respecto al conjunto ID.
-
-\begin{table}[tbp]
-  \centering
-  \footnotesize
-  \caption{Diseño de los conjuntos OOD: papel de cada conjunto, qué cambia respecto al conjunto ID y objetivo de su inclusión. Entre paréntesis, el número de imágenes.}
-  \label{tab:diseno-ood}
-  \begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{0.2\textwidth}>{\raggedright\arraybackslash}p{0.12\textwidth}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X@{}}
-    \toprule
-    \textbf{Conjunto} & \textbf{Papel} & \textbf{¿Qué cambia respecto al ID?} & \textbf{Objetivo} \\
-    \midrule
-    (A) NCT-CRC: TUM + NORM (\num{23080}) & Near-OOD & Otro órgano (colon, tejido glandular) y otro centro; misma escala & Buscamos ver si es capaz de rechazar un tejido muy parecido al original \\
-    (B) NCT-CRC: STR, LYM, MUS (por separado) & Control interno & Otro centro; tejidos parecidos a clases de entrenamiento (estroma e inflamatorio) & Tejidos nuevamente parecidos a ID: determinamos si descarta por el centro o por el tejido \\
-    (C) PANDA (\num{10000})~\cite{bulten2022,kagglepanda128} & Cambio de centro y de escala & Mismo órgano (próstata), otros centros y escáneres; aumento mucho menor (cada tesela abarca una región de tejido mucho mayor) y más fondo blanco & Comprobar si el detector señala tejido del mismo órgano adquirido en condiciones muy distintas \\
-    Control de resolución (\num{12618}) & Control & Las mismas imágenes del test ID, reducidas a 128\,px y ampliadas a 224\,px & Valorar únicamente el efecto de la pérdida de detalle (no reproduce la escala de PANDA) \\
-    Corrupciones sintéticas (\num{12618} $\times$ 27) & \emph{Covariate shift} sintético & Las mismas imágenes del test ID con 9 corrupciones en 3 niveles de severidad & Comprobar si el detector señala artefactos de adquisición y si su puntuación gradúa la severidad \\
-    DTD / \emph{Textures} & Far-OOD & No es tejido: texturas genéricas & Referencia sencilla: el detector debe señalarla como OOD \\
-    NCT-CRC: ADI, BACK, DEB, MUC & Anexo (\cref{ap:anexo-nct}) & Grasa, fondo, restos, moco & \\
-    \bottomrule
-  \end{tabularx}
-\end{table}
-\revisar{fila «Corrupciones sintéticas» añadida por el agente (\cref{sec:corrupciones})}
-\revisar{tabla de las notas: corregidas erratas y redacción mínima («si descarta por el centro o por el tejido», «discriminación», «órgano»)}
 
 \subsection{NCT-CRC-HE-100K-NONORM}\label{sec:nct}
 
@@ -162,19 +134,29 @@ el efecto de la pérdida de detalle. Por último, el conjunto Textures (DTD) sir
 
 \revisar{Iván, como consideras añadir aquí un par de imágenes LYM y de ID de esntroma para ver le parecido mencionado}
 \subsection{PANDA}\label{sec:panda}
-
 \textbf{PANDA (próstata de otros centros).} Biopsias del mismo órgano (próstata) y mismo tipo de tinción, pero de escáneres y hospitales distintos (Karolinska Institute / Radboud University)~\cite{bulten2022}. Se utilizan \num{10000} teselas de $128 \times 128$\,px del conjunto público preparado por iafoss~\cite{kagglepanda128}. En él, cada biopsia se lee en el nivel de menor resolución de la imagen original, se divide en teselas de $128 \times 128$\,px y se conservan las 16 con más tejido, es decir, las de menor suma de intensidades. A esta escala, cada tesela abarca una región de tejido mucho mayor que un parche ID (en ella caben decenas de glándulas). Si una biopsia no llega a 16 teselas, se completan con teselas blancas, lo que explica las 291 teselas sin tejido presentes en el conjunto. Para su evaluación, las teselas se reescalan a 224\,px.
 
 De las \num{168256} teselas del conjunto (\num{10516} biopsias con 16 teselas cada una), se seleccionaron al azar \num{10000} (muestreo uniforme sin reemplazo, sin semilla fija), procedentes de \num{6568} biopsias distintas (entre 1 y 6 teselas por biopsia; mediana 1).
 
 \subsection{Control de resolución y DTD}\label{sec:control-dtd}
+Debido a la naturaleza de las muestras del conjunto de PANDA, estas imágenes debían ser ampliadas desde 128 px a 224 px debido a que era el tamaño requerido por el modelo Swin-S.
+Ante esta situación cabe preguntarse si nuestros métodos de detección OOD son capaces de apreciar el covariate shift intrínsico de PANDA o si simplemente
+son sensibles a reescalado que se le ha tenido que hacer. Por esta misma cuestión se decide aplicarle un reescado a muestras de nuestro conjunto ID, pasándolas de 224 px a 128 px y de nuevo luego a 224 px 
+para poder aislar como influye esta técnica sobre los métodos.
 
-% Puntos que debería cubrir:
-% - Control de resolución: las 12.618 imágenes del test ID reducidas a 128 px y ampliadas a 224 px;
-%   mismas etiquetas que el test ID. Exactitud del Swin-S en el control: 0,9077.
-% - DTD (Cimpoi et al., 2014): 47 categorías de texturas \pendiente{comprobar}; número de imágenes
-%   usadas.
-\pendiente{control de resolución y DTD~\cite{cimpoi2014}}
+Respecto el conjunto de datos Far-OOD se ha usado el conjunto DTD (\textit{Describable Textures Dataset}, Conjunto de datos de texturas descriptibles)~\cite{cimpoi2014}. Se trata de conjunto de datos de texturas que consta de 5640 imágenes, organizadas según una lista de 47 términos (categorías)
+ inspirados en la percepción humana. Cada categoría cuenta con 120 imágenes. El tamaño de las imágenes oscila entre 300x300 y 640x640, y al menos el 90 \% de la superficie de cada imagen representa el atributo de la categoría correspondiente.
+
+Se ha consultado con el médico experto respecto a esta elección, y para el estudio se han considerado como Near-OOD las clases de
+TUM y NORM. Según comenta el experto en este ámbito, dichas clases presentan un alto grado de semejanza a nivel visual por lo que puede llegar a ser incluso 
+dificil de diferenciar para el ojo humano,llegando a requerir técnicas de inmunohistoquimica genes para diferenciarlas. Sin embargo, 
+considerarlo bajo la misma etiqueta sería un error, pues provienen de tejidos de órganos distintos, lo que hace que cada uno presenten rasgos que los permitan diferenciar.
+\revisar{Iván y Jesús: Que muestras crees que serán las más propensas a que se acaben confundiendo}
+
+Respecto a las clases STR, LYM y MUS, son clases también de alto parecido a nuestro conjunto ID. Pueden ser consideradas también Near-OOD, ya que aunque por ejemplo STR tenga la misma 
+etiqueta que la clase estroma (HS), como proviene un organo distino no debemos de clasificarlo como covariate shift solamente. En principio serán únicamente consideradas como nivel interno, para 
+como se comportan los métodos de detección OOD ante clases muy similares.
+
 
 \subsection{Corrupciones sintéticas}\label{sec:corrupciones}
 
@@ -217,7 +199,7 @@ La evaluación con PANDA (\cref{sec:panda}) combina un cambio de centro, de esca
 Las corrupciones son las del banco de pruebas de Zhang et al.~\cite{zhang2022corruptions}, con su código público (commit \texttt{2b288c1}; el repositorio no tiene licencia). Son nueve corrupciones habituales en patología digital (brillo, saturación, tono, marcas, burbujas, compresión JPEG, pixelado, desenfoque y desenfoque por movimiento), cada una con cinco niveles de severidad, de los que se usan los niveles 1, 3 y 5 (\cref{fig:ejemplo-corrupciones,tab:corrupciones}): 27 celdas, más la imagen limpia (nivel 0). En próstata, Schömig-Markiefka et al.~\cite{schomig2021} ya aplicaron un enfoque similar.
 \begin{figure}[tbp]
   \centering
-  \includegraphics[width=\textwidth]{img/cap08/a_ejemplo_corrupciones.pdf}
+  \includegraphics[scale=0.75]{img/cap08/a_ejemplo_corrupciones.pdf}
   \caption{Ejemplo de las nueve corrupciones de Zhang et al.\ en los niveles de severidad 1, 3 y 5 sobre una imagen del test ID (clase \clase{Glandulas\_no\_neoplasicas}, imagen \texttt{1449762\_012769\_019041\_000224.png}). Fuente de las corrupciones: Zhang et al.~\cite{zhang2022corruptions}.}
   \label{fig:ejemplo-corrupciones}
 \end{figure}
@@ -231,7 +213,31 @@ El diseño es pareado: las imágenes limpias son las ID y sus versiones corrupta
 
 Se usó el test completo. La regla de recursos fijada de antemano daba una submuestra de \num{3000} imágenes, porque el test completo tardaba unas 14\,h en CPU; el cambio se decidió antes de ver ningún resultado. Con el nivel 0 se comprobó que el cálculo reproduce la evaluación del resto del capítulo: las predicciones coinciden al 100\,\%, la correlación de Spearman entre puntuaciones es al menos 0,9999998 en todos los detectores y la exactitud es la misma. \revisar{la exactitud del nivel 0 es 0,96870, igual a la de las \emph{features} congeladas de la evaluación OOD (0,9687 [0,9657; 0,9716] en exactitud\_celda.csv), pero no a la de results\_fase1 (0,9688 [0,9658; 0,9717]): no se da la cifra}
 
-\revisar{fin del borrador del agente}
+Finalmente, en labor de facilitar al lector la compresión de las decisiones tomadas, se muestra en ~\ref{tab:diseno-ood} para sintetizar que conjuntos de datos se han usado y 
+con qué finalidad: 
+
+\begin{table}[tbp][H]
+  \centering
+  \footnotesize
+  \caption{Diseño de los conjuntos OOD: papel de cada conjunto, qué cambia respecto al conjunto ID y objetivo de su inclusión. Entre paréntesis, el número de imágenes.}
+  \label{tab:diseno-ood}
+  \begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{0.2\textwidth}>{\raggedright\arraybackslash}p{0.12\textwidth}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X@{}}
+    \toprule
+    \textbf{Conjunto} & \textbf{Papel} & \textbf{¿Qué cambia respecto al ID?} & \textbf{Objetivo} \\
+  \midrule
+    (A) NCT-CRC: TUM + NORM (\num{23080}) & Near-OOD & Otro órgano (colon, tejido glandular) y otro centro; misma escala & Buscamos ver si es capaz de rechazar un tejido muy parecido al original \\
+    (B) NCT-CRC: STR, LYM, MUS (por separado) & Control interno & Otro centro; tejidos parecidos a clases de entrenamiento (estroma e inflamatorio) & Tejidos nuevamente parecidos a ID: determinamos si descarta por el centro o por el tejido \\
+    (C) PANDA (\num{10000})~\cite{bulten2022,kagglepanda128} & Cambio de centro y de escala & Mismo órgano (próstata), otros centros y escáneres; aumento mucho menor (cada tesela abarca una región de tejido mucho mayor) y más fondo blanco & Comprobar si el detector señala tejido del mismo órgano adquirido en condiciones muy distintas \\
+    Control de resolución (\num{12618}) & Control & Las mismas imágenes del test ID, reducidas a 128\,px y ampliadas a 224\,px & Valorar únicamente el efecto de la pérdida de detalle (no reproduce la escala de PANDA) \\
+    Corrupciones sintéticas (\num{12618} $\times$ 27) & \emph{Covariate shift} sintético & Las mismas imágenes del test ID con 9 corrupciones en 3 niveles de severidad & Comprobar si el detector señala artefactos de adquisición y si su puntuación gradúa la severidad \\
+    DTD / \emph{Textures} & Far-OOD & No es tejido: texturas genéricas & Referencia sencilla: el detector debe señalarla como OOD \\
+    NCT-CRC: ADI, BACK, DEB, MUC & Anexo (\cref{ap:anexo-nct}) & Grasa, fondo, restos, moco & \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+\revisar{fila «Corrupciones sintéticas» añadida por el agente (\cref{sec:corrupciones})}
+\revisar{tabla de las notas: corregidas erratas y redacción mínima («si descarta por el centro o por el tejido», «discriminación», «órgano»)}
+
 
 \section{Entorno de ejecución}\label{sec:entorno}
 \revisar{Iván: Considero que no aporta nada añadir los entornos que he usado y las cosas que tengo

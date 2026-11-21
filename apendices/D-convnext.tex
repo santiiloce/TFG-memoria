@@ -8,7 +8,7 @@
 % Puntos de la introducción:
 % - Se repite la tabla principal del \cref{cap:deteccion-ood} con ConvNeXt-S, con los mismos conjuntos,
 %   detectores, referencias y bootstrap, para comprobar qué conclusiones dependen del modelo.
-% - No se repiten la fuga por lámina, la predicción conforme, Mondrian, el anexo NCT ni las corrupciones.
+% - No se repiten la predicción conforme, Mondrian, el anexo NCT ni las corrupciones.
 % - Las cabezas no son equivalentes: en el Swin, las 768 características salen de la red troncal y entran
 %   directamente en la única capa lineal; en ConvNeXt, la cabeza de fastai tiene dos capas lineales.
 % - Espacio principal M (768 dimensiones): salida del pooling medio de la red troncal antes de la cabeza
@@ -40,6 +40,46 @@
 % - zeus, CPU, 12 hilos, fp32. Fase 9 (B y C): 8 h 56 min 12 s (extracción 7,85 h); MaxRSS 6,2 GiB.
 %   M: 36 min 13 s (trabajos 192990-192992), MaxRSS 3,0 GiB; no se pasó ninguna imagen más por la red.
 \pendiente{comentario breve}
+
+\subsection{Elección del vector de características}\label{sec:apd-espacio}
+
+En el Swin-S, los detectores que trabajan sobre características usan un único vector: la salida
+de la red troncal tras la LayerNorm final y el \emph{pooling} medio, de 768 dimensiones. Ese vector
+es a la vez la entrada de la única capa lineal del clasificador, de modo que los logits son una
+función lineal suya. En ConvNeXt-S no hay ningún vector que cumpla los tres papeles. El modelo se
+entrenó con fastai, que sustituye la cabeza de timm por la suya
+(\cref{sec:protocolo}): un \emph{pooling} que concatena el máximo y la media de cada canal de la
+última etapa (1.536 dimensiones), una BatchNorm, una capa lineal de 1.536 a 512 con ReLU, otra
+BatchNorm y la capa lineal final de 512 a 14. Entre la red troncal y los logits hay, por tanto, un
+perceptrón de dos capas.
+
+Se consideraron cuatro candidatos:
+\begin{itemize}
+  \item la entrada de la última capa lineal, tras la segunda BatchNorm (512 dimensiones);
+  \item la salida de la ReLU (512 dimensiones, no negativas), con la BatchNorm siguiente plegada
+        en la capa lineal (espacio B);
+  \item la salida del \emph{pooling} concatenado, antes de la cabeza (1.536 dimensiones, espacio C);
+  \item solo la parte de la media de ese \emph{pooling} (768 dimensiones, espacio M).
+\end{itemize}
+Solo los dos primeros permiten escribir los logits como $Wf + b$ (con un error máximo de
+$3\cdot10^{-6}$ en 64 imágenes de test), que es lo que necesitan ViM, ReAct, ASH y DICE. Los dos
+últimos son la representación de la red troncal, como las 768 características del Swin-S.
+
+En una primera versión se tomó B como espacio principal, por ser la entrada de la capa lineal que
+da los logits. Finalmente se eligió M, porque es el vector que más se parece al del Swin-S: la
+media espacial de los 768 canales de la salida de la última etapa, antes de la cabeza, con la misma
+dimensión y la misma operación de \emph{pooling}. La única diferencia es que el Swin-S aplica una
+LayerNorm antes del \emph{pooling} y ConvNeXt-S no, porque fastai no usa la LayerNorm de la cabeza
+de timm. Este es también el punto del que extrae las características la implementación pública de
+\stoodx~\cite{sevillano2026} en sus experimentos con ResNet: el \emph{pooling} medio que precede a
+la capa lineal de clasificación.
+Se comprobó con un \emph{hook} que la media espacial de la última etapa coincide bit a bit con la
+parte de la media de C en 100 imágenes.
+
+M se usa en KNN, MDS, RMDS, SHE y \stoodx. ViM, ReAct, ASH y DICE se evalúan en B, porque necesitan
+la capa lineal que lleva a los logits, y MSP, MaxLogit y Energy solo usan los logits. B y C se
+mantienen como análisis de sensibilidad (\cref{sec:apd-sensibilidad}). Las explicaciones del
+\cref{cap:xai-sesgos} usan los vecinos de \stoodx calculados en M.
 
 \section{Resultados}\label{sec:apd-resultados}
 

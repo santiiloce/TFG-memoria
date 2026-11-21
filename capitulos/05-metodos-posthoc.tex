@@ -292,59 +292,6 @@ A diferencia de la mayoría de los métodos basados en logits, la puntuación no
 la imagen de test, sino también de la información de todas las imágenes de entrenamiento de la
 clase predicha. Además, no tiene hiperparámetros y solo requiere almacenar $C$ vectores.
 
-\begin{observacion}[Origen en la energía de las redes de Hopfield modernas]\label{obs:she-hopfield}
-Las redes de Hopfield modernas~\cite{ramsauer2021} almacenan un conjunto de patrones
-$S = [s_1, \ldots, s_N] \in \R^{D \times N}$ y recuperan, a partir de un patrón de entrada
-$\xi \in \R^{D}$, el patrón almacenado más parecido minimizando la energía
-\begin{equation}
-  E(\xi) = -\operatorname{lse}\bigl(\beta, \xi^{\top} S\bigr) + \tfrac{1}{2}\,\xi^{\top}\xi + c,
-  \qquad
-  \operatorname{lse}(\beta, e) = \frac{1}{\beta} \log \sum_{j=1}^{N} \exp(\beta e_j),
-\end{equation}
-donde $\beta > 0$ y $c$ son constantes y $e_j = \xi^{\top} s_j$. Cuanto más se parece $\xi$ a
-los patrones almacenados, menor es la energía. Zhang et al.~\cite{zhang2023she} proponen usar
-el primer término como puntuación de similitud (método HE): con $\xi = h(x)$ y los patrones
-$S_i$ de la clase predicha $i = \hat y(x)$,
-\begin{equation}
-  \mathrm{HE}(x) = \operatorname{lse}\bigl(\beta, h(x)^{\top} S_i\bigr).
-\end{equation}
-Prescinden del término $\tfrac12 \xi^{\top}\xi$, que en la red de Hopfield solo evita que el
-patrón crezca durante las actualizaciones, porque la magnitud de las características también
-aporta información para distinguir ID de OOD, y de la constante $c$, que no altera el orden de
-las puntuaciones.
-
-SHE se obtiene de HE para $\beta$ pequeño. Con las aproximaciones de Taylor
-$e^{t} \approx 1 + t$ y $\log(1 + t) \approx t$,
-\begin{equation}
-  \operatorname{lse}(\beta, e_i)
-  \approx \frac{1}{\beta} \log \sum_{j=1}^{N_i} (1 + \beta e_{ij})
-  = \frac{1}{\beta} \log N_i + \frac{1}{\beta} \log\bigl(1 + \beta\, h(x)^{\top} \bar s_i\bigr)
-  \approx \frac{1}{\beta} \log N_i + h(x)^{\top} \bar s_i .
-\end{equation}
-El primer sumando es igual para todas las imágenes con la misma clase predicha, y los autores
-lo descartan para quedarse con $s_{\mathrm{SHE}}$. Así, cada conjunto de patrones $S_i$ se
-reduce a su media $\bar s_i$ y desaparece el hiperparámetro $\beta$. En sentido contrario, por
-la \cref{prop:logsumexp} aplicada a $\beta e_i$, cuando $\beta \to \infty$ la puntuación HE tiende
-al máximo producto escalar con un patrón almacenado. HE se sitúa por tanto entre dos extremos:
-la comparación con el patrón más parecido ($\beta$ grande) y la comparación con el patrón medio
-($\beta$ pequeño, SHE).
-\end{observacion}
-
-\begin{observacion}[Elección de la capa y de la medida de similitud]\label{obs:she-capa}
-Los autores justifican el uso de la penúltima capa en lugar de los logits como patrones con un
-argumento que llaman \emph{alineación de picos}: si se usaran los logits, el patrón medio de la
-clase predicha $i$ tendría su máximo precisamente en la componente $i$, la misma en la que lo
-tiene el logit de cualquier imagen clasificada en esa clase, sea ID u OOD. El producto escalar
-sería alto también para las imágenes OOD. Las características de la penúltima capa no
-concentran su valor en una sola componente, y la puntuación separa mejor ambos tipos de
-imágenes. Lo respaldan con un análisis bajo hipótesis de normalidad e independencia
-(apéndice~B del artículo) y, empíricamente, con una reducción del FPR@95 medio sobre nueve
-conjuntos OOD, por ejemplo de 31,70\,\% a 11,74\,\% con ResNet-18 y CIFAR-10 como datos
-ID~\cite{zhang2023she}. En el mismo trabajo, el producto escalar supera a la distancia euclídea
-y a la similitud coseno como medida de similitud, lo que sugiere que la norma de las
-características, que el coseno descarta, contiene información útil para la detección.
-\end{observacion}
-
 \section{STOOD-X}\label{sec:metodo-stoodx}
 
 Se trata de una metodología post hoc de detección OOD en dos etapas~\cite{sevillano2026}: una primera de detección, basada en un test estadístico no paramétrico sobre distancias en el espacio de características, y una segunda de explicación, que muestra al usuario los vecinos más cercanos y las características más relevantes compartidas con ellos.

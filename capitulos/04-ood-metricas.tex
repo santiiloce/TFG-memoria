@@ -107,6 +107,11 @@ Además, los conjuntos OOD se clasifican en dos grupos según su dificultad: \em
 % OOD es aprendible en el sentido PAC.
 \pendiente{aprendibilidad de la detección OOD (Fang et al.~\cite{fang2022})}
 
+Al igual que existe el conjunto ID, el benchmark ~\cite{openood15} define también los conjutnos: Near-OOD y Far-OOD.
+Según la definición de ~\cite{ren2021} ~\cite{openood15} ~\cite{linmans2023}, se considerará Near OOD muestras que semánticamente son más similares a las muestras 
+de ID distribuion, si solamenten presentan covariate shift no pueden ser clasificadas en esta categoría debido a que es esencial que presenten
+covariate shift. Finalmente, aquellas muestras que presenten tanto covariate shift como semantic shift, y sean muy diferentes del conjunto ID serán consideradas como Far-OOD.
+  
 
 \section{Regla de decisión por umbral}\label{sec:regla-umbral}
 

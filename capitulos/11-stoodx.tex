@@ -10,24 +10,34 @@
 % Descripción del método en la \cref{sec:metodo-stoodx}. Fuentes: results_ood/faseB_paper_2026-10-20,
 % results_ood/stoodx_validacion y faseC. Selección de K: results_ood/stoodx_seleccion_k; evaluación con
 % K = 144: results_ood/faseB_paper_K144 y faseC_K144. Todo con el Swin-S.
-\pendiente{introducción del capítulo}
+Este capítulo estudia en detalle \stoodx~\cite{sevillano2026}, el método de detección basado en el test de Mann-Whitney descrito en la \cref{sec:metodo-stoodx}, aplicado al Swin-S. En el \cref{cap:deteccion-ood} se ha comparado con el resto de detectores; aquí se analizan las decisiones que hay detrás de esos resultados. Primero se describe la implementación y la configuración empleadas, incluida la selección del número de vecinos $K$ con una validación que solo usa datos ID. A continuación se justifica el uso del estadístico tipificado $-z$ como puntuación en lugar del $p$-valor, se presentan los resultados con $K = 500$, el valor del artículo, y con $K = 144$, el valor seleccionado, y se estudia si los $p$-valores del método están calibrados. Después se aplica la predicción conforme para fijar el umbral de detección con una tasa de falsas alarmas controlada, se analiza la sensibilidad a $K$ y se muestran ejemplos de la segunda etapa del método, la explicación mediante vecinos de entrenamiento.
 
 \section{Implementación}\label{sec:stoodx-implementacion}
 
 El método se ha implementado siguiendo la descripción del artículo~\cite{sevillano2026}. Se realiza un único test por imagen entre las $K$ distancias de $x$ y las $K^2$ distancias de sus vecinos mediante \texttt{scipy.stats.mannwhitneyu} (Virtanen et al.~\cite{virtanen2020}).
 
-% Puntos que debería cubrir (tono neutro y descriptivo: el tutor Iván Sevillano es primer autor
-% del método):
-% - La implementación pública difiere del texto del artículo: la referencia de cada test es la
-%   i-ésima imagen de entrenamiento de la clase predicha y no los vecinos de los vecinos, y el test
-%   es de Wilcoxon pareado (RESUMEN_STOODX.md, «Problemas encontrados», punto 1).
-% - Por ello se reimplementó según el texto del artículo; interpretación pendiente de confirmar
-%   con los autores.
-% - Coste: ~1 ms/imagen en GPU + ~11-13 ms/imagen en CPU; ~25 min por configuración para las
-%   122.208 imágenes. Con K = 144: 0,03-0,05 ms/imagen en GPU + 0,82-0,88 ms/imagen en CPU
-%   (slurm-stoodx-paper-192888.out, 8 procesos, Quadro RTX 8000).
-\pendiente{diferencias entre la implementación pública y la descripción del artículo, y motivo de la reimplementación}
-\revisar{tono}
+El procedimiento de detección implementado, con la notación de la \cref{def:stoodx}, se resume en el \cref{alg:stoodx}.
+
+\begin{algoritmo}[tbp]
+\caption{Detección OOD con STOOD-X (sin la etapa de explicación).}\label{alg:stoodx}
+\begin{tabbing}
+\hspace{1.5em}\=\hspace{1.5em}\=\hspace{1.5em}\=\kill
+\textbf{Entrada:} extractor $h$, clasificador $\hat y$, datos de entrenamiento $\{(x_n, y_n)\}$, número de vecinos $K$, imagen $x$.\\
+\textbf{Salida:} puntuación $s_{\mathrm{STOOD}}(x)$ (valores altos indican ID).\\[2pt]
+\emph{Preparación (una sola vez)}\\
+1\>\textbf{para cada} clase $c$: $X_{\mathrm{set}}^{c} \gets \{h(x_n) : y_n = c\}$\\[2pt]
+\emph{Test}\\
+2\>$c \gets \hat y(x)$\\
+3\>$X_k \gets$ los $K$ vecinos más cercanos de $h(x)$ en $X_{\mathrm{set}}^{c}$ según $d$\\
+4\>$A \gets \{ d(h(x), x_i) : x_i \in X_k \}$; \quad $B \gets \emptyset$\\
+5\>\textbf{para cada} $x_i \in X_k$:\\
+6\>\>$X_k^{i} \gets$ los $K$ vecinos más cercanos de $x_i$ en $X_{\mathrm{set}}^{c} \setminus \{x_i\}$\\
+7\>\>$B \gets B \cup \{ d(x_i, x_j) : x_j \in X_k^{i} \}$ \quad (multiconjunto)\\
+8\>$U \gets$ estadístico de Mann-Whitney de $A$ frente a $B$ (alternativa: $A$ mayor)\\
+9\>\textbf{devolver} $s_{\mathrm{STOOD}}(x) = -z(U)$ \quad (o el $p$-valor $p(x)$; OOD si $p(x) < \alpha$)
+\end{tabbing}
+\end{algoritmo}
+
 
 \section{Configuración}\label{sec:stoodx-configuracion}
 
@@ -128,6 +138,68 @@ Aunque el método propone el $p$-valor como medida de pertenencia, con $K = 500$
 % Cifras: KS D = 0,80 frente a U(0,1); p = 0 en el 8,1 % y p = 1 en el 7,3 %. Las únicas clases
 % con p menos extremo son las pequeñas (comedonecrosis, n_c = 399; glomeruloide, n_c = 173).
 
+\section{Detección OOD conforme}\label{sec:conforme-ood}
+
+% [agente] Sección (antes capítulo 12) redactada por el agente (encargo del autor) a partir de angelopoulos2021,
+% vovk2022 (fundamentos en la sección 6.6) y de las cifras de
+% OpenOOD/results_conforme/ (CSV y resumen.md; solo cifras).
+% Páginas de las fuentes: como en la sección de predicción conforme del capítulo 6.
+
+Esta sección aplica la predicción conforme (\cref{sec:prediccion-conforme}) al
+Swin-S para calibrar el umbral de los detectores OOD de
+modo que la proporción de falsas alarmas en datos ID quede controlada. La calibración se hace con la validación ID y la evaluación,
+con el test ID, el control de resolución y los conjuntos OOD del
+\cref{cap:materiales}.
+% Fuente: diseño de results_conforme (config.json).
+
+Las garantías de la predicción conforme exigen que los datos de calibración y los
+de prueba sean intercambiables (\cref{def:intercambiabilidad}), y en este trabajo
+esa hipótesis no está asegurada. La validación ID se usó durante el entrenamiento
+para elegir la época (con una parada temprana sobre la pérdida de validación) y
+procede de la carpeta de entrenamiento original, mientras que el test procede de
+la carpeta de validación original. Un indicio de que ambos conjuntos no se
+comportan igual es que la exactitud del Swin-S es del 97,02\,\% en la validación y
+del 96,88\,\% en el test. Por eso, las falsas alarmas observadas en el test se
+contrastan con el nivel $\alpha$ fijado.
+% Fuente: results_conforme/config.json, campo «limitacion»; resumen.md, l. 9 (97,02 % en id_val);
+% exactitud en el test: 0,9688 (results_fase1).
+
+
+Cada detector del \cref{cap:metodos} asigna a una imagen una puntuación $s(x)$, más
+alta cuanto más ID parece. Con las puntuaciones $s_1,\dots,s_n$ de las
+$n = \num{22691}$ imágenes de la validación ID se calcula el $p$-valor conforme
+\[
+  p(x) = \frac{1 + \#\{\, i : s_i \le s(x) \,\}}{n+1},
+\]
+que es el de la \cref{prop:p-valor-conforme} con la puntuación de no conformidad
+$-s$, y la imagen se declara OOD si $p(x) \le \alpha$. Si la validación y el test
+son intercambiables, la proporción de imágenes ID marcadas como OOD (falsas
+alarmas) es a lo sumo $\alpha$~\cite{angelopoulos2021,vovk2022}. Es el uso de la
+predicción conforme para la detección de valores atípicos que describen
+Angelopoulos y Bates: el umbral se calibra con datos limpios y garantiza que no se
+devuelvan demasiados falsos positivos~\cite{angelopoulos2021}. Se han evaluado
+cinco detectores con $\alpha \in \{0{,}01;\, 0{,}05;\, 0{,}10\}$
+(\cref{tab:conforme-ood}).
+% Fuente: angelopoulos2021, §4.4, pp. 19-20 (detección de valores atípicos conforme, proposición 3);
+% vovk2022, §4.2, ec. (4.4), p. 110. Datos: results_conforme/deteccion_ood_conforme.csv (n_cal = 22.691).
+
+\input{tablas/t11_ood_conforme}
+
+Las falsas alarmas en el test ID son compatibles con $\alpha$ en los quince casos:
+el intervalo de confianza exacto contiene $\alpha$ para los cinco métodos y los tres
+niveles. A diferencia del \FPRn{95}, que fija la tasa de detección de los datos OOD
+(\cref{sec:fpr95}), este procedimiento fija la tasa de falsas alarmas sobre los ID
+sin usar ningún dato OOD, que es la situación de un despliegue real. Con
+$\alpha = 0{,}05$, \stoodx es el detector que más detecta en TUM+NORM (0,879),
+PANDA (0,568) y DTD (0,972), y también el que más marca el control de resolución
+(0,596); ViM y MDS son los que más detectan en LYM (0,826 y 0,812). Con
+$\alpha = 0{,}01$, ViM y MDS detectan alrededor del 55\,\% de TUM+NORM (0,552 y
+0,554), frente al 75\,\% de \stoodx (0,748). Que el control de resolución se
+marque como OOD en una proporción apreciable es coherente con el criterio
+conservador de este trabajo (\cref{sec:ea-conservador}), que considera OOD los
+cambios de apariencia que degradan el clasificador.
+% Fuente: tabla tab:conforme-ood (results_conforme/deteccion_ood_conforme.csv).
+
 \section{Sensibilidad a $K$}\label{sec:stoodx-k}
 
 En un análisis de sensibilidad sobre un subconjunto (\cref{tab:stoodx-barrido-k}), el rendimiento mejora hasta $K \approx 72$--$288$ y se degrada con $K = 500$. La degradación se concentra en las imágenes predichas en clases con pocas imágenes de entrenamiento (\clase{Gleason\_5\_comedonecrosis}, 399; \clase{Inflamatorio}, 568; \clase{No\_Cancer}, 868), donde $K$ se aproxima al tamaño de la clase y se pierde la localidad del vecindario. En particular, el 10\,\% de las imágenes de TUM + NORM se predice como \clase{Gleason\_5\_comedonecrosis}. Al excluir esas clases, la caída desaparece. Como usa datos del test ID y de los conjuntos OOD, este análisis no se ha utilizado para elegir $K$, que se elige solo con datos ID (\cref{sec:stoodx-seleccion-k}); el valor elegido, $K = 144$, está dentro del intervalo en el que el barrido obtiene los mejores resultados. Una variante que adapta $K$ al tamaño de la clase ($K_c = \min(500, \lfloor n_c/2 \rfloor)$) no mejoró los resultados.
@@ -162,7 +234,17 @@ En cada figura, la primera columna es la imagen evaluada y las cinco siguientes,
 % Cifras: las falsas alarmas ID son Adenocarcinoma ductal, Estroma y Glándulas no neoplásicas con
 % z \approx 38 (separación completa).
 % Resto de ejemplos (K = 500 y variante K_c) en el \cref{ap:complementario}.
-\pendiente{análisis de los ejemplos del \cref{ap:complementario} (\cref{fig:stoodx-ejemplos-detectadas,fig:stoodx-ejemplos-id,fig:stoodx-ejemplos-falsas,fig:stoodx-ejemplos-lym,fig:stoodx-ejemplos-dtd}; variante $K_c$: \cref{fig:stoodx-kc-id-alta})}
+El resto de ejemplos, con $K = 500$ y con la variante $K_c$, está en el \cref{ap:complementario}. En cada grupo se eligen al azar, con semilla 0, cinco imágenes entre el 10\,\% con la puntuación más alta o más baja.
+
+Las imágenes ID con la puntuación más alta (\cref{fig:stoodx-ejemplos-id}) son casos típicos: sus vecinos son de la misma clase, muy parecidos a la vista y a distancias coseno de entre 0,001 y 0,005. Las imágenes de TUM+NORM mejor detectadas (\cref{fig:stoodx-ejemplos-detectadas}) se predicen como \clase{Adenocarcinoma\_ductal} o \clase{Glandulas\_no\_neoplasicas}, alcanzan el valor máximo del estadístico ($z = 38{,}69$) y sus vecinos están a distancias de entre 0,08 y 0,40, uno o dos órdenes de magnitud por encima de las de los casos ID típicos. En esos casos, los vecinos permiten ver al usuario que la imagen no se parece a ninguna de las de entrenamiento de la clase predicha.
+
+Las falsas alarmas ID (\cref{fig:stoodx-ejemplos-falsas}) son imágenes de \clase{Adenocarcinoma\_ductal}, \clase{Estroma} y \clase{Glandulas\_no\_neoplasicas}, bien clasificadas, con el estadístico prácticamente saturado ($z$ entre 37,7 y 38,4). Sus vecinos son de la misma clase y, en varios casos, están muy cerca, a distancias de entre 0,012 y 0,03. Esto muestra que el test no se basa en la distancia absoluta, sino en la comparación con las distancias de los vecinos a sus propios vecinos: en las regiones densas del espacio de características, como las de las clases grandes, una imagen próxima puede quedar más lejos de sus vecinos que estos entre sí. Dos de estas imágenes, además, tienen mucho fondo blanco o tejido disgregado.
+
+En LYM (\cref{fig:stoodx-ejemplos-lym}), tres de las cinco imágenes elegidas al azar se predicen como \clase{Inflamatorio}, y sus vecinos son también campos densos de linfocitos, coherente con que sea un tejido presente en la próstata (\cref{sec:ood-control-interno}). Aun así, las tres se rechazan, una de ellas sin llegar a la saturación ($z = 36{,}66$). Las otras dos se predicen como \clase{Glandulas\_no\_neoplasicas} y \clase{Estroma}, y en la última los vecinos son acumulaciones de hematíes a distancias superiores a 0,7. En DTD (\cref{fig:stoodx-ejemplos-dtd}), las cinco texturas se predicen como \clase{Estroma} o \clase{Glandulas\_no\_neoplasicas}, y sus vecinos suelen ser imágenes con mucho fondo blanco, hematíes o células sueltas. Una textura de granito tiene vecinos a una distancia de solo 0,014, imágenes de hematíes con una textura granular parecida, y aun así el test la rechaza ($z = 36{,}57$): de nuevo, lo que decide es la distancia relativa a la estructura local de la clase.
+
+Con la variante $K_c$ (\cref{fig:stoodx-kc-id-alta}), los casos ID con la puntuación más alta son del mismo tipo. Dos de ellos, de \clase{Estroma} y \clase{Gleason\_4\_cribiformes}, coinciden con los de $K = 500$ y tienen la misma puntuación, porque en esas clases $\lfloor n_c/2 \rfloor$ supera 500 y $K_c = 500$.
+
+En conjunto, los vecinos hacen visibles dos comportamientos del método: las imágenes OOD que pasan el test lo hacen cuando caen en clases pequeñas en las que el vecindario deja de ser local, y las texturas y tejidos OOD tienden a asociarse con imágenes de entrenamiento con fondo, hematíes o tejido disgregado. Estos ejemplos ilustran el comportamiento del método, pero no permiten cuantificarlo.
 
 \section{Discusión}\label{sec:stoodx-discusion}
 
@@ -173,6 +255,24 @@ En cada figura, la primera columna es la imagen evaluada y las cinco siguientes,
 % supera a RMDS en TUM+NORM (-0,037 [-0,040; -0,035]); limitaciones: solo Swin, la clase retenida como
 % pseudo-OOD, calibración no comprobada con K = 144; saturación mayor que con K = 500 (86 % de TUM+NORM) pero
 % sin efecto en las conclusiones (\cref{tab:stoodx-saturacion-k144}).
-\pendiente{discusión global}
+\stoodx es el detector más eficaz de los evaluados en este trabajo, pero solo con un número de vecinos adecuado al tamaño de las clases. Con $K = 500$, el valor del artículo~\cite{sevillano2026}, es competitivo en el near-OOD principal, con un \AUROC indistinguible del de RMDS, y el mejor en NORM, STR, MUS y DTD, aunque con un \FPRn{95} mucho mayor. Con $K = 144$, seleccionado solo con datos ID, obtiene el mayor \AUROC en ocho de los nueve conjuntos y supera a RMDS en el near-OOD principal, con un coste por imagen más de diez veces menor. La sensibilidad a $K$ tiene una explicación clara: cuando $K$ se acerca al número de imágenes de entrenamiento de la clase predicha, los vecinos dejan de ser locales y el test pierde capacidad de discriminación. Por eso, las imágenes OOD que pasan el test son sobre todo las que se predicen en clases pequeñas, como \clase{Gleason\_5\_comedonecrosis}, y la variante $K_c$, que reduce $K$ solo en esas clases, no basta para corregirlo.
+
+Desde el punto de vista estadístico, el método presenta dos limitaciones. La primera es la saturación: cuando todas las distancias de la imagen superan a las de sus vecinos, el estadístico alcanza su máximo y deja de ordenar las imágenes. Su efecto sobre el \AUROC está acotado y no cambia las conclusiones, pero impide graduar la severidad de una alteración y explica que, con $K = 500$, \stoodx no distinga PANDA del control de resolución. La segunda es la falta de calibración: con $K = 500$, la mayoría de las imágenes ID de validación obtienen $p$-valores muy pequeños, de modo que el $p$-valor sirve para ordenar, pero no como nivel de significación. La causa probable es que las $K^2$ distancias de referencia no son independientes, porque los vecinos comparten vecinos, lo que incumple una hipótesis del test de Mann-Whitney. El uso de $-z$ como puntuación resuelve el subdesbordamiento numérico sin cambiar el orden, pero no este problema.
+
+Los ejemplos de la \cref{sec:stoodx-ejemplos} muestran que la segunda etapa del método aporta información útil al usuario, porque permite comparar la imagen con imágenes de entrenamiento concretas. Sin embargo, también muestran que el test responde a distancias relativas a la estructura local de cada clase y no a distancias absolutas, por lo que un vecino visualmente parecido no garantiza la aceptación ni uno lejano el rechazo.
+
+Hay que tener en cuenta que la selección de $K = 144$ usa como pseudo-OOD clases ID retenidas, que no representan un cambio de centro o de escala, que se ha hecho solo con el Swin-S y que la calibración solo se ha estudiado con $K = 500$.
+
+La calibración conforme convierte cualquier
+puntuación de detección en un detector con una tasa de falsas alarmas controlada,
+que en el test ID se cumple para todos los métodos y niveles evaluados. Con ese
+control, \stoodx es el detector que más muestras OOD señala en casi todos los
+conjuntos, mientras que ViM y MDS destacan en LYM.
+
+La predicción conforme aporta así al sistema garantías que no dependen del modelo.
+Sin embargo, estas garantías dependen de que los datos de prueba se parezcan a los
+de calibración~\cite{angelopoulos2021}, y la intercambiabilidad entre validación y
+test no está asegurada en este trabajo: las garantías deben leerse con esa reserva.
+% Fuente: síntesis de la sección anterior; angelopoulos2021, §4.5, p. 20.
 
 \endinput

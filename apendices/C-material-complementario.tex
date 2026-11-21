@@ -41,6 +41,9 @@
   \label{fig:stoodx-ejemplos-lym}
 \end{figure}
 
+\input{tablas/t10_bootstrap_rmds}
+
+
 \begin{figure}[tbp]
   \centering
   \includegraphics[width=\textwidth]{img/apC/ejemplos_K500_dtd_azar.jpg}
@@ -297,7 +300,7 @@
 \section{Corrupciones sintéticas}\label{sec:apc-corrupciones}
 
 % Complementa la \cref{sec:ood-corrupciones}: tablas completas de AUROC y FPR@95 (15 configuraciones,
-% con IC), CEC por detector y corrupción, umbral fijo en todas las celdas y dispersión caída de exactitud
+% con IC), CEC por detector y corrupción y dispersión caída de exactitud
 % frente a AUROC (Spearman por celdas).
 \pendiente{presentación}
 \revisar{tablas completas en el apéndice C: confirmar ubicación}
@@ -306,6 +309,8 @@
 
 \input{tablas/tC_corr_fpr95}
 
+\input{tablas/tC_corr_k144}
+
 \begin{figure}[tbp]
   \centering
   \includegraphics[width=\textwidth]{img/cap10/corr_d_cec_mapa.pdf}
@@ -313,13 +318,33 @@
   \label{fig:apc-corr-cec-mapa}
 \end{figure}
 
-\input{tablas/tC_corr_umbral}
-
 \begin{figure}[tbp]
   \centering
   \includegraphics[width=\textwidth]{img/cap10/corr_f_dispersion_caida_auroc.pdf}
   \caption{Caída de exactitud del clasificador frente al \AUROC de detección en las 27 celdas, un panel por detector principal (color: corrupción; marcador: nivel), con la correlación $\rho$ de Spearman (\cref{def:spearman}).}
   \label{fig:apc-corr-dispersion}
+\end{figure}
+
+\section{Adenocarcinoma ductal frente a NORM y TUM de NCT-CRC}\label{sec:apc-adeno-nct}
+\revisar{sección y título añadidos por el agente para alojar las dos figuras}
+
+% Generadas con random.seed(0); random.sample(sorted(ficheros), 5) por columna.
+% ID (tfg/TrainTest/test/Adenocarcinoma_ductal): 1570882_012769_071681, 1570964_030913_035393,
+%   1570133_007617_029793, 1570803_011873_010753, 1571219_026209_034273 (sufijo _000224.png).
+% NCT-CRC NORM: WALDTENC, RYHVVYIQ, NDRFQPCE, VQQKRLVK, QFEKHAID.
+% NCT-CRC TUM: NFCWVNDE, LILERCIF, VYKFWRYP, WYGPWEMY, IAEFMEQG.
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[height=0.75\textheight]{img/apC/adeno_ductal_vs_nct_norm.pdf}
+  \caption{Cinco imágenes al azar de \clase{Adenocarcinoma\_ductal} del conjunto de test ID (izquierda) y cinco de la clase NORM (mucosa colónica normal) de \nctcrc (derecha). \revisar{pie de figura redactado por el agente}}
+  \label{fig:muestras-adeno-norm}
+\end{figure}
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[height=0.75\textheight]{img/apC/adeno_ductal_vs_nct_tum.pdf}
+  \caption{Cinco imágenes al azar de \clase{Adenocarcinoma\_ductal} del conjunto de test ID (izquierda) y cinco de la clase TUM (epitelio de adenocarcinoma colorrectal) de \nctcrc (derecha). \revisar{pie de figura redactado por el agente}}
+  \label{fig:muestras-adeno-tum}
 \end{figure}
 
 % Otro posible material complementario (decidir):

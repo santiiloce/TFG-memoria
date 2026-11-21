@@ -33,34 +33,43 @@
 
 \revisar{la tabla principal de las notas (\texttt{tabla\_principal\_ood.tex}) se divide en una tabla por bloque; las tablas de AUPR van al \cref{ap:aupr}}
 
-\begin{figure}[tbp]
-  \centering
-  \includegraphics[width=\textwidth]{img/cap10/fig1_auroc_fpr95.pdf}
-  \caption{AUROC (arriba; más alto es mejor) y FPR@95 (abajo; más bajo es mejor) de los 17 métodos en los nueve conjuntos, con IC del 95\,\% por \emph{bootstrap}. Visión global de la comparación.}
-  \label{fig:ood-global}
-\end{figure}
+%\begin{figure}[tbp]
+%  \centering
+%  \includegraphics[width=\textwidth]{img/cap10/fig1_auroc_fpr95.pdf}
+%  \caption{AUROC (arriba; más alto es mejor) y FPR@95 (abajo; más bajo es mejor) de los 17 métodos en los nueve conjuntos, con IC del 95\,\% por \emph{bootstrap}. Visión global de la comparación.}
+%  \label{fig:ood-global}
+%\end{figure}
 
 \section{Near-OOD principal}\label{sec:ood-near}
 
-Los resultados muestran una separación clara entre familias de métodos. Los métodos que operan sobre el espacio de características (ViM, MDS, KNN, RMDS y STOOD-X) superan de forma sistemática a los basados únicamente en los logits, en todos los conjuntos evaluados. En el near-OOD principal (NCT-CRC TUM + NORM), los primeros alcanzan un AUROC de entre 0,953 y 0,969, frente a 0,821--0,876 de MSP, MaxLogit y Energy. La diferencia es aún mayor en el punto de trabajo: el FPR@95 baja de 0,879 (MSP) a valores entre 0,128 y 0,173, y el CCR@FPR5 sube de 0,118 a más de 0,82. Esto indica que el vector de características de 768 dimensiones contiene información sobre la pertenencia a la distribución que se pierde al proyectarlo sobre los 14 logits. \revisar{en ConvNeXt-S (espacio M), MSP (0,954) supera a MDS (0,949) y solo RMDS (0,960) queda por encima en TUM+NORM: matizar como propio del Swin (\cref{ap:convnext})}
-\revisar{«de forma sistemática [...] en todos los conjuntos»: RMDS queda por debajo de MSP en LYM (AUROC 0,824 frente a 0,854, \cref{tab:ood-control-interno})}
-\revisar{el rango de AUROC (0,953--0,969), el de FPR@95 (0,128--0,173) y el CCR@FPR5 (más de 0,82) valen para ViM, MDS, KNN, RMDS y STOOD-X con $K = 500$ (salvo FPR@95 y CCR@FPR5 de STOOD-X: 0,349 y 0,646); STOOD-X con $K = 144$ queda por encima de los tres rangos (AUROC 0,991, FPR@95 0,026, CCR@FPR5 0,951)}
+Los resultados muestran una separación clara entre familias de métodos. Los métodos que operan sobre el espacio de características (ViM, MDS, KNN, RMDS, STOOD-X y SHE, a excepción de su variante con el producto escalar) superan de forma sistemática a los basados únicamente en los logits y a las modificaciones en logits (donde ReAct es quien genera los mejores resultados), en todos los conjuntos evaluados.
+ASH y DICE son quienes peores resultados emiten, presentando los valores AUROC más bajos y valores de FPR@95 bastante altos, lo cual será debido lo más probable 
+a la dependencia de estos métodos con el modelo, viendose que para Swin no operan bien. Debido a sus malos resultados se omitiran en el resto de conclusiones. 
+
+En el near-OOD principal (NCT-CRC TUM + NORM), los métodos basados en logit y ReAct obtienen principalmente entre
+0,80 y 0,90, mientras que el resto de métodos superan sin problemas la "barrera" del 0,90. Esto refleja que en cuanto el AUROC a pesar de existir una diferencia notoria, no existe una
+diferencia tan marcada,  como con FPR@95. En este caso el FPR@95 baja de 0,760 (MSP) a valores entre 0,128 y 0,173, y el CCR@FPR5 sube de 0,238 a más de 0,86, siendo ambos los mejores resultados de cada clase. Esto indica que el vector de características de 768 dimensiones contiene información sobre la pertenencia a la distribución que se pierde al proyectarlo sobre los 14 logits. Por otro lado ReAct es quien ofrece mejor AUROC del grupo 
+de modificación de activaciones, lo cual se deba probablemente a que es el método menos invasivo de los tres, dejando casi intacto el comportamiento de Energy, y corrigiendo solo 
+valores extremos, lo que afecta a una mejoras de los resultados, visto principalmente en FPR@95 Y CCR@FPR5. Dicha mejora puede venir a que las activaciones OOD anormalmente
+alatas vengan de la BatchNorm ~\cite{openood15}, y aunque Swin use LayerNorm parece que sí afecta. 
+
 
 \input{tablas/t10_near}
 
-\textbf{Near-OOD principal.} Entre los métodos con su configuración por defecto, ViM (0,969 [0,968; 0,971]) y MDS (0,968) obtienen el mejor AUROC, mientras que RMDS logra el mejor FPR@95 (0,128) y el mejor CCR@FPR5 (0,868), con un AUROC significativamente inferior (0,954; \cref{tab:ood-bootstrap-rmds}). Ambos resultados no son contradictorios: el AUROC resume la separación en todos los umbrales, mientras que FPR@95 y CCR@FPR5 evalúan la zona de umbral exigente, que es la relevante en un contexto clínico (\cref{fig:ood-roc}). Con el umbral que deja pasar solo el 5\,\% de las imágenes de colon, RMDS acepta y clasifica correctamente el 86,8\,\% del test ID, frente a un máximo posible de 96,9\,\%. No obstante, RMDS presenta un fallo marcado en la clase LYM (FPR@95 $= 0{,}992$; CCR@FPR5 $= 0{,}008$): una parte de los linfocitos de colon recibe puntuaciones superiores a las de las propias imágenes ID, por lo que ningún umbral permite rechazarlos sin descartar casi todo el ID.
-\revisar{añadidas las referencias a la \cref{tab:ood-bootstrap-rmds} y a la \cref{fig:ood-roc}}
-Con $K = 144$, elegido solo con datos ID (\cref{sec:stoodx-seleccion-k}), \stoodx supera a todos ellos en las tres métricas: \AUROC 0,991 [0,990; 0,992], \FPRn{95} 0,026 [0,023; 0,028] y \CCRn{5} 0,951. Su ventaja sobre RMDS en \AUROC es de 0,037 [0,035; 0,040] (\cref{tab:ood-bootstrap-rmds}), mientras que con $K = 500$ ambos métodos eran indistinguibles.
-\revisar{añadido «Entre los métodos con su configuración por defecto» y la frase sobre $K = 144$ (redactada por el agente a petición del autor): con $K = 144$, ViM, MDS y RMDS dejan de ser los mejores en TUM+NORM}
+\textbf{Near-OOD principal.} Entre los métodos con su configuración por defecto, ViM (0,969 [0,968; 0,971]) y MDS (0,968) obtienen el mejor AUROC, mientras que RMDS logra el mejor FPR@95 (0,128) y el mejor CCR@FPR5 (0,868), con un AUROC significativamente inferior (0,954; \cref{tab:ood-bootstrap-rmds}). 
+Ambos resultados no son contradictorios: el AUROC resume la separación en todos los umbrales, mientras que FPR@95 y CCR@FPR5 evalúan la zona de umbral exigente, que es la relevante en un contexto clínico. Con el umbral que deja pasar solo el 5\,\% de las imágenes de colon, RMDS acepta y clasifica correctamente el 86,8\,\% del test ID, frente a un máximo posible de 96,9\,\%. De esta forma MDS o RMDS deberían de ser considerados como 
+mejores métodos de detección Near-OOD. 
 
-\input{tablas/t10_bootstrap_rmds}
+En la tabla ~\ref{tab:ood-bootstrap-rmds} se aplica la técninca bootstrap para ver quién es significativamente mejor o peor en AUROC y aquellos casos con 
+Con $K = 144$, ya que antes se había considerado $K = 500$ en base a ~\cite{sevillano2026}, elegido solo con datos ID (\cref{sec:stoodx-seleccion-k}), \stoodx supera a todos ellos en las tres métricas: \AUROC 0,991 [0,990; 0,992], \FPRn{95} 0,026 [0,023; 0,028] y \CCRn{5} 0,951. Su ventaja sobre RMDS en \AUROC es de 0,037 [0,035; 0,040] (\cref{tab:ood-bootstrap-rmds}), mientras que con $K = 500$ ambos métodos eran indistinguibles.
 
-\begin{figure}[tbp]
-  \centering
-  \includegraphics[width=\textwidth]{img/cap10/fig2_curvas_roc.pdf}
-  \caption{Curvas ROC (TPR sobre OOD frente a FPR sobre ID) de todos los métodos, un panel por conjunto. Permiten ver dónde se separan los métodos: la zona de FPR baja frente al AUROC global explica por qué RMDS es el mejor en FPR@95 y no en AUROC.}
-  \label{fig:ood-roc}
-\end{figure}
+%No aporta nada, solo sirve para corroborar lo mismo que con las métricas conjuntas de AUROC y FPR@95
+%\begin{figure}[tbp]
+%  \centering
+%  \includegraphics[width=\textwidth]{img/cap10/fig2_curvas_roc.pdf}
+%  \caption{Curvas ROC (TPR sobre OOD frente a FPR sobre ID) de todos los métodos, un panel por conjunto. Permiten ver dónde se separan los métodos: la zona de FPR baja frente al AUROC global explica por qué RMDS es el mejor en FPR@95 y no en AUROC.}
+%  \label{fig:ood-roc}
+%\end{figure}
 
 % Cifras de la \cref{tab:ood-bootstrap-rmds}: RMDS - ViM = -0,016 [-0,017; -0,014]; RMDS - MDS =
 % -0,014; RMDS - KNN = -0,003 [-0,004; -0,001] (p = 0,002); RMDS - STOOD-X 100 % = +0,000
@@ -76,35 +85,34 @@ Con MDS, TUM (0,964), NORM (0,973) y LYM (0,967) obtienen los valores de AUROC m
 la próstata, se detecta con la misma capacidad que el tejido de colon. STR (0,944) y MUS (0,912) resultan algo más difíciles de detectar, lo que indica que la similitud con las 
 clases ID influye en parte, aunque los valores siguen siendo altos. Este resultado es coherente con lo señalado por Yang et al.~\cite{yang2024}: los detectores OOD tienden a ser 
 más sensibles al desplazamiento de covariables que al cambio semántico.
-
-\begin{figure}[tbp]
-  \centering
-  \includegraphics[width=\textwidth]{img/cap10/fig5_control_interno_nct.pdf}
-  \caption{AUROC por clase de NCT-CRC (TUM y NORM en rojo; STR, LYM y MUS en gris) para cada método, con PANDA como línea de referencia. Control interno del centro frente al tejido: si las clases afines se detectan casi igual que TUM y NORM, el detector responde al centro.}
-  \label{fig:ood-control-interno}
-\end{figure}
+%
+%\begin{figure}[tbp][H]
+%  \centering
+%  \includegraphics[width=\textwidth]{img/cap10/fig5_control_interno_nct.pdf}
+%  \caption{AUROC por clase de NCT-CRC (TUM y NORM en rojo; STR, LYM y MUS en gris) para cada método, con PANDA como línea de referencia. Control interno del centro frente al tejido: si las clases afines se detectan casi igual que TUM y NORM, el detector responde al centro.}
+%  \label{fig:ood-control-interno}
+%\end{figure}
 
 % Cifras adicionales: en STOOD-X con K = 500, STR (0,978) y MUS (0,968) se detectan más que TUM (0,931).
 % Con K = 144 el orden cambia: TUM 0,990, NORM 0,992, STR 0,982, LYM 0,966, MUS 0,977. En los
 % métodos de logits la diferencia es mayor (MSP: 0,87-0,88 en TUM/NORM frente a 0,74 en MUS), con
-% LYM (0,854) cerca de TUM/NORM. La conclusión se mantiene sin la lámina de cada parche
-% (\cref{tab:fuga-control-interno}).
+% LYM (0,854) cerca de TUM/NORM.
 
 \section{PANDA: cambio de centro y de escala}\label{sec:ood-panda}
 
-Respecto a PANDA, la comparación con el control debe interpretarse con especial cuidado, ya que sus imágenes presentan más diferencias que el mero reescalado. Además de proceder de otros centros, las teselas se extrajeron del nivel de menor resolución de las imágenes originales, con un aumento mucho menor, de modo que cada una abarca una región de tejido muy superior a los 112\,$\mu$m de los parches ID; además, contienen mucho más fondo blanco (63\,\% frente a 21\,\%). Los métodos de distancia detectan PANDA (AUROC $\approx 0{,}91$) mejor que el control ($\approx 0{,}77$--$0{,}79$), pero esta diferencia no puede atribuirse solo al cambio de centro, ya que se combina con los cambios de escala y de contenido de fondo. En STOOD-X, ambos AUROC coinciden (0,895 y 0,894) y su puntuación no distingue PANDA del control (AUROC 0,475 [0,467; 0,482]). Sin embargo, cerca de un tercio de las imágenes de ambos conjuntos alcanza el valor extremo del estadístico (\cref{obs:u-empates}), por lo que esta coincidencia refleja la pérdida de capacidad de ordenación por saturación más que una sensibilidad específica a la resolución. \revisar{reforzar: con ConvNeXt-S (espacio M), menos saturado (22,0\,\% en TUM+NORM y 2,6\,\% en el control, frente a 66,3\,\% y 19,0\,\% en el Swin), STOOD-X sí distingue PANDA del control (0,803 [0,797; 0,809]); \cref{tab:convnext-stoodx}}
-\revisar{estas cifras de STOOD-X son con $K = 500$. Con $K = 144$, PANDA (0,939) y el control (0,935) siguen casi igualados (\cref{fig:ood-panda-control}) con menos saturación que en TUM+NORM (30\,\% de PANDA y 39\,\% del control saturados, \cref{tab:stoodx-saturacion-k144}), así que la explicación por saturación no basta para $K = 144$; el AUROC de PANDA frente al control (0,475) no se ha calculado con $K = 144$} Excluir las 291 teselas sin tejido no modifica ninguna de estas conclusiones. Aislar el efecto del centro requeriría extraer las imágenes de PANDA a la misma escala que los datos ID, lo que queda como trabajo futuro.
+Respecto a PANDA, la comparación con el control debe interpretarse con especial cuidado, ya que sus imágenes presentan más diferencias que el mero reescalado. Además de proceder de otros centros, las teselas se extrajeron del nivel de menor resolución de las imágenes originales, con un aumento mucho menor, de modo que cada una abarca una región de tejido muy superior a los 112\,$\mu$m de los parches ID; además, contienen mucho más fondo blanco (63\,\% frente a 21\,\%). Los métodos de distancia detectan PANDA (AUROC $\approx 0{,}91$) mejor que el control ($\approx 0{,}77$--$0{,}79$), pero esta diferencia no puede atribuirse solo al cambio de centro, ya que se combina con los cambios de escala y de contenido de fondo, mismo motivo por el que no sería viable considerarlo únicamente como covariate shift. En STOOD-X, ambos AUROC coinciden (0,895 y 0,894) y su puntuación no distingue PANDA del control (AUROC 0,475 [0,467; 0,482]). Esto nos hace ver lo sensible que es STOOD-X, ante covariate shift, pero no será suficiente como para poder afirmarlo. Sin embargo, cerca de un tercio de las imágenes de ambos conjuntos alcanza el valor extremo del estadístico (\cref{obs:u-empates}), por lo que esta coincidencia refleja la pérdida de capacidad de ordenación por saturación más que una sensibilidad específica a la resolución. \revisar{reforzar: con ConvNeXt-S (espacio M), menos saturado (22,0\,\% en TUM+NORM y 2,6\,\% en el control, frente a 66,3\,\% y 19,0\,\% en el Swin), STOOD-X sí distingue PANDA del control (0,803 [0,797; 0,809]); \cref{tab:convnext-stoodx}}
 
-\input{tablas/t10_panda_control}
+Con $K = 144$ (\cref{sec:stoodx-seleccion-k}), \stoodx obtiene el mejor resultado de todos los métodos en ambos conjuntos, con un \AUROC de 0,939 [0,936; 0,942] en PANDA y 0,935 [0,932; 0,938] en el control, y una \FPRn{95} de 0,226 y 0,339, respectivamente (\cref{tab:ood-panda-control}). Sin embargo, ambos \AUROC siguen casi igualados (diferencia de +0,004), aunque ahora la saturación es menor: alcanza el valor extremo el 30,1\,\% de las imágenes de PANDA y el 39,4\,\% de las del control (\cref{tab:stoodx-saturacion-k144}). Además, aun forzando el peor y el mejor orden posible entre las imágenes saturadas, el \AUROC solo varía entre 0,938 y 0,942 en PANDA y entre 0,932 y 0,936 en el control, por lo que con $K = 144$ la saturación no basta para explicar esta coincidencia.
+% No se ha calculado con K = 144 el AUROC de PANDA frente al control (0,475 con K = 500).
 
-\begin{figure}[tbp]
-  \centering
-  \includegraphics[width=0.7\textwidth]{img/cap10/fig4_panda_vs_control.pdf}
-  \caption{AUROC en PANDA frente a AUROC en el control de resolución (test ID a 128\,px), un punto por método con sus IC. La diagonal indica la misma capacidad de detección en ambos conjuntos. Como PANDA difiere también en escala y en contenido de fondo, quedar por encima de la diagonal no permite atribuir la diferencia solo al cambio de centro. STOOD-X con $K = 500$ queda sobre la diagonal por la saturación de su estadístico.}
-  \label{fig:ood-panda-control}
-\end{figure}
-
-\revisar{propuesta: matizar con las corrupciones sintéticas (\cref{sec:ood-corr-saturacion}): allí la saturación de \stoodx crece con la severidad (hasta el 86,4\,\% en pixelado 5) y el umbral del 95\,\% de \texttt{id\_val} ($-38{,}256$) queda por encima del valor saturado ($-38{,}691$), así que toda imagen saturada se rechaza; no se cambia el texto del autor}
+\inputH{tablas/t10_panda_control}
+%
+%\begin{figure}[tbp]
+%  \centering
+%  \includegraphics[width=0.7\textwidth]{img/cap10/fig4_panda_vs_control.pdf}
+%  \caption{AUROC en PANDA frente a AUROC en el control de resolución (test ID a 128\,px), un punto por método con sus IC. La diagonal indica la misma capacidad de detección en ambos conjuntos. Como PANDA difiere también en escala y en contenido de fondo, quedar por encima de la diagonal no permite atribuir la diferencia solo al cambio de centro. STOOD-X con $K = 500$ queda sobre la diagonal por la saturación de su estadístico.}
+%  \label{fig:ood-panda-control}
+%\end{figure}
 
 \section{Corrupciones sintéticas: \emph{covariate shift} controlado}\label{sec:ood-corrupciones}
 
@@ -119,81 +127,68 @@ Respecto a PANDA, la comparación con el control debe interpretarse con especial
 %   resto (15 configuraciones en total), en el apéndice (\cref{sec:apc-corrupciones}) o donde se indique.
 % - Dos preguntas distintas:
 %   (1) ¿detecta el detector que la imagen está alterada? (\cref{sec:ood-corr-deteccion,sec:ood-corr-cec,sec:ood-corr-saturacion});
-%   (2) ¿rechaza las imágenes alteradas que el clasificador clasifica mal? (\cref{sec:ood-corr-errores}).
-\pendiente{introducción de la sección}
+%   [eliminada por decisión del autor: (2) ¿rechaza las imágenes alteradas mal clasificadas?]
+Debido a las diferencias que mostraba el conjunto de datos PANDA respecto al conjunto ID, con la resolución y el zoom, no se pudo considerar como covariate shift. Sin embargo,
+la prueba de control de resolución sirvió para reflejar como reaccioban los modelos ante alteraciones en el conjunto de datos inicial. Cabe preguntarse si fue una mera coincidencia o 
+si realmente estos métodos mantienen dicha robustez. Para comprobarlo se planteó emplear técnicas similares a las que se usan en el aumento de datos o a las empleadas por Schoming et al.  ~\cite{schomig2021}, para tener un conjunto de test con diversas perturbaciones.
+Aunque debido a la naturaleza del origen, no encaja con la definición de covariate shift, si lo vamos a considerar como tal, pues son imágenes nunca vistas por el modelo y que presentan cambios en la distribución.
+Para realizar este experimento se utilizó el benchmark ya existente creado por Zhang et al ~\cite{zhang2022corruptions}. Así pues se consideró el 
+como conjunto ID las imágenes limpias del test y como conjunto OOD sus versiones corruptas. Existen 9 tipos de corrupción, con niveles desde 0 (imagen limpia) hasta 5. Para el estudio solo se han empleado 
+los niveles 1, 3 y 5 sobre las 12618 imágenes, ya que se considera suficiente para representar los distintos grados de severdidad posible.  Finalmente se pretende responder a la siguiente pregunta: ¿detecta el detector que la imagen está alterada? (\cref{sec:ood-corr-deteccion,sec:ood-corr-cec,sec:ood-corr-saturacion}).
 
 \subsection{Exactitud del clasificador ante las corrupciones}\label{sec:ood-corr-exactitud}
 
 \input{tablas/t10_corr_exactitud}
+%
+%begin{figure}[tbp]
+%  \centering
+%  \includegraphics[width=0.75\textwidth]{img/cap10/corr_c_exactitud_severidad.pdf}
+%  \caption{Exactitud del Swin-S (más alto es mejor) frente al nivel de severidad (0 = imagen limpia; 1, 3 y 5), una línea por corrupción, con IC del 95\,\% por \emph{bootstrap}.}
+%  \label{fig:ood-corr-exactitud}
+%\end{figure}
 
-\begin{figure}[tbp]
-  \centering
-  \includegraphics[width=0.75\textwidth]{img/cap10/corr_c_exactitud_severidad.pdf}
-  \caption{Exactitud del Swin-S (más alto es mejor) frente al nivel de severidad (0 = imagen limpia; 1, 3 y 5), una línea por corrupción, con IC del 95\,\% por \emph{bootstrap}.}
-  \label{fig:ood-corr-exactitud}
-\end{figure}
-
-% [propuesta de análisis] El brillo apenas afecta en el nivel 1: exactitud 0,965 [0,961; 0,968], caída
-%   0,004 [0,002; 0,006]. Es coherente con que el brillo y el contraste formaban parte del aumento de datos
-%   (\cref{sec:dataloader}), aunque eso no demuestra la causa.
-% [propuesta de análisis] El modelo es frágil ante la compresión y el desenfoque ya en el nivel 1: JPEG 0,642
-%   [0,634; 0,650] y desenfoque 0,637 [0,629; 0,645]. Con pixelado de nivel 5 cae a 0,277 [0,269; 0,285]
-%   (la más baja de las 27 celdas; desenfoque 5: 0,287).
-% [propuesta de análisis] Las marcas tienen un efecto pequeño (0,929 [0,925; 0,934] en el nivel 5; caída
-%   0,040): son una sola mancha en una posición fija.
-% [propuesta de análisis] Las calidades JPEG de Zhang (25, 15 y 7, \cref{tab:corrupciones}) son muy agresivas.
-% Otras cifras: tono 5, 0,580; saturación 5, 0,733; burbujas 5, 0,811; movimiento 1, 0,910 y 5, 0,433.
-\pendiente{análisis}
-\pendiente{cita, si se quiere comparar con la compresión habitual de los escáneres}
+ El brillo apenas afecta en el nivel 1: exactitud 0,965 con una caída de
+   0,004. Es coherente con que el brillo y el contraste formaban parte del aumento de datos
+   (\cref{sec:dataloader}), aunque eso no demuestra la causa, pero es cierto que el modelo ya ha visto imágenes con este tipo de 
+   alteraciones durante el entrenamiento se espera que sea más robusto.
+ Por otro lado el modelo presenta una mayor fragilidad ante la compresión y el desenfoque, ya que en el nivel 1 presenta una caída de 
+ de 0,327  y 0,332 respectivamente, y siendo en específico el pixelado la perturbación que más llega a afectar, suponiendo una perdida de precisión de hasta 0,692.
+  Finalmente, cabe destacar la robustez del modelo ante las marcas y las burbujas, siendo alteraciones nunca antes vistas, y que son bastante probables 
+  que aparezcan en estudios clínicos, pero que sin embargo al hacer filtrado de imágenes para generar un dataset nuncan se suelen mantener. ~\cite{schomig2021}
 
 \subsection{¿Detectan la alteración? AUROC y FPR@95}\label{sec:ood-corr-deteccion}
 
 \input{tablas/t10_corr_auroc}
 
-\begin{figure}[tbp]
-  \centering
-  \includegraphics[width=\textwidth]{img/cap10/corr_b_auroc_severidad.pdf}
-  \caption{\AUROC (más alto es mejor) frente al nivel de severidad de los seis detectores principales, un panel por corrupción, con bandas de IC del 95\,\% por \emph{bootstrap}. ID: las imágenes limpias; OOD: sus versiones corruptas.}
-  \label{fig:ood-corr-auroc}
-\end{figure}
+%\begin{figure}[tbp]
+%  \centering
+%  \includegraphics[width=0.8\textwidth]{img/cap10/corr_b_auroc_severidad.pdf}
+%  \caption{\AUROC (más alto es mejor) frente al nivel de severidad de los seis detectores principales, un panel por corrupción, con bandas de IC del 95\,\% por \emph{bootstrap}. ID: las imágenes limpias; OOD: sus versiones corruptas.}
+%  \label{fig:ood-corr-auroc}
+%\end{figure}
 
-% [propuesta de análisis] STOOD-X (100 %, K = 500) tiene el AUROC más alto en la mayoría de celdas, sobre
-%   todo en los niveles bajos y medios. Ejemplos (comprobados): JPEG 1, 0,897 frente a 0,787 de ViM;
-%   saturación 1, 0,658 frente a 0,610 (ViM); burbujas 3, 0,891 frente a 0,804 (ViM).
-% Recuentos (metricas_celda.csv; entre los 6 detectores principales; los mismos entre las 14
-%   configuraciones sin STOOD-X 87,5 %):
-%   - AUROC: STOOD-X es el mejor en 25 de 27 celdas; en 24 su IC no se solapa con el del segundo (se
-%     solapa en desenfoque 3, frente a ViM). No es el mejor en pixelado 5 (ViM 0,993 frente a 0,992) ni
-%     en desenfoque 5 (ViM 0,994 frente a 0,991).
-%   - FPR@95: STOOD-X es el mejor en 22 de 27; en 19 su IC no se solapa con el del segundo (se solapa en
-%     saturación 3 y marcas 3, frente a ViM, y en tono 1, frente a MDS). No es el mejor en brillo 1
-%     (ViM 0,927 frente a 0,928), saturación 1 (ViM 0,863 frente a 0,872), tono 3 (KNN 0,621 frente a
-%     0,624), burbujas 1 (ViM 0,925 frente a 0,934) ni movimiento 1 (ViM 0,508 frente a 0,535).
-% [propuesta de análisis] El orden del resto: ViM >= MDS > KNN ~ RMDS. Comprobado: ViM > MDS en AUROC en
-%   27/27 celdas; MDS > KNN en 22/27; KNN > RMDS en 12/27. AUROC medio en las 27 celdas: STOOD-X 0,856,
-%   ViM 0,797, MDS 0,791, RMDS 0,784, KNN 0,780, MSP 0,707.
-% [propuesta de análisis] MSP es casi ciego en los niveles bajos: FPR@95 entre 0,899 (desenfoque 1) y
-%   0,967 (pixelado 1) en el nivel 1; en marcas 1, AUROC 0,472.
-% [propuesta de análisis] En brillo 1, todos los detectores dan un AUROC cercano a 0,5: entre 0,521 (RMDS) y
-%   0,546 (STOOD-X) en los 6 principales; entre 0,497 (ReAct) y 0,546 en los 15. Coherente con el aumento de
-%   datos (\cref{sec:dataloader}).
-% [propuesta de análisis] Comparación con PANDA (\cref{sec:ood-panda}): aquí el cambio está aislado, así que
-%   la sensibilidad de STOOD-X se puede atribuir a la corrupción. El artículo de STOOD-X no estudia este
-%   aspecto, y es relevante en medicina.
-% [propuesta de análisis] Matiz: con el criterio del espectro completo (\cref{def:deteccionfullspectrum})
-%   estas imágenes se deberían aceptar. Aquí se adopta el criterio clínico, que la
-%   \cref{sec:ood-corr-errores} pone a prueba imagen a imagen.
-\pendiente{análisis}
-\revisar{tono: comparación con lo que estudia el artículo de \stoodx}
-\pendiente{análisis del autor: comparación con PANDA}
+STOOD-X (100 \%, K = 500) tiene el AUROC más alto en la mayoría de celdas, sobre
+   todo en los niveles bajos y medios, algunos ejemplos frente al segundo mejor resultado son JPEG 1, 0,897 frente a 0,787,
+   saturación 1, 0,658 frente a 0,610 o burbujas 3, 0,891 frente a 0,804 (ViM).
+   Por lo general STOOD-X es el método que domina en todas las celdas, demostrando la alta sensibilidad que presenta ante 
+   el covariate shift.
+  
+Respecto a la métrica FPR@95, se aprecia como STOOD-X es el mejor en 22 de 27 y en 19 celdas su IC no se solapa con el segundo mejor, mostrando una clara superioridad. Lo que refleja que para algunas clases con perturbaciones que falla bastante. De todos modos, en todos
+   los casos en los que pierde queda en segunda posición, y con valores tanto el primero como STOOD-X con valores muy altos.
+ El orden del resto se puede aproximar a ViM >= MDS > KNN ~ RMDS > MSP.
+  MSP es casi ciego en los niveles bajos: FPR@95 entre 0,899 (desenfoque 1) y
+   0,967 (pixelado 1) en el nivel 1; en marcas 1, AUROC 0,472.
+  En brillo 1, todos los detectores dan un AUROC cercano a 0,5 coherente con lo mencionado anteriormente, de que esta técnica fue utilizado 
+  durante el aumento de datos, por lo que es normal que se confunda con datos de origen ID.
+  Comparación con PANDA (\cref{sec:ood-panda}): aquí el cambio está aislado, así que
+  la sensibilidad de STOOD-X se puede atribuir a la corrupción. El artículo de STOOD-X ~\cite{sevillano2026} no estudia este
+   aspecto, y es relevante en medicina.
 
 \input{tablas/t10_corr_fpr95}
 
+
 % [propuesta de análisis] El mismo recuento con FPR@95: STOOD-X es el mejor en 22 de 27 celdas (19 con IC
 %   sin solapar); cifras arriba.
-\pendiente{análisis}
-\revisar{tablas completas, con IC y el resto de detectores, en el apéndice C (\cref{sec:apc-corrupciones}): confirmar ubicación}
-
 \subsection{¿Gradúan la severidad? CEC}\label{sec:ood-corr-cec}
 
 \input{tablas/t10_corr_cec}
@@ -204,152 +199,45 @@ Respecto a PANDA, la comparación con el control debe interpretarse con especial
   \caption{CEC global (más bajo es mejor; 0 = ordenación monótona, 0,5 = azar) de las 15 configuraciones de detectores, con IC del 95\,\% por \emph{bootstrap}. El detalle por corrupción está en la \cref{fig:apc-corr-cec-mapa}.}
   \label{fig:ood-corr-cec}
 \end{figure}
-\revisar{comprobar qué variante de la CEC de \stoodx muestra la figura (la de empates exactos, 0,138, o la de pares saturados como empate, 0,128): la tabla usa 0,128}
-
-% [propuesta de análisis] Orden (cec.csv, fila global): ViM 0,106 < MDS 0,109 < KNN 0,121 < STOOD-X 0,128
-%   (0,138 con empates exactos; 87,5 %: 0,128 y 0,138) < RMDS 0,159 < SHE 0,192-0,209 < MSP 0,284 <
+% Orden (fila global): ViM 0,106 < MDS 0,109 < KNN 0,121 < STOOD-X 0,128
+%   (0,138 con empates exactos; 87,5 \%: 0,128 y 0,138) < RMDS 0,159 < SHE 0,192-0,209 < MSP 0,284 <
 %   MaxLogit 0,311, Energy 0,314 y ReAct 0,322 < DICE 0,408 < ASH 0,447.
-%   Nota: la variante 0,128 está en cec.csv (columna CEC_saturadas_como_empate) sin IC; no se ha calculado.
-% [propuesta de análisis] STOOD-X detecta mejor que ViM y MDS, pero ordena peor la severidad. El AUROC
-%   compara poblaciones dentro de un nivel («¿hay cambio?»); la CEC sigue a cada imagen a lo largo de los
-%   niveles («¿cuánto cambio hay?»).
-% [propuesta de análisis] Mecanismo: el estadístico U de Mann-Whitney está acotado. Con separación completa
-%   (U = n_1 n_2), la -z se satura (\cref{obs:u-empates}). Sin el término de empates de sigma:
-%     z_máx = (n_1 n_2 / 2 - 1/2) / sqrt(n_1 n_2 (n_1 + n_2 + 1) / 12),
-%   con la corrección de continuidad de scipy que usa stoodx_paper.py (z = (U - n_1 n_2/2 - 0,5)/sigma).
-%   En stoodx_paper.py, n_1 = K = 500 y n_2 = K^2 = 250.000 (A: K distancias; B: K por cada uno de los K
-%   vecinos; clases con n_c > K). Valor: z_máx = 38,6910841 (sin la corrección de continuidad,
-%   38,6910844); saturacion_stoodx.csv da puntuaciones saturadas entre -38,6910841 y -38,6910841 (el término
-%   de empates de sigma solo cambia el octavo decimal). ViM y MDS no tienen esa cota.
-% [propuesta de análisis] Aun contando los pares saturados como empates, STOOD-X (0,128) queda por encima de
-%   ViM (0,106): una prueba de rangos descarta la magnitud de las distancias.
-% [propuesta de análisis] La relación CEC = (1 - tau_a)/2 se cumple con un error máximo de 1,1e-16
+Los valores de \AUROC y \FPRn{95} vistos de \stoodx demuestran su alta sensibilidad ante alteraciones en la distribución del conjunto de entrada. Sin embargo, su valor de CEC es de 0,128, viéndose superado por otros detectores como ViM (0,106) o MDS (0,109), lo que refleja que, ante mayores grados de corrupción, su capacidad de detección no mejora. Esto viene asociado a la propia saturación que conlleva el método (\cref{sec:ood-corr-saturacion}).
+STOOD-X detecta mejor que ViM y MDS, pero ordena peor la severidad. El AUROC
+   compara poblaciones dentro de un nivel («¿hay cambio?»); la CEC sigue a cada imagen a lo largo de los
+   niveles («¿cuánto cambio hay?»).
+Cuando una imagen tiene la puntuación saturada en dos niveles de severidad, ambos reciben la misma puntuación y el detector no puede ordenarlos. Esto ocurre en el 7,30\,\% de los pares de niveles (7,57\,\% con el 87,5\,\% de las características), desde el 0,68\,\% en las marcas hasta el 27,25\,\% en el desenfoque.
+
+Aun contando los pares saturados como empates, \stoodx (0,128) queda por encima de ViM (0,106). Al ser una prueba de rangos, solo tiene en cuenta el orden de las distancias y descarta su magnitud, por lo que, incluso antes de saturar, distingue peor cuánto se ha alejado la imagen.
+% [propuesta de análisis] La relación CEC = (1 - taua)/2 se cumple con un error máximo de 1,1e-16
 %   (comprobacion_cec_kendall.csv): enlaza con la proposición pendiente de la \cref{sec:cec}.
-% Pares con los dos niveles saturados en STOOD-X: 7,30 % (100 %) y 7,57 % (87,5 %); por corrupción, de
-%   0,68 % (marcas) a 27,25 % (desenfoque).
-\pendiente{proposición del autor: valor de saturación de la $-z$ con separación completa}
-\pendiente{análisis}
-\revisar{tono: comparación de \stoodx con ViM y MDS}
 
 \subsection{Saturación de STOOD-X}\label{sec:ood-corr-saturacion}
 
+% Mecanismo: z_máx = (n1 n2 / 2 - 1/2) / sqrt(n1 n2 (n1 + n2 + 1) / 12), con la corrección de continuidad de
+%   scipy que usa stoodx_paper.py (z = (U - n1 n2/2 - 0,5)/sigma). En stoodx_paper.py, n1 = K = 500 y
+%   n2 = K^2 = 250.000 (A: K distancias; B: K por cada uno de los K vecinos; clases con nc > K).
+%   zmáx = 38,6910841 (sin la corrección de continuidad, 38,6910844); saturacion_stoodx.csv da puntuaciones
+%   saturadas en -38,6910841 (el término de empates de sigma solo cambia el octavo decimal).
+La puntuación de \stoodx es el estadístico tipificado $-z$ del test de Mann-Whitney entre las $n_1 = K$ distancias de la imagen a sus vecinos y las $n_2 = K^2$ distancias de esos vecinos a los suyos (\cref{def:stoodx}). Como $0 \le U \le n_1 n_2$, cuando todas las distancias de la imagen superan a las de sus vecinos (separación completa) se tiene $U = n_1 n_2$ y $z$ alcanza su valor máximo (\cref{obs:u-empates}), que con $K = 500$ es $z_{\max} \approx 38{,}69$. A partir de ese punto, aunque la corrupción aumente y la imagen se aleje aún más de sus vecinos, la puntuación ya no cambia. ViM y MDS, en cambio, no tienen esa cota.
+
 \input{tablas/t10_corr_saturacion}
 
-% [propuesta de análisis] La saturación crece con la severidad: desenfoque 52,9/75,1/85,7 %, pixelado
-%   14,9/32,6/86,4 %, movimiento 16,1/57,9/73,6 % y JPEG 25,8/31,1/45,9 % (comprobado). Imagen limpia:
-%   0,62 %. La menor: marcas 1 (0,6 %) y brillo 1 (0,7 %).
-% [propuesta de análisis] El umbral que acepta el 95 % de id_val (-38,256) está por encima del valor de
-%   saturación (-38,691), así que todas las imágenes saturadas se rechazan (fase8b/decisiones.md;
-%   umbral_fijo_celda.csv). En id_val satura el 0,61 % (100 %).
-% [propuesta de análisis] Enlace con la \cref{sec:ood-panda}: en PANDA y en el control satura cerca de un
-%   tercio con K = 500; aquí la saturación es graduable y crece con la severidad.
+La \cref{tab:ood-corr-saturacion} muestra que la saturación crece con la severidad en todas las corrupciones, partiendo del 0,62\,\% de las imágenes limpias. Los casos más acusados son el desenfoque (52,9; 75,1 y 85,7\,\% en los niveles 1, 3 y 5), el pixelado (14,9; 32,6 y 86,4\,\%), el movimiento (16,1; 57,9 y 73,6\,\%) y la compresión JPEG (25,8; 31,1 y 45,9\,\%), mientras que las marcas (0,6\,\%) y el brillo (0,7\,\%) en el nivel 1 apenas se distinguen de las imágenes limpias. Esto concuerda con los pares empatados de la CEC (\cref{sec:ood-corr-cec}): el desenfoque es la corrupción con más pares empatados y las marcas, la que menos.
+
+La saturación no perjudica a la detección en sí: el umbral que acepta el 95\,\% de las imágenes de validación ID ($-38{,}256$) está por encima del valor de saturación ($-38{,}691$), de modo que toda imagen saturada se rechaza. En validación ID solo satura el 0,61\,\%. Lo que se pierde es la capacidad de ordenar la severidad entre las imágenes ya saturadas.
+% Fuente del umbral: fase8b/decisiones.md; umbral_fijo_celda.csv.
+
+A diferencia de lo observado en PANDA y en el control de resolución, donde con $K = 500$ satura cerca de un tercio de las imágenes y la saturación impide distinguir ambos conjuntos (\cref{sec:ood-panda}), aquí la saturación es graduable y crece con la severidad.
 % La figura e_empates_saturacion (results_corrupciones/figuras_memoria) no se incluye: repite la tabla y el %
 %   de pares empatados de la \cref{tab:ood-corr-cec}.
-\pendiente{análisis}
-\revisar{tono}
-
-\subsection{¿Rechazan las imágenes alteradas que el clasificador clasifica mal?}\label{sec:ood-corr-errores}
-
-% Fase 8b: imagen a imagen, la pregunta que la correlación por celdas solo trata de forma agregada. Positivo
-% = imagen mal clasificada; puntuación de error = -s. AUROC_err con rangos medios (empates = 1/2).
-% Correlación de Spearman por celdas (dato secundario; correlacion_exactitud_auroc.csv,
-%   \cref{fig:apc-corr-dispersion}): rho entre la caída de exactitud y el AUROC sobre las 27 celdas: MSP 0,944,
-%   MDS 0,908, KNN 0,933, ViM 0,906, RMDS 0,930, STOOD-X 0,931 (todas p < 1e-10); ASH 0,317 (p = 0,11) y DICE
-%   0,270 (p = 0,17).
-\pendiente{introducción de la subsección}
-
-\input{tablas/t10_corr_auroc_err}
-
-\begin{figure}[tbp]
-  \centering
-  \includegraphics[width=\textwidth]{img/cap10/corr_fase8b_a_auroc_err_severidad.pdf}
-  \caption{\AUROC de detección de errores de clasificación (clase positiva: imagen mal clasificada; más alto es mejor) frente al nivel de severidad de los seis detectores principales, un panel por corrupción, con bandas de IC del 95\,\% por \emph{bootstrap} y, en línea punteada, el valor en la imagen limpia. MDS y ViM se solapan casi por completo.}
-  \label{fig:ood-corr-auroc-err}
-\end{figure}
-\revisar{la figura usa la puntuación original de \stoodx, no la variante con empates reales de la \cref{tab:ood-corr-auroc-err}; regenerarla con la variante principal}
-
-% [propuesta de análisis] AUROC_err en la imagen limpia (comprobado): KNN 0,950, MDS 0,939, ViM 0,939,
-%   RMDS 0,923, MSP 0,855 y STOOD-X 0,846 (STOOD-X - MSP = -0,010 [-0,039; 0,017], no concluyente). Los
-%   detectores basados en características detectan los errores mejor que MSP incluso sin corrupción.
-%   MSP es la referencia clásica para detectar errores de clasificación (Hendrycks y Gimpel, 2017; clave
-%   hendrycks2017 en library.bib).
-%   Hipótesis (no atribuir la causa sin evidencia): el label smoothing comprime la confianza
-%   (\cref{sec:ood-familias}).
-% [propuesta de análisis] AUROC_err en las corruptas: KNN, MDS y ViM obtienen valores de 0,671 a 0,948.
-%   NO coincide «son los mejores en las 27 celdas»: los tres son los tres primeros en 17 de 27; en las
-%   otras 10 RMDS entra entre los tres primeros (es el primero en marcas 5 y burbujas 5).
-% [propuesta de análisis] STOOD-X queda por debajo de ViM y de MDS en las 27 celdas, con el IC de la
-%   diferencia por debajo de 0 en todas (diferencias_auroc_err.csv). Con la puntuación original:
-%   de -0,382 a -0,055 frente a ViM (de -0,382 a -0,057 frente a MDS); con empates reales, de -0,281 a
-%   -0,047 frente a ViM (de -0,282 a -0,048 frente a MDS).
-%   Frente a MSP (las dos variantes): peor con IC por debajo de 0 en 24 de 27; no concluyente en 2 (marcas 1,
-%   burbujas 1) y mejor en 1 (tono 5: 0,020 [0,010; 0,030]). Por estimación puntual, por debajo en 25 de 27.
-% [propuesta de análisis] Con la puntuación original, STOOD-X queda bajo 0,5 en pixelado 5 (0,393),
-%   desenfoque 1 (0,489), 3 (0,407) y 5 (0,412) y movimiento 3 (0,437) y 5 (0,405). Con empates reales
-%   se sitúa en torno a 0,5 (pixelado 5: 0,503; desenfoque 3 y 5: 0,474): no discrimina entre las
-%   imágenes saturadas bien y mal clasificadas, porque en esas celdas la mayoría de unas y otras están
-%   saturadas (pixelado 5: 86,7 % de los errores y 85,9 % de los aciertos; desenfoque 5: 84,2 % y 89,3 %;
-%   desenfoque 3: 73,1 % y 78,2 %; movimiento 5: 76,3 % y 70,1 %).
-\pendiente{análisis}
-\revisar{tono}
-
-\input{tablas/t10_corr_umbral}
-
-% Celdas elegidas: limpia, brillo 5, JPEG 5, pixelado 5, desenfoque 3 y movimiento 5 (las tres últimas, con
-% ganancia selectiva negativa de STOOD-X; desenfoque 5 también la tiene: -0,055). Todas, en la
-% \cref{tab:apc-corr-umbral}.
-% [propuesta de análisis] Con el umbral del 95 % de id_val, STOOD-X rechaza casi todo en las severidades
-%   altas: acepta el 4,9 % en desenfoque 3 y el 4,3 % en movimiento 5 (pixelado 5: 1,3 %; desenfoque 5:
-%   1,8 %; JPEG 5: 6,1 %).
-% [propuesta de análisis] Su ganancia selectiva llega a ser negativa (comprobado): pixelado 5, -0,063;
-%   desenfoque 3, -0,094; desenfoque 5, -0,055; movimiento 5, -0,077. Las pocas imágenes que acepta no
-%   están mejor clasificadas que la media.
-% [propuesta de análisis] ViM, en cambio, acepta más y lo que acepta está mucho mejor clasificado:
-%   desenfoque 3, aceptación 0,102 con exactitud de las aceptadas 0,930 frente a 0,380 de la celda.
-% Captura de errores en esas celdas: STOOD-X 0,944-0,986; ViM 0,965-0,988 (desenfoque 3: 0,988).
-\pendiente{análisis}
-\revisar{tono}
-
-\input{tablas/t10_corr_aurc}
-
-\begin{figure}[tbp]
-  \centering
-  \includegraphics[width=0.75\textwidth]{img/cap10/corr_fase8b_c_riesgo_cobertura.pdf}
-  \caption{Curvas riesgo-cobertura conjuntas (imágenes limpias y las 27 celdas) de los seis detectores principales, con el oráculo y el azar. Riesgo: tasa de error entre las imágenes aceptadas (más bajo es mejor). La curva de MDS queda tapada por la de ViM.}
-  \label{fig:ood-corr-riesgo-cobertura}
-\end{figure}
-\revisar{la figura usa la puntuación original de \stoodx (AURC 0,113), no la variante con empates reales (0,108) de la \cref{tab:ood-corr-aurc}}
-
-% [propuesta de análisis] AURC conjunto (comprobado; oráculo 0,037; azar 0,258): KNN 0,072 ~ MDS 0,074 ~
-%   ViM 0,074 < RMDS 0,079 < STOOD-X 0,108 (0,113 con la puntuación original) < MSP 0,124.
-% [propuesta de análisis] Lectura propuesta: son dos tareas distintas y complementarias.
-%   - STOOD-X es el mejor para avisar de que la imagen está alterada: un control de calidad a nivel de
-%     imagen que rechaza en bloque la adquisición defectuosa.
-%   - KNN, MDS y ViM son los mejores para decidir en qué imágenes alteradas se puede confiar:
-%     clasificación selectiva.
-%   - Esto cumple el criterio clínico en las dos vías: STOOD-X rechaza casi todo lo muy corrupto, donde la
-%     exactitud es baja (0,380 en desenfoque 3), aunque no distinga dentro de ello.
-% Cautelas:
-%   - Algunas celdas tienen pocos errores (395 en la limpia; 417-445 en burbujas 1, marcas 1 y brillo 1):
-%     sus IC son más anchos.
-%   - El AURC conjunto mezcla severidades.
-%   - El umbral sale de id_val (puntuaciones en GPU) y se aplica a puntuaciones calculadas en CPU: en el
-%     test limpio, Spearman >= 0,9999998. Con un umbral fijado en el test limpio, las diferencias son
-%     <= 0,010 en MSP, STOOD-X y ViM, pero llegan a 0,012 (aceptación), 0,013 (exactitud de las aceptadas)
-%     y 0,020 (captura de errores) en RMDS (fase8b/resumen.md).
-%   - El bootstrap es por imagen.
-\pendiente{análisis del autor}
-\revisar{tono}
-
 
 \section{Far-OOD}\label{sec:ood-far}
 
-Finalmente, en Textures, STOOD-X obtiene el mejor resultado (AUROC 0,991 con $K = 500$ y 0,993 con $K = 144$), lo que confirma, como era de esperar, que las imágenes ajenas al contexto médico se detectan sin dificultad. 
+Finalmente, en Textures, STOOD-X obtiene el mejor resultado (AUROC 0,991 con $K = 500$ y 0,993 con $K = 144$ ~\ref{tab:ood-far}), lo que confirma, como era de esperar, que las imágenes ajenas al contexto médico se detectan sin dificultad. 
 Esta mayor dificultad de detecciónd de Near-OOD frente a Far-OOD coincide con los resultados también obtenidos en ~\cite{openood15}.
 No obstante, con MDS (0,956) Textures resulta más difícil de detectar que TUM, NORM o LYM, lo que indica que la dificultad que encuentra cada detector no coincide necesariamente con la distancia semántica intuitiva.
-\input{tablas/t10_far}
-\revisar{añadido el AUROC con $K = 144$; quitado el punto suelto tras la tabla}
-
+\inputH{tablas/t10_far}
 
 \section{Métodos basados en logits y en modificación de activaciones}\label{sec:ood-familias}
 
@@ -373,20 +261,23 @@ No obstante, con MDS (0,956) Textures resulta más difícil de detectar que TUM,
 % Gleason_4_pobremente_formadas 5261,1; Gleason_5_comedonecrosis 3227,1; Gleason_5_no_glandulas 578,4;
 % Inflamatorio 1805,4; No_Cancer 2114,4; PIN_de_alto_grado 395,2.
 
-MDS supone que, condicionadas a la clase, las características de la penúltima capa siguen gaussianas con una covarianza común (\cref{def:mds}). Es uno de los detectores más consistentes del estudio, con un \AUROC medio de 0,926 (\cref{tab:ood-global}), por lo que cabe preguntarse si las clases siguen realmente esa distribución.
+MDS supone que, condicionadas a la clase, las características de la penúltima capa siguen gaussianas con una covarianza común (\cref{def:mds}). 
+Debido a que presenta una alta consistencia , con un \AUROC medio de 0,926 (\cref{tab:ood-global}), cabe preguntarse si las clases siguen realmente esa distribución.
 
-Para comprobarlo se estiman las medias $\mu_c$ y la covarianza común $\Sigma$ con las \num{90800} imágenes de entrenamiento, igual que en MDS, y se calcula la distancia de Mahalanobis $d^2$ de cada una de las \num{12618} imágenes del test ID a su clase verdadera. Si la hipótesis se cumple, $d^2$ sigue una $\chi^2_{768}$ (\cref{prop:mahalanobis-chi2}), de modo que el Q-Q plot de las distancias de cada clase frente a la $\chi^2_{768}$ (\cref{sec:qq-plot}) debería quedar sobre la recta $y = x$. El experimento se ha implementado en Python con NumPy, scikit-learn (\texttt{EmpiricalCovariance}, el mismo estimador de la covarianza que usa el postprocesador MDS de OpenOOD), SciPy (cuantiles de la $\chi^2$) y Matplotlib, sobre las características del Swin-S ya exportadas. Se ha comprobado que, con estas estimaciones, la distancia mínima a las clases reproduce las puntuaciones de MDS del test ID usadas en este capítulo.
+Para comprobarlo se estiman las medias $\mu_c$ y la covarianza común $\Sigma$ con las \num{90800} imágenes de entrenamiento, igual que en MDS, y se calcula la distancia de Mahalanobis $d^2$ de cada una de las \num{12618} imágenes del test ID a su clase verdadera. Si la hipótesis se cumple, $d^2$ sigue una $\chi^2$ con $D = 768$ grados de libertad, la dimensión de las características del Swin-S (\cref{prop:mahalanobis-chi2}), de modo que el Q-Q plot de las distancias de cada clase frente a la $\chi^2_{768}$ (\cref{sec:qq-plot}) debería quedar sobre la recta $y = x$. El experimento se ha implementado en Python con NumPy, scikit-learn (\texttt{EmpiricalCovariance}, el mismo estimador de la covarianza que usa el postprocesador MDS de OpenOOD), SciPy (cuantiles de la $\chi^2$) y Matplotlib, sobre las características del Swin-S ya exportadas. Se ha comprobado que, con estas estimaciones, la distancia mínima a las clases reproduce las puntuaciones de MDS del test ID usadas en este capítulo.
 
-También se podría haber aplicado el test de Lilliefors~\cite{lilliefors1967} a las primeras componentes principales. Cualquier proyección lineal de una gaussiana es gaussiana, así que bastaría con que una sola componente no fuese normal para rechazar la hipótesis: se aplicaría el test a la primera componente y, si no se rechazara, a la segunda y a la tercera. No ha hecho falta, porque el Q-Q plot ya muestra que la hipótesis no se cumple (\cref{fig:ood-qq-mahalanobis}).
+También se podría haber aplicado el test de Lilliefors~\cite{lilliefors1967} ~\cite{perez2025inferencia} a las primeras componentes principales. Cualquier proyección lineal de una gaussiana es gaussiana, así que bastaría con que una sola componente no fuese normal para rechazar la hipótesis: se aplicaría el test a la primera componente y, si no se rechazara, a la segunda y a la tercera. Como se harían hasta tres tests, cada uno se aplicaría a nivel $\alpha/3$ (corrección de Bonferroni), de modo que la probabilidad de rechazar la hipótesis por error en alguno de ellos sea como mucho $\alpha$~\cite[ec.~(4)]{dunn1961}. No ha hecho falta, porque el Q-Q plot ya muestra que la hipótesis no se cumple (\cref{fig:ood-qq-mahalanobis}).
 
 \begin{figure}[tbp]
   \centering
-  \includegraphics[width=\textwidth]{img/cap10/qq_mahalanobis_chi2.pdf}
+  \includegraphics[width=0.74\textwidth]{img/cap10/qq_mahalanobis_chi2.pdf}
   \caption{Q-Q plot de las distancias de Mahalanobis al cuadrado de las imágenes del test ID a su clase verdadera (eje vertical, en escala logarítmica) frente a los cuantiles de la $\chi^2_{768}$ (eje horizontal), una serie por clase, con su número de imágenes $n$. Si las clases siguieran la gaussiana que supone MDS, los puntos quedarían sobre la recta discontinua $y = x$.}
   \label{fig:ood-qq-mahalanobis}
 \end{figure}
 
 Ninguna clase queda sobre la recta $y = x$: todas las curvas se separan de ella y tienen colas mucho más pesadas que la $\chi^2_{768}$, de modo que las características no siguen la gaussiana que supone MDS. Además, las clases grandes quedan por debajo de la recta y las pequeñas muy por encima. Frente a la mediana de la $\chi^2_{768}$, 767,3, la mediana de $d^2$ es de 240,5 en \clase{Glandulas\_no\_neoplasicas} ($n = \num{3590}$) y de 175,5 en \clase{Adenocarcinoma\_ductal} ($n = \num{2102}$), pero de 9074,7 en \clase{Gleason\_4\_glomeruloide} ($n = 25$), de 5261,1 en \clase{Gleason\_4\_pobremente\_formadas} ($n = 127$) y de 3604,8 en \clase{Carcinoma\_intraductal} ($n = 121$). Esto apunta a que tampoco se cumple la hipótesis de covarianza común, que dominan las clases grandes. Aun así, MDS funciona: separar las imágenes ID de las OOD no requiere que el modelo gaussiano sea correcto.
+
+Lee et al.\ suponen gaussianas de clase con covarianza común y muestran que las clases quedan bien separadas en el espacio de características~\cite[sec.~2.1 y fig.~1a]{lee2018}. Aquí la gaussianidad no se cumple y MDS funciona igualmente, lo que sugiere que puede importar más que las clases estén compactas y bien separadas que su forma exacta. Investigarlo queda como trabajo futuro.
 
 \section{Discusión}\label{sec:ood-discusion}
 
@@ -431,37 +322,69 @@ STOOD-X $K_c$$^{\dagger}$ & 0{,}931 $\pm$ 0{,}064 & 0{,}247 $\pm$ 0{,}193 & 0{,}
 \bottomrule
 \end{tabular}
 \end{table}
-\pendiente{análisis de la \cref{tab:ood-global}}
 % Orden por AUROC medio: STOOD-X K=144 0,972; STOOD-X 100 % 0,944; 87,5 % 0,943; K_c 0,931; ViM 0,929;
 % MDS 0,926; KNN 0,911; RMDS 0,899. Sin STOOD-X K=144, el menor FPR@95 medio es ViM (0,241) y el mayor
 % CCR@FPR5 medio también ViM (0,756), aunque STOOD-X (100 %) tiene mayor AUROC medio (0,944) y la menor
 % desviación de AUROC (0,043). RMDS tiene la mayor desviación de FPR@95 (0,342), por LYM (0,992) y el control de 128 px (0,821).
 
-\textbf{Conclusión.} Ningún método domina en todas las métricas y conjuntos. ViM ofrece el mejor equilibrio global en AUROC; RMDS, el mejor comportamiento con umbrales exigentes, aunque con un fallo severo en LYM; y STOOD-X destaca en far-OOD y en varias clases de NCT-CRC, pero es el más sensible a la resolución. El hallazgo más relevante es que los mejores detectores responden sobre todo a las condiciones de adquisición, lo que condiciona su uso en un entorno multicéntrico. \revisar{conclusiones propias del Swin; con ConvNeXt-S cambian (\cref{tab:convnext-conclusiones})}
-\revisar{donde dice que \stoodx «es el más sensible a la resolución», propuesta de integrar dos cosas: que es el más sensible al \emph{covariate shift} en general (corrupciones sintéticas, \cref{sec:ood-corr-deteccion}, y ConvNeXt-S, \cref{ap:convnext}), y el matiz de la \cref{sec:ood-corr-errores}: sirve como alarma de imagen alterada, pero no es el mejor para la clasificación selectiva. No se cambia el texto del autor}
-\revisar{la conclusión vale para los métodos con su configuración por defecto (STOOD-X con $K = 500$). Con $K = 144$, elegido solo con datos ID, STOOD-X es el mejor en AUROC, FPR@95 y CCR@FPR5 en todos los conjuntos salvo LYM (ViM 0,969 frente a 0,966; \cref{sec:stoodx-resultados}); hay que reescribir la conclusión teniéndolo en cuenta}
+Los métodos basados en el espacio de características superan de forma sistemática a los basados en logits y a los de modificación de activaciones (\cref{tab:ood-global}). Esto refleja la importancia de la información acumulada en el vector de características de 768 dimensiones, que en buena parte se pierde al proyectarlo sobre los 14 logits. También muestra que algunos métodos son muy sensibles al modelo: los de modificación de activaciones, diseñados para redes con ReLU y BatchNorm, no se trasladan bien a un Swin Transformer, y ASH llega a reducir la exactitud ID al 68,3\,\%. Además, varias de las conclusiones obtenidas con el Swin-S cambian al repetir el experimento con ConvNeXt-S (\cref{tab:convnext-conclusiones}); por ejemplo, el fallo de RMDS en LYM (\FPRn{95} de 0,992) no se reproduce con este modelo.
+
+El control interno muestra que el principal motivo por el que una imagen se detecta como OOD son las condiciones de adquisición, más que el tipo de tejido: LYM, un tejido presente en la próstata, se detecta con la misma facilidad que el tejido de colon (\cref{sec:ood-control-interno}). Por el contrario, Textures, ajeno al contexto médico, no siempre es el conjunto más fácil: con MDS resulta más difícil de detectar que TUM, NORM o LYM (\cref{sec:ood-far}). Por otro lado, MDS funciona bien aunque las características no siguen la gaussiana que supone (\cref{sec:ood-mds-gaussiana}).
+
+Con $K = 144$, elegido solo con datos ID (\cref{sec:stoodx-seleccion-k}), \stoodx es el mejor método en las tres métricas, tanto en el near-OOD principal (\AUROC 0,991, \FPRn{95} 0,026 y \CCRn{5} 0,951) como en la media de los ocho conjuntos de la \cref{tab:ood-global} (\AUROC 0,972, \FPRn{95} 0,120 y \CCRn{5} 0,864). Entre los métodos que no son \stoodx, le sigue ViM, con la menor \FPRn{95} media (0,241) y el mayor \CCRn{5} medio (0,756); en \AUROC, en cambio, las variantes de \stoodx con $K = 500$ también quedan por delante de ViM (0,944 frente a 0,929). Hay que tener en cuenta que el resto de métodos se evalúan con su configuración por defecto, mientras que $K = 144$ es el resultado de una selección, que se detalla en el \cref{cap:stoodx}.
+
+Para comprobar si las diferencias entre los métodos competitivos son significativas sobre el conjunto de los ocho conjuntos de la \cref{tab:ood-global}, se aplica el test de Friedman con la corrección de Iman-Davenport y, tras él, el test de Nemenyi (\cref{sec:friedman-nemenyi}) al \AUROC de los métodos basados en características y distancias (KNN, MDS, RMDS, ViM y SHE con distancia euclídea) y de \stoodx con el 100\,\% de las características y $K = 500$ o $K = 144$ ($k = 7$ métodos, $N = 8$ conjuntos, $\alpha = 0{,}05$).
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=0.9\textwidth]{img/cap10/cd_nemenyi_auroc.pdf}
+  \caption{Diagrama de diferencia crítica (test de Nemenyi, $\alpha = 0{,}05$) del \AUROC de siete detectores sobre ocho conjuntos OOD (TUM, NORM, STR, LYM, MUS, PANDA, control de 128\,px y DTD). Cada método se sitúa en su rango medio (entre paréntesis; 1 = mejor \AUROC, más bajo es mejor), con los mejores a la derecha. Las barras gruesas unen grupos de métodos cuyos rangos medios difieren menos que la diferencia crítica, $\mathrm{CD} = 3{,}18$.}
+  \label{fig:ood-cd-nemenyi}
+\end{figure}
+
+\pendiente{análisis del diagrama de diferencia crítica}
+% Fuente: scripts/figura_cd_nemenyi.py sobre results_ood/faseC_K144/tabla_principal.csv (AUROC sin redondear).
+% Bloques: TUM, NORM, STR, LYM, MUS, PANDA, control 128 px, DTD (sin TUM+NORM, unión de TUM y NORM).
+% Excluidos por decisión del autor (2026-11-21): logits y modificación de activaciones (claramente peores,
+% \cref{tab:ood-familias}), SHE prod. escalar y coseno, STOOD-X 87,5 % y K_c (exploratorio).
+% Sin empates en ningún conjunto.
+% Rangos medios: STOOD-X K=144 1,250; ViM 2,500; STOOD-X K=500 3,500; MDS 3,625; RMDS 5,125; KNN 5,375;
+%   SHE euclídea 6,625.
+% Friedman: chi2_F = 34,71 (6 gl, p = 4,9e-6); Iman-Davenport: F_F = 18,29 con (6, 42) gl (p = 2,6e-10).
+% q_0,05 = 2,948 (k = 7); CD = 3,18.
+% Diferencias significativas (|R_j - R_l| >= CD): STOOD-X K=144 frente a SHE euclídea (5,375), KNN (4,125)
+%   y RMDS (3,875); ViM frente a SHE euclídea (4,125). El resto de pares no son significativos; en
+%   particular, STOOD-X K=144 frente a ViM (1,25), STOOD-X K=500 (2,25) y MDS (2,375).
+% Grupos: {STOOD-X K=144, ViM, STOOD-X K=500, MDS}; {ViM, STOOD-X K=500, MDS, RMDS, KNN};
+%   {STOOD-X K=500, MDS, RMDS, KNN, SHE euclídea}.
+% STOOD-X K=144 es primero en 7 de 8 conjuntos (tercero en LYM).
+% Se asume que los ocho conjuntos son independientes (decisión del autor, 2026-11-21).
+
+Además, en las corrupciones sintéticas \stoodx es el método más sensible al \emph{covariate shift} (\cref{sec:ood-corr-deteccion}): con $K = 500$ obtiene el mejor \AUROC en 25 de las 27 celdas y la mejor \FPRn{95} en 22, y con $K = 144$ su \FPRn{95} mejora todavía más (\cref{tab:apc-corr-k144}). Sin embargo, la principal debilidad que presenta es la saturación de su estadístico: una vez que todas las distancias de la imagen superan a las de sus vecinos, la puntuación deja de cambiar. Con $K = 500$, esto le impide graduar la severidad de la alteración (CEC de 0,128, frente a 0,106 de ViM y 0,109 de MDS; \cref{sec:ood-corr-cec,sec:ood-corr-saturacion}) y distinguir PANDA del control de resolución (\cref{sec:ood-panda}). Con $K = 144$ la saturación es menor (\cref{tab:stoodx-saturacion-k144}), pero PANDA y el control siguen casi igualados (0,939 y 0,935), por lo que la saturación no basta para explicar esa coincidencia.
+
+Por último, el valor medio de 0,120 en \FPRn{95} esconde situaciones muy distintas: en el near-OOD principal y en Textures \stoodx con $K = 144$ baja a 0,026 y 0,020, pero en LYM sube a 0,170, en PANDA a 0,226 y en el control de resolución a 0,339. Es decir, el cambio en las condiciones de adquisición sigue siendo el caso más difícil, y estos valores son todavía demasiado altos a nivel clínico, por lo que se trata de un campo en el que se tiene que seguir investigando. Una forma de controlar las falsas alarmas con garantías es fijar el umbral mediante predicción conforme (\cref{sec:conforme-ood}).
+% Cifras por conjunto de STOOD-X K = 144: results_ood/faseC_K144/tabla_principal.csv
+%   (TUM+NORM 0,026; DTD 0,020; LYM 0,170; PANDA 0,226; control 128 px 0,339).
+% Texto original del autor (punto de partida de esta discusión, 2026-11-21): «STOOD-X (k = 144) ha quedado
+%   visto actualmente como el mejor método respecto covariate shift, siendo el más sensible. Sin embargo la
+%   principal debilidad que presenta es la saturación [...] Para apoyar estos resultados [...] el valor de
+%   0,120 en FPR@95 sigue siendo demasiado alto a nivel clínico [...]».
 
 % Integrar lo hallado en las secciones anteriores y enlazar con:
 % - STOOD-X en detalle (\cref{cap:stoodx}); selección de K solo con ID y K = 144
 %   (\cref{sec:stoodx-seleccion-k,tab:stoodx-k144-k500}).
 % - Umbral con garantía de falsas alarmas (\cref{sec:conforme-ood}).
-% - Efecto de la fuga por lámina en estas cifras (\cref{cap:fuga}): con KNN y MDS, el AUROC baja
-%   0,02-0,07 sin la lámina de cada parche.
 % - AUPR-In y AUPR-Out en el \cref{ap:aupr}; clases ADI, BACK, DEB y MUC en el \cref{ap:anexo-nct}.
 % - Corrupciones sintéticas (\cref{sec:ood-corrupciones}): STOOD-X es el más sensible a la presencia de
 %   covariate shift sintético (mejor AUROC en 25 de 27 celdas), pero gradúa la severidad peor que ViM y MDS
-%   (CEC) y no es el mejor para la clasificación selectiva (AUROC_err, AURC); KNN, MDS y ViM son los más
-%   equilibrados; los basados en logits quedan por detrás en las tres preguntas.
+%   (CEC); los basados en logits quedan por detrás.
 % Corrupciones sintéticas (\cref{sec:ood-corrupciones}), conclusiones y limitaciones:
 % - STOOD-X es el detector más sensible a la presencia de covariate shift sintético: el mejor AUROC en 25
 %   de 27 celdas (24 con IC sin solapar) y el mejor FPR@95 en 22 de 27 (19 con IC sin solapar).
 %   - Coherente con ConvNeXt-S (\cref{ap:convnext}), donde es el primero en PANDA y en el control.
-%   - Pero gradúa la severidad peor que ViM y MDS (CEC 0,128 frente a 0,106 y 0,109) y no es el mejor para
-%     seleccionar qué imágenes alteradas se pueden clasificar con fiabilidad (AUROC_err, AURC), por la
-%     saturación de su estadístico.
-% - Los métodos de distancia (KNN, MDS, ViM) son los más equilibrados: detectan bien la alteración,
-%   gradúan la severidad y separan los aciertos de los errores.
-% - Los detectores basados en logits quedan claramente por detrás en las tres preguntas.
+%   - Pero gradúa la severidad peor que ViM y MDS (CEC 0,128 frente a 0,106 y 0,109), por la saturación
+%     de su estadístico.
+% - Los detectores basados en logits quedan claramente por detrás.
 % - Robustez y detección se complementan: el aumento de datos (brillo) hace al modelo robusto a lo
 %   frecuente y benigno, y la detección cubre lo que no maneja (desenfoque, artefactos).
 %   Tellez et al. (2019): no está en tfg-referencias/papers/ ni en library.bib; pedírsela al autor.
@@ -469,18 +392,9 @@ STOOD-X $K_c$$^{\dagger}$ & 0{,}931 $\pm$ 0{,}064 & 0{,}247 $\pm$ 0{,}193 & 0{,}
 % - los parámetros de Zhang están calibrados con PCam/LocalTCT;
 % - las marcas y burbujas van en una posición fija;
 % - la implementación del tono está marcada como poco fiable en el código de Zhang;
-% - el bootstrap es por imagen (\cref{cap:fuga});
+% - el bootstrap es por imagen;
 % - el brillo estaba en el aumento de datos;
 % - en STOOD-X, el orden entre imágenes saturadas lo decide un término de ~1e-8;
 % - solo se ha evaluado con el Swin-S.
-\pendiente{cita de Tellez et al.\ (2019), si se usa: falta el documento}
-\pendiente{discusión global}
-
-% Repetición con ConvNeXt-S en el espacio M (\cref{ap:convnext}, tabla \cref{tab:convnext-conclusiones}). Se
-% mantienen: MSP > MaxLogit > Energy, ReAct/ASH/DICE por debajo de MSP, LYM ~ TUM/NORM y MDS > KNN (9 de 9).
-% Dependen del modelo: el mejor método (RMDS 0,960 en TUM+NORM), el fallo de RMDS en LYM (ConvNeXt 0,938), la
-% distancia PANDA > control (no se cumple en SHE coseno y euclídea) y la coincidencia PANDA/control de STOOD-X
-% (ConvNeXt 0,803).
-\pendiente{remisión al \cref{ap:convnext}: conclusiones que se mantienen y que dependen del modelo}
 
 \endinput
