@@ -3,9 +3,9 @@
 \centering
 \scriptsize
 \setlength{\tabcolsep}{2.5pt}
-\caption{\stoodx con el 100\,\% y el 87,5\,\% de las características ($K=500$, puntuación $-z$), la variante exploratoria $K_c$ y $K=144$, frente a KNN y RMDS: \AUROC (más alto es mejor) y \FPRn{95} (más bajo es mejor) en los nueve conjuntos. Clase positiva: OOD. $^{\dagger}$Variante exploratoria, propuesta tras ver datos OOD. $^{\ddagger}$$K$ elegido solo con la validación ID (\cref{sec:stoodx-seleccion-k}).}
+\caption{\stoodx con el 100\,\% y el 87,5\,\% de las características ($K=500$, puntuación $-z$), la variante exploratoria $K_c$ y $K=144$, frente a KNN y RMDS: \AUROC (más alto es mejor) y \FPRn{95} (más bajo es mejor) en los nueve conjuntos.}
 \label{tab:stoodx-resultados}
-\begin{tabular}{lcccccccccccc}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lcccccccccccc}
 \toprule
 & \multicolumn{2}{c}{STOOD-X (100\,\%)} & \multicolumn{2}{c}{STOOD-X (87,5\,\%)} & \multicolumn{2}{c}{STOOD-X $K_c$$^{\dagger}$} & \multicolumn{2}{c}{STOOD-X ($K=144$)$^{\ddagger}$} & \multicolumn{2}{c}{KNN} & \multicolumn{2}{c}{RMDS} \\
 \cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}\cmidrule(lr){10-11}\cmidrule(lr){12-13}
@@ -21,5 +21,8 @@ PANDA & 0{,}895 & 0{,}427 & 0{,}895 & 0{,}428 & 0{,}917 & 0{,}300 & 0{,}939 & 0{
 Control 128\,px & 0{,}894 & 0{,}497 & 0{,}893 & 0{,}505 & 0{,}895 & 0{,}490 & 0{,}935 & 0{,}339 & 0{,}760 & 0{,}569 & 0{,}753 & 0{,}821 \\
 DTD & 0{,}991 & 0{,}028 & 0{,}990 & 0{,}030 & 0{,}989 & 0{,}033 & 0{,}993 & 0{,}020 & 0{,}936 & 0{,}214 & 0{,}942 & 0{,}156 \\
 \bottomrule
-\end{tabular}
+\end{tabular*}
+
+\smallskip
+\parbox{\linewidth}{\scriptsize Clase positiva: OOD. $^{\dagger}$Variante exploratoria, propuesta tras ver datos OOD. $^{\ddagger}$$K$ elegido solo con la validación ID (\cref{sec:stoodx-seleccion-k}).}
 \end{table}

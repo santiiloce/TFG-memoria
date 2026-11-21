@@ -261,10 +261,36 @@ pesos ni activaciones:
 \end{equation}
 donde $n_k$ es el número de neuronas de la capa inferior conectadas con $k$.
 \end{definicion}
-\pendiente{para qué se usa: en la primera capa suaviza el mapa en el espacio de entrada y lo hace
-invariante a la normalización de la entrada~\cite{achtibat2023}}
+Achtibat et al.\ la aplican a la primera capa convolucional, donde suaviza el mapa
+de atribución en el espacio de entrada y lo hace invariante a la normalización de la
+entrada~\cite{achtibat2023}.
 
-\pendiente{reglas por capa: recomendación de Montavon et al. (LRP-0 en capas superiores, $\varepsilon$ en intermedias, $\gamma$ en inferiores) y composite LRP$_{\varepsilon\text{-}z^{+}\text{-}\flat}$ de Achtibat et al.; describir la configuración final usada en ConvNeXt (variante A, results\_crp/fase5/scripts/composite\_final.py)}
+\paragraph{Reglas por capa.} Aplicar una misma regla en todas las capas no da
+buenas explicaciones: con LRP-0 el mapa recoge muchos artefactos locales de la
+función; con LRP-$\varepsilon$ es fiel, pero demasiado disperso para interpretarlo
+con facilidad; y con LRP-$\gamma$ es más fácil de interpretar, pero puede resaltar
+conceptos ajenos a la clase~\cite[sec.~10.3]{montavon2019lrp}. Por eso Montavon
+et al.\ recomiendan una estrategia compuesta (\emph{composite}), con una regla
+distinta según la profundidad: LRP-0 en las capas superiores, donde los conceptos
+de las distintas clases están entrelazados; LRP-$\varepsilon$ en las intermedias,
+para filtrar las variaciones espurias que introducen el apilamiento de capas y los
+pesos compartidos de las convoluciones; y LRP-$\gamma$ en las inferiores, que
+reparte la relevancia de forma más uniforme sobre cada
+rasgo~\cite[sec.~10.3]{montavon2019lrp}. Achtibat et al.\ usan el compuesto
+LRP$_{\varepsilon\text{-}z^{+}\text{-}\flat}$: la regla \emph{flat} en la primera
+capa convolucional, la regla $z^{+}$ en el resto de capas convolucionales y
+LRP-$\varepsilon$ en las capas totalmente conectadas~\cite{achtibat2023}.
+
+En ConvNeXt-S se usa una adaptación de este compuesto, la variante~A del
+\cref{cap:xai-sesgos}: la regla \emph{flat} en la convolución inicial; la regla
+$z^{+}$ de la \cref{def:lrp-zplus}, sin sesgo, en las convoluciones por canal, en
+las convoluciones puntuales de cada bloque y en las convoluciones de reducción entre
+etapas; LRP-$\varepsilon$ sin sesgo en la capa lineal de la cabeza; la LayerNorm, la
+GELU y la normalización de la cabeza se tratan como la identidad; y en cada suma
+residual la relevancia se reparte entre las dos ramas en proporción al valor
+absoluto de cada una. En la búsqueda de la configuración, las reglas LRP-$\gamma$
+con $\gamma$ finito resultaron inestables con activaciones con signo, y solo la
+regla $z^{+}$, el caso límite $\gamma \to \infty$, fue estable.
 % Configuración final (variante A, fases 1-5):
 % - stem: flat; conv_dw, fc1, fc2 y conv de downsample: z+ sin sesgo (versión con signo, (a_j w_jk)^+);
 % - LayerNorm, GELU y BatchNorm1d de la cabeza: Pass (identidad);
@@ -357,7 +383,39 @@ considerablemente~\cite{montavon2019lrp}.
 % - Tratamiento del sesgo: excluirlo, asignarle relevancia (Wang et al. 2019) o la regla |z| (Hui y Binder 2019, ec. 9).
 % - Conexiones residuales: hacerlas visibles como módulo Sum (canonizer de zennit) y regla para repartir entre rama y atajo.
 % - ConvNeXt: GELU y LayerNorm no son ReLU ni BatchNorm; la justificación de la Taylor profunda es solo aproximada.
-\pendiente{canonización: BatchNorm, sesgos, conexiones residuales y particularidades de ConvNeXt}
+Las reglas de LRP se justifican para redes formadas por capas lineales seguidas de
+activaciones ReLU (\cref{sec:lrp-dtd}), pero las arquitecturas actuales incluyen
+otros componentes, como las capas de normalización o las conexiones residuales, que
+dificultan su aplicación. La \emph{canonización} sustituye el modelo $f$ por otro
+$g$ que calcula la misma función, $g(x) = f(x)$ para toda entrada $x$, pero no
+contiene esos componentes; $g$ es la \emph{forma canónica} del
+modelo~\cite[sec.~3]{pahde2023}.
+
+El caso más habitual es la normalización por lotes (\cref{def:batchnorm}). En la fase
+de prueba sus estadísticos están congelados, así que la capa es una transformación
+afín fija y puede fusionarse con la capa lineal vecina sin cambiar la
+función~\cite[sec.~10.3.2]{montavon2019lrp}. Si una capa lineal
+$h = \omega^{\top}x + \beta$ va seguida de BatchNorm, con media $m_h$, desviación
+típica $s_h$ y parámetros $\gamma$ y $\delta$, la composición es la capa lineal
+\[
+  \gamma\,\frac{\omega^{\top}x + \beta - m_h}{s_h + \varepsilon} + \delta
+  = \Bigl(\frac{\gamma}{s_h + \varepsilon}\,\omega\Bigr)^{\top} x
+    + \frac{\gamma\,(\beta - m_h)}{s_h + \varepsilon} + \delta ,
+\]
+de pesos $\gamma\,\omega/(s_h + \varepsilon)$ y sesgo
+$\gamma(\beta - m_h)/(s_h + \varepsilon) + \delta$~\cite[ec.~(4)]{pahde2023}; si
+BatchNorm precede a la capa lineal, la fusión es análoga~\cite[ec.~(6)]{pahde2023}.
+Las conexiones residuales, por su parte, se hacen visibles como un módulo de suma
+explícito, para que la propagación pueda repartir la relevancia entre la rama y el
+atajo~\cite{pahde2023}.
+
+ConvNeXt-S plantea una dificultad adicional: usa LayerNorm (\cref{def:layernorm}) y
+GELU (\cref{def:gelu}) en lugar de BatchNorm y ReLU. La LayerNorm normaliza con los
+estadísticos de cada ejemplo, que dependen de la entrada, de modo que no es una
+transformación afín fija y no puede fusionarse con la capa vecina; y con la GELU las
+activaciones pueden ser negativas, así que la justificación de las reglas mediante
+la descomposición de Taylor profunda solo es aproximada. El tratamiento de la
+LayerNorm se describe en la \cref{sec:xai-layernorm}.
 
 \subsection{Interpretación probabilística de la regla $z^{+}$}\label{sec:lrp-markov}
 

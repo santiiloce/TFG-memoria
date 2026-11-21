@@ -42,7 +42,6 @@ El procedimiento de detección implementado, con la notación de la \cref{def:st
 \section{Configuración}\label{sec:stoodx-configuracion}
 
 Se emplean la distancia coseno, $K = 500$ (el valor seleccionado en el artículo), el conjunto de entrenamiento ID de la clase predicha como referencia y dos configuraciones de características: el 100\,\% y el 87,5\,\% más presente. Dado que el criterio de relevancia del artículo se basa en CRP (\cref{sec:crp}), que no es directamente aplicable a un Swin Transformer, la selección del 87,5\,\% se realiza mediante la presencia de cada característica (suma de sus valores absolutos en la clase), criterio utilizado en la implementación pública. Ningún hiperparámetro se ha ajustado con datos OOD.
-\revisar{tono}
 
 % Además, una variante exploratoria K_c = \min(500, \lfloor n_c/2 \rfloor), propuesta tras ver la
 % validación con datos OOD (\cref{sec:stoodx-k}); 87,5 % = 672 de 768 características.
@@ -62,7 +61,6 @@ Se prueban los mismos valores que en el artículo, $K \in \{9, 18, 36, 72, 144, 
 El valor elegido es $K = 144$, con un \AUROC medio de 0,961 y un \FPRn{95} medio de 0,145, frente a 0,934 y 0,415 con $K = 500$ (\cref{tab:stoodx-seleccion-k}). Es también el mejor $K$ en 10 de las 14 clases retenidas; en las otras cuatro gana $K = 288$ (\clase{Estroma} y \clase{Glandulas\_no\_neoplasicas}), $K = 36$ (\clase{Gleason\_4\_glomeruloide}) o $K = 500$ (\clase{Gleason\_4\_pobremente\_formadas}).
 
 Este criterio tiene tres limitaciones. En primer lugar, supone que una clase ID retenida se comporta como un OOD real, cuando es un cambio semántico entre clases de próstata y no un cambio de centro, de tejido o de escala como los de los conjuntos OOD (\cref{sec:conjuntos-ood}). En segundo lugar, la selección y la evaluación con $K = 144$ se han hecho solo con el Swin-S: la repetición con ConvNeXt-S (\cref{ap:convnext}) y el experimento de corrupciones (\cref{sec:corrupciones}) mantienen $K = 500$, por lo que sus cifras de \stoodx no son comparables con las de $K = 144$. En tercer lugar, la calibración de los $p$-valores (\cref{sec:stoodx-calibracion}) solo se ha estudiado con $K = 500$.
-\revisar{subsección redactada (excepción a la regla de no redactar prosa); revisar estilo y contenido}
 
 % Cifras (results_ood/stoodx_seleccion_k/): AUROC medio por K: 0,844 / 0,898 / 0,929 / 0,949 / 0,961 /
 % 0,946 / 0,934; FPR@95 medio: 0,418 / 0,310 / 0,235 / 0,178 / 0,145 / 0,325 / 0,415. La clase
@@ -76,7 +74,6 @@ Como puntuación de detección se utiliza el estadístico tipificado del test de
 \input{tablas/t11_saturacion}
 
 Con $K = 144$, la saturación no desaparece, pero no afecta a las conclusiones. Ningún $p$-valor se anula por subdesbordamiento y el \AUROC calculado con $p$ coincide con el de $-z$, pero la separación completa es más frecuente que con $K = 500$: afecta al 1,2\,\% del test ID, al 86\,\% de TUM+NORM y al 90\,\% de DTD (\cref{tab:stoodx-saturacion-k144}). Su efecto sigue acotado: \FPRn{95} y \CCRn{5} no cambian en ningún conjunto, y el \AUROC se mueve como mucho $\pm 0{,}007$ (TUM+NORM: 0,991 en [0,985; 0,996]). Incluso en el peor caso, \stoodx con $K = 144$ supera al mejor método de OpenOOD en todos los conjuntos salvo LYM. Además, como todas las clases tienen más de $K = 144$ imágenes de entrenamiento, el valor máximo de $z$ es el mismo para todas, y desaparece la diferencia de escala entre clases que había con $K = 500$ en las clases pequeñas (\cref{sec:stoodx-k}).
-\revisar{párrafo redactado; revisar}
 
 \input{tablas/t11_saturacion_k144}
 
@@ -95,7 +92,6 @@ Con $K = 144$, la saturación no desaparece, pero no afecta a las conclusiones. 
 \section{Resultados}\label{sec:stoodx-resultados}
 
 Con $K = 500$, en el near-OOD principal (TUM + NORM), STOOD-X obtiene un AUROC de 0,953, estadísticamente indistinguible del de RMDS (0,954; $p = 0{,}75$ en el \emph{bootstrap} pareado), aunque con un FPR@95 claramente mayor (0,349 frente a 0,128). Es el mejor método en NORM (AUROC 0,990), STR (0,978), MUS (0,968) y DTD (0,991). En PANDA alcanza 0,895, prácticamente igual que en el control de resolución (0,894); como se discute en la \cref{sec:ood-panda}, esta coincidencia se debe a la saturación del estadístico y no permite atribuir su detección a la resolución. Las configuraciones con el 100\,\% y el 87,5\,\% de las características son indistinguibles.
-\revisar{añadido «Con $K = 500$» al principio del párrafo: con $K = 144$ estas afirmaciones dejan de valer (párrafo siguiente)}
 
 
 \input{tablas/t11_stoodx}
@@ -109,7 +105,6 @@ Con $K = 144$, elegido solo con datos ID (\cref{sec:stoodx-seleccion-k}), \stood
 \input{tablas/t11_k144_vs_k500}
 
 Frente al resto de métodos, con $K = 144$ \stoodx obtiene el mayor \AUROC en ocho de los nueve conjuntos; la excepción es LYM, donde ViM alcanza 0,969 frente a 0,966 (\cref{tab:ood-control-interno}). También obtiene el mejor \FPRn{95} y el mejor \CCRn{5} en esos ocho conjuntos. En TUM+NORM, el \emph{bootstrap} pareado da $\AUROC(\text{RMDS}) - \AUROC(\text{\stoodx}, K = 144) = -0{,}037$ [$-0{,}040$; $-0{,}035$] (\cref{tab:ood-bootstrap-rmds}), mientras que con $K = 500$ ambos métodos eran indistinguibles. Además, el coste baja de unos 11--13\,ms por imagen en CPU con $K = 500$ a menos de 1\,ms con $K = 144$.
-\revisar{párrafos sobre $K = 144$ redactados; revisar}
 
 % Cifras (faseB_paper_K144/comparacion_K144_vs_K500.csv, generado por comparar_k144_k500.py con 1.000
 % remuestreos y semilla 0; faseC_K144/): AUROC K = 144: TUM+NORM 0,991
@@ -124,7 +119,6 @@ Frente al resto de métodos, con $K = 144$ \stoodx obtiene el mayor \AUROC en oc
 \section{Calibración}\label{sec:stoodx-calibracion}
 
 Aunque el método propone el $p$-valor como medida de pertenencia, con $K = 500$, en el conjunto de validación ID el 82\,\% de las imágenes obtiene $p < 0{,}05$, con una distribución bimodal. Por tanto, el $p$-valor permite ordenar las imágenes, pero no puede interpretarse como nivel de significación. La causa probable es que las $K^2$ distancias de referencia no son independientes, ya que los vecinos comparten vecinos (\cref{obs:u-dependencia}). La calibración conforme sobre el conjunto de validación (\cref{sec:conforme-ood}) recupera una tasa de falsas alarmas controlada.
-\revisar{añadido «con $K = 500$»: la calibración no se ha comprobado con $K = 144$, así que no se puede afirmar nada sobre ella}
 
 \input{tablas/t11_calibracion}
 
@@ -203,7 +197,6 @@ cambios de apariencia que degradan el clasificador.
 \section{Sensibilidad a $K$}\label{sec:stoodx-k}
 
 En un análisis de sensibilidad sobre un subconjunto (\cref{tab:stoodx-barrido-k}), el rendimiento mejora hasta $K \approx 72$--$288$ y se degrada con $K = 500$. La degradación se concentra en las imágenes predichas en clases con pocas imágenes de entrenamiento (\clase{Gleason\_5\_comedonecrosis}, 399; \clase{Inflamatorio}, 568; \clase{No\_Cancer}, 868), donde $K$ se aproxima al tamaño de la clase y se pierde la localidad del vecindario. En particular, el 10\,\% de las imágenes de TUM + NORM se predice como \clase{Gleason\_5\_comedonecrosis}. Al excluir esas clases, la caída desaparece. Como usa datos del test ID y de los conjuntos OOD, este análisis no se ha utilizado para elegir $K$, que se elige solo con datos ID (\cref{sec:stoodx-seleccion-k}); el valor elegido, $K = 144$, está dentro del intervalo en el que el barrido obtiene los mejores resultados. Una variante que adapta $K$ al tamaño de la clase ($K_c = \min(500, \lfloor n_c/2 \rfloor)$) no mejoró los resultados.
-\revisar{cambiado «que se mantiene en el valor del artículo» por la remisión a la selección de $K$ solo con datos ID}
 
 \input{tablas/t11_barrido_k}
 

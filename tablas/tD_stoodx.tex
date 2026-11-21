@@ -3,11 +3,11 @@
 \centering
 \footnotesize
 \setlength{\tabcolsep}{4pt}
-\caption{\stoodx y la saturación con los dos modelos. (a) \AUROC con el control de 128\,px como clase negativa y PANDA como positiva: por encima de 0,5, la puntuación coloca PANDA como más OOD que el control; ConvNeXt-S en el espacio M. IC del 95\,\% por \emph{bootstrap} (1.000 remuestreos estratificados, semilla 0). $^{B}$En el espacio B (512 dimensiones): requieren la capa que entra en el clasificador lineal. (b) Porcentaje de imágenes con la puntuación $-z$ de \stoodx ($K=500$) saturada ($U=n_1n_2$) en cada espacio de ConvNeXt-S; en C solo se calculó en el test ID, TUM y NORM.}
+\caption{\stoodx y la saturación con los dos modelos.}
 \label{tab:convnext-stoodx}
 
 \textit{(a) PANDA frente al control}\par\smallskip
-\begin{tabular}{lcc}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lcc}
 \toprule
 Método & Swin-S & ConvNeXt-S \\
 \midrule
@@ -33,11 +33,11 @@ SHE (euclídea) & 0{,}726 [0{,}719; 0{,}732] & 0{,}444 [0{,}436; 0{,}451] \\
 \multicolumn{3}{@{}l}{\textit{STOOD-X}} \\
 STOOD-X (100\,\%) & 0{,}475 [0{,}467; 0{,}482] & 0{,}803 [0{,}797; 0{,}809] \\
 \bottomrule
-\end{tabular}
+\end{tabular*}
 
 \bigskip
 \textit{(b) Imágenes saturadas}\par\smallskip
-\begin{tabular}{lcccc}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lcccc}
 \toprule
 Conjunto & Swin-S & ConvNeXt-S (M) & ConvNeXt-S (B) & ConvNeXt-S (C) \\
 \midrule
@@ -52,5 +52,8 @@ PANDA & 19{,}4\,\% & 19{,}1\,\% & 7{,}5\,\% & -- \\
 Control 128\,px & 19{,}0\,\% & 2{,}6\,\% & 1{,}5\,\% & -- \\
 DTD & 76{,}3\,\% & 84{,}9\,\% & 31{,}4\,\% & -- \\
 \bottomrule
-\end{tabular}
+\end{tabular*}
+
+\smallskip
+\parbox{\linewidth}{\scriptsize (a) \AUROC con el control de 128\,px como clase negativa y PANDA como positiva: por encima de 0,5, la puntuación coloca PANDA como más OOD que el control; ConvNeXt-S en el espacio M. IC del 95\,\% por \emph{bootstrap} (1.000 remuestreos estratificados, semilla 0). $^{B}$En el espacio B (512 dimensiones): requieren la capa que entra en el clasificador lineal. (b) Porcentaje de imágenes con la puntuación $-z$ de \stoodx ($K=500$) saturada ($U=n_1n_2$) en cada espacio de ConvNeXt-S; en C solo se calculó en el test ID, TUM y NORM.}
 \end{table}

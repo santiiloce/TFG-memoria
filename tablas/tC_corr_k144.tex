@@ -3,9 +3,9 @@
 \centering
 \scriptsize
 \setlength{\tabcolsep}{3pt}
-\caption{\FPRn{95} (más bajo es mejor) de \stoodx (100\,\% de las características) con $K=500$ y con $K=144$ (\cref{sec:stoodx-seleccion-k}) en cada corrupción y nivel de severidad, frente al mejor de los otros 13 detectores en esa celda, y \AUROC (más alto es mejor) de \stoodx con ambos valores de $K$. ID: las imágenes limpias del test; OOD: sus versiones corruptas. En negrita, el \FPRn{95} de \stoodx cuando es menor que el del mejor otro detector (22 de 27 celdas con $K=500$ y 26 con $K=144$). Sin IC.}
+\caption{\FPRn{95} (más bajo es mejor) de \stoodx (100\,\% de las características) con $K=500$ y con $K=144$ (\cref{sec:stoodx-seleccion-k}) en cada corrupción y nivel de severidad, frente al mejor de los otros 13 detectores en esa celda, y \AUROC (más alto es mejor) de \stoodx con ambos valores de $K$.}
 \label{tab:apc-corr-k144}
-\begin{tabular}{llcccccc}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}llcccccc}
 \toprule
 & & \multicolumn{3}{c}{\FPRn{95} $\downarrow$} & & \multicolumn{2}{c}{\AUROC\ de \stoodx $\uparrow$} \\
 \cmidrule(lr){3-5}\cmidrule(lr){7-8}
@@ -47,5 +47,8 @@ Movimiento & 1 & 0{,}535 & \textbf{0{,}366} & 0{,}508 & ViM & 0{,}883 & 0{,}925 
  & 3 & \textbf{0{,}108} & \textbf{0{,}063} & 0{,}200 & RMDS & 0{,}974 & 0{,}983 \\
  & 5 & \textbf{0{,}040} & \textbf{0{,}024} & 0{,}116 & ViM & 0{,}981 & 0{,}991 \\
 \bottomrule
-\end{tabular}
+\end{tabular*}
+
+\smallskip
+\parbox{\linewidth}{\scriptsize ID: las imágenes limpias del test; OOD: sus versiones corruptas. En negrita, el \FPRn{95} de \stoodx cuando es menor que el del mejor otro detector (22 de 27 celdas con $K=500$ y 26 con $K=144$). Sin IC.}
 \end{table}

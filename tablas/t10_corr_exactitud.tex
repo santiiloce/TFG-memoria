@@ -5,7 +5,7 @@
 \setlength{\tabcolsep}{3pt}
 \caption{Exactitud del Swin-S (más alto es mejor) en cada corrupción y nivel de severidad, y caída respecto a la imagen limpia (exactitud 0{,}969 [0{,}966; 0{,}972]), con su IC debajo. IC del 95\,\% por \emph{bootstrap} pareado por imagen (1.000 réplicas, semilla 0).}
 \label{tab:ood-corr-exactitud}
-\begin{tabular}{lcccccc}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lcccccc}
 \toprule
 & \multicolumn{3}{c}{Exactitud $\uparrow$} & \multicolumn{3}{c}{Caída respecto a la limpia} \\
 \cmidrule(lr){2-4}\cmidrule(lr){5-7}
@@ -30,5 +30,5 @@ Desenfoque & 0{,}637 & 0{,}380 & 0{,}287 & 0{,}332 & 0{,}588 & 0{,}681 \\
 Movimiento & 0{,}910 & 0{,}642 & 0{,}433 & 0{,}059 & 0{,}327 & 0{,}536 \\
 & {\tiny [0{,}905; 0{,}915]} & {\tiny [0{,}634; 0{,}650]} & {\tiny [0{,}425; 0{,}442]} & {\tiny [0{,}054; 0{,}063]} & {\tiny [0{,}319; 0{,}335]} & {\tiny [0{,}526; 0{,}545]} \\[2pt]
 \bottomrule
-\end{tabular}
+\end{tabular*}
 \end{table}

@@ -25,7 +25,7 @@ COTIZACION = {                          # Orden PJC/297/2026 (cotización empres
     'MEI': 0.0075,
 }
 AT_EP = 0.0150                          # tarifa de primas, trabajo de oficina (por confirmar)
-JORNADA_ANUAL = 1800.0                  # horas/año de referencia (por confirmar la fuente)
+JORNADA_ANUAL = 1800.0                  # horas/año de referencia: 40 h/semana x 45 semanas
 
 # ---------------------------------------------------------------------------
 # Hardware

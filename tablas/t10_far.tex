@@ -3,9 +3,9 @@
 \centering
 \footnotesize
 \setlength{\tabcolsep}{4pt}
-\caption{Far-OOD (DTD): \AUROC y \CCRn{5} (más alto es mejor) y \FPRn{95} (más bajo es mejor) de los 17 métodos. IC del 95\,\% por \emph{bootstrap} (1.000 remuestreos estratificados, semilla 0). Clase positiva: OOD. En negrita, el mejor valor entre los métodos no exploratorios. $^{a}$ASH reduce la exactitud ID al 68{,}3\,\%. $^{\dagger}$Variante exploratoria ($K_c=\min(500,\lfloor n_c/2\rfloor)$), propuesta tras ver datos OOD; no es el método principal. $^{\ddagger}$100\,\% de las características y $K=144$, elegido solo con la validación ID (\cref{sec:stoodx-seleccion-k}); el resto de filas de \stoodx usan $K=500$, el valor del artículo.}
+\caption{Far-OOD (DTD): \AUROC y \CCRn{5} (más alto es mejor) y \FPRn{95} (más bajo es mejor) de los 17 métodos.}
 \label{tab:ood-far}
-\begin{tabular}{lccc}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lccc}
 \toprule
 Método & \AUROC $\uparrow$ [IC 95\,\%] & \FPRn{95} $\downarrow$ [IC 95\,\%] & \CCRn{5} $\uparrow$ \\
 \midrule
@@ -34,5 +34,8 @@ STOOD-X ($K=144$)$^{\ddagger}$ & \textbf{0{,}993} [0{,}992; 0{,}994] & \textbf{0
 STOOD-X (87,5\,\%) & 0{,}990 [0{,}989; 0{,}992] & 0{,}030 [0{,}025; 0{,}034] & 0{,}948 \\
 STOOD-X $K_c$$^{\dagger}$ & 0{,}989 [0{,}988; 0{,}990] & 0{,}033 [0{,}028; 0{,}038] & 0{,}946 \\
 \bottomrule
-\end{tabular}
+\end{tabular*}
+
+\smallskip
+\parbox{\linewidth}{\scriptsize IC del 95\,\% por \emph{bootstrap} (1.000 remuestreos estratificados, semilla 0). Clase positiva: OOD. En negrita, el mejor valor entre los métodos no exploratorios. $^{a}$ASH reduce la exactitud ID al 68{,}3\,\%. $^{\dagger}$Variante exploratoria ($K_c=\min(500,\lfloor n_c/2\rfloor)$), propuesta tras ver datos OOD; no es el método principal. $^{\ddagger}$100\,\% de las características y $K=144$, elegido solo con la validación ID (\cref{sec:stoodx-seleccion-k}); el resto de filas de \stoodx usan $K=500$, el valor del artículo.}
 \end{table}

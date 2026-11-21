@@ -2,9 +2,9 @@
 \begin{table}
 \centering
 \footnotesize
-\caption{Selección de $K$ de \stoodx (100\,\% de las características, puntuación $-z$) por validación \emph{leave-one-class-out} en la validación ID: cada una de las 14 clases ID hace por turno de pseudo-OOD frente al resto de la validación, sin sus imágenes en la referencia de entrenamiento y con su logit anulado. \AUROC (más alto es mejor) y \FPRn{95} (más bajo es mejor) medios sobre las 14 clases, y número de clases retenidas en las que cada $K$ obtiene el mayor \AUROC. En negrita, el $K$ elegido. No se usa ningún dato de test ni OOD.}
+\caption{Selección de $K$ de \stoodx (100\,\% de las características, puntuación $-z$) por validación \emph{leave-one-class-out} en la validación ID: cada una de las 14 clases ID hace por turno de pseudo-OOD frente al resto de la validación, sin sus imágenes en la referencia de entrenamiento y con su logit anulado.}
 \label{tab:stoodx-seleccion-k}
-\begin{tabular}{cccc}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}cccc}
 \toprule
 $K$ & \AUROC medio $\uparrow$ & \FPRn{95} medio $\downarrow$ & Clases en que es el mejor \\
 \midrule
@@ -16,5 +16,8 @@ $K$ & \AUROC medio $\uparrow$ & \FPRn{95} medio $\downarrow$ & Clases en que es 
 288 & 0{,}946 & 0{,}325 & 2 \\
 500 & 0{,}934 & 0{,}415 & 1 \\
 \bottomrule
-\end{tabular}
+\end{tabular*}
+
+\smallskip
+\parbox{\linewidth}{\scriptsize \AUROC (más alto es mejor) y \FPRn{95} (más bajo es mejor) medios sobre las 14 clases, y número de clases retenidas en las que cada $K$ obtiene el mayor \AUROC. En negrita, el $K$ elegido. No se usa ningún dato de test ni OOD.}
 \end{table}

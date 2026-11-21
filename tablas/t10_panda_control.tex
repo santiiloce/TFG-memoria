@@ -3,9 +3,9 @@
 \centering
 \scriptsize
 \setlength{\tabcolsep}{3pt}
-\caption{PANDA (próstata de otros centros, adquirida a una escala mucho menor) frente al control de resolución (las mismas imágenes del test ID reducidas a 128\,px). \AUROC (más alto es mejor) y \FPRn{95} (más bajo es mejor). Diferencia: \AUROC de PANDA menos \AUROC del control. IC del 95\,\% por \emph{bootstrap} (1.000 remuestreos estratificados, semilla 0). Clase positiva: OOD. $^{a}$ASH reduce la exactitud ID al 68{,}3\,\%. $^{\dagger}$Variante exploratoria ($K_c=\min(500,\lfloor n_c/2\rfloor)$), propuesta tras ver datos OOD; no es el método principal. $^{\ddagger}$100\,\% de las características y $K=144$, elegido solo con la validación ID (\cref{sec:stoodx-seleccion-k}); el resto de filas de \stoodx usan $K=500$, el valor del artículo.}
+\caption{PANDA (próstata de otros centros, adquirida a una escala mucho menor) frente al control de resolución (las mismas imágenes del test ID reducidas a 128\,px). \AUROC (más alto es mejor) y \FPRn{95} (más bajo es mejor).}
 \label{tab:ood-panda-control}
-\begin{tabular}{lccccc}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lccccc}
 \toprule
 & \multicolumn{3}{c}{\AUROC $\uparrow$ [IC 95\,\%]} & \multicolumn{2}{c}{\FPRn{95} $\downarrow$} \\
 \cmidrule(lr){2-4}\cmidrule(lr){5-6}
@@ -36,5 +36,8 @@ STOOD-X ($K=144$)$^{\ddagger}$ & 0{,}939 [0{,}936; 0{,}942] & 0{,}935 [0{,}932; 
 STOOD-X (87,5\,\%) & 0{,}895 [0{,}891; 0{,}899] & 0{,}893 [0{,}889; 0{,}897] & +0{,}002 & 0{,}428 & 0{,}505 \\
 STOOD-X $K_c$$^{\dagger}$ & 0{,}917 [0{,}914; 0{,}921] & 0{,}895 [0{,}891; 0{,}898] & +0{,}023 & 0{,}300 & 0{,}490 \\
 \bottomrule
-\end{tabular}
+\end{tabular*}
+
+\smallskip
+\parbox{\linewidth}{\scriptsize Diferencia: \AUROC de PANDA menos \AUROC del control. IC del 95\,\% por \emph{bootstrap} (1.000 remuestreos estratificados, semilla 0). Clase positiva: OOD. $^{a}$ASH reduce la exactitud ID al 68{,}3\,\%. $^{\dagger}$Variante exploratoria ($K_c=\min(500,\lfloor n_c/2\rfloor)$), propuesta tras ver datos OOD; no es el método principal. $^{\ddagger}$100\,\% de las características y $K=144$, elegido solo con la validación ID (\cref{sec:stoodx-seleccion-k}); el resto de filas de \stoodx usan $K=500$, el valor del artículo.}
 \end{table}

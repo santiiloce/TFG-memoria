@@ -28,10 +28,8 @@
 % (results_fase1/resumen.md); la fase A carga el state dict (.pth) en fp32 con el transform de
 % my_evauator_openood.py. La exactitud medida al entrenar (resultados.txt de param4: fastai_env,
 % torch 1.12.1, TITAN Xp) es 0,96870, igual que la de la evaluación OOD.
-\revisar{el autor atribuye la diferencia a un cambio de entorno (versión de PyTorch y hardware), pero según los ficheros la fase 1 y la extracción OOD comparten entorno y GPU; la diferencia está en la ruta de inferencia (learner con precisión mixta frente a state dict en fp32). Confirmar la causa antes de redactar la nota}
-\pendiente{nota al pie sobre la diferencia de exactitud por cambio de entorno}
+La exactitud del Swin-S en la evaluación OOD es 0,9687, frente a 0,9688 en el \cref{cap:clasificacion-id}.\footnote{Las predicciones coinciden en \num{12617} de las \num{12618} imágenes del test ID. La única diferencia es una imagen de \clase{Glandulas\_no\_neoplasicas} cuyas dos probabilidades más altas están casi empatadas (0,4371 frente a 0,4337 en el \cref{cap:clasificacion-id}). Ambas evaluaciones usan el mismo entorno y la misma GPU; la diferencia procede de la ruta de inferencia: en el \cref{cap:clasificacion-id} se usa el modelo exportado de fastai, con precisión mixta, y en la evaluación OOD, sus pesos en precisión simple (fp32).}
 
-\revisar{la tabla principal de las notas (\texttt{tabla\_principal\_ood.tex}) se divide en una tabla por bloque; las tablas de AUPR van al \cref{ap:aupr}}
 
 %\begin{figure}[tbp]
 %  \centering
@@ -60,7 +58,7 @@ alatas vengan de la BatchNorm ~\cite{openood15}, y aunque Swin use LayerNorm par
 Ambos resultados no son contradictorios: el AUROC resume la separación en todos los umbrales, mientras que FPR@95 y CCR@FPR5 evalúan la zona de umbral exigente, que es la relevante en un contexto clínico. Con el umbral que deja pasar solo el 5\,\% de las imágenes de colon, RMDS acepta y clasifica correctamente el 86,8\,\% del test ID, frente a un máximo posible de 96,9\,\%. De esta forma MDS o RMDS deberían de ser considerados como 
 mejores métodos de detección Near-OOD. 
 
-En la tabla ~\ref{tab:ood-bootstrap-rmds} se aplica la técninca bootstrap para ver quién es significativamente mejor o peor en AUROC y aquellos casos con 
+En la \cref{tab:ood-bootstrap-rmds} se aplica la técninca bootstrap para ver quién es significativamente mejor o peor en AUROC y aquellos casos con 
 Con $K = 144$, ya que antes se había considerado $K = 500$ en base a ~\cite{sevillano2026}, elegido solo con datos ID (\cref{sec:stoodx-seleccion-k}), \stoodx supera a todos ellos en las tres métricas: \AUROC 0,991 [0,990; 0,992], \FPRn{95} 0,026 [0,023; 0,028] y \CCRn{5} 0,951. Su ventaja sobre RMDS en \AUROC es de 0,037 [0,035; 0,040] (\cref{tab:ood-bootstrap-rmds}), mientras que con $K = 500$ ambos métodos eran indistinguibles.
 
 \input{tablas/t10_bootstrap_rmds}
@@ -102,7 +100,7 @@ más sensibles al desplazamiento de covariables que al cambio semántico.
 
 \section{PANDA: cambio de centro y de escala}\label{sec:ood-panda}
 
-Respecto a PANDA, la comparación con el control debe interpretarse con especial cuidado, ya que sus imágenes presentan más diferencias que el mero reescalado. Además de proceder de otros centros, las teselas se extrajeron del nivel de menor resolución de las imágenes originales, con un aumento mucho menor, de modo que cada una abarca una región de tejido muy superior a los 112\,$\mu$m de los parches ID; además, contienen mucho más fondo blanco (63\,\% frente a 21\,\%). Los métodos de distancia detectan PANDA (AUROC $\approx 0{,}91$) mejor que el control ($\approx 0{,}77$--$0{,}79$), pero esta diferencia no puede atribuirse solo al cambio de centro, ya que se combina con los cambios de escala y de contenido de fondo, mismo motivo por el que no sería viable considerarlo únicamente como covariate shift. En STOOD-X, ambos AUROC coinciden (0,895 y 0,894) y su puntuación no distingue PANDA del control (AUROC 0,475 [0,467; 0,482]). Esto nos hace ver lo sensible que es STOOD-X, ante covariate shift, pero no será suficiente como para poder afirmarlo. Sin embargo, cerca de un tercio de las imágenes de ambos conjuntos alcanza el valor extremo del estadístico (\cref{obs:u-empates}), por lo que esta coincidencia refleja la pérdida de capacidad de ordenación por saturación más que una sensibilidad específica a la resolución. \revisar{reforzar: con ConvNeXt-S (espacio M), menos saturado (22,0\,\% en TUM+NORM y 2,6\,\% en el control, frente a 66,3\,\% y 19,0\,\% en el Swin), STOOD-X sí distingue PANDA del control (0,803 [0,797; 0,809]); \cref{tab:convnext-stoodx}}
+Respecto a PANDA, la comparación con el control debe interpretarse con especial cuidado, ya que sus imágenes presentan más diferencias que el mero reescalado. Además de proceder de otros centros, las teselas se extrajeron del nivel de menor resolución de las imágenes originales, con un aumento mucho menor, de modo que cada una abarca una región de tejido muy superior a los 112\,$\mu$m de los parches ID; además, contienen mucho más fondo blanco (63\,\% frente a 21\,\%). Los métodos de distancia detectan PANDA (AUROC $\approx 0{,}91$) mejor que el control ($\approx 0{,}77$--$0{,}79$), pero esta diferencia no puede atribuirse solo al cambio de centro, ya que se combina con los cambios de escala y de contenido de fondo, mismo motivo por el que no sería viable considerarlo únicamente como covariate shift. En STOOD-X, ambos AUROC coinciden (0,895 y 0,894) y su puntuación no distingue PANDA del control (AUROC 0,475 [0,467; 0,482]). Esto nos hace ver lo sensible que es STOOD-X, ante covariate shift, pero no será suficiente como para poder afirmarlo. Sin embargo, cerca de un tercio de las imágenes de ambos conjuntos alcanza el valor extremo del estadístico (\cref{obs:u-empates}), por lo que esta coincidencia refleja la pérdida de capacidad de ordenación por saturación más que una sensibilidad específica a la resolución. Con ConvNeXt-S, cuyo estadístico satura mucho menos, \stoodx sí distingue PANDA del control (\AUROC 0,803 [0,797; 0,809]; \cref{tab:convnext-stoodx}).
 
 Con $K = 144$ (\cref{sec:stoodx-seleccion-k}), \stoodx obtiene el mejor resultado de todos los métodos en ambos conjuntos, con un \AUROC de 0,939 [0,936; 0,942] en PANDA y 0,935 [0,932; 0,938] en el control, y una \FPRn{95} de 0,226 y 0,339, respectivamente (\cref{tab:ood-panda-control}). Sin embargo, ambos \AUROC siguen casi igualados (diferencia de +0,004), aunque ahora la saturación es menor: alcanza el valor extremo el 30,1\,\% de las imágenes de PANDA y el 39,4\,\% de las del control (\cref{tab:stoodx-saturacion-k144}). Además, aun forzando el peor y el mejor orden posible entre las imágenes saturadas, el \AUROC solo varía entre 0,938 y 0,942 en PANDA y entre 0,932 y 0,936 en el control, por lo que con $K = 144$ la saturación no basta para explicar esta coincidencia.
 % No se ha calculado con K = 144 el AUROC de PANDA frente al control (0,475 con K = 500).
@@ -236,17 +234,14 @@ A diferencia de lo observado en PANDA y en el control de resolución, donde con 
 
 \section{Far-OOD}\label{sec:ood-far}
 
-Finalmente, en Textures, STOOD-X obtiene el mejor resultado (AUROC 0,991 con $K = 500$ y 0,993 con $K = 144$ ~\ref{tab:ood-far}), lo que confirma, como era de esperar, que las imágenes ajenas al contexto médico se detectan sin dificultad. 
+Finalmente, en Textures, STOOD-X obtiene el mejor resultado (AUROC 0,991 con $K = 500$ y 0,993 con $K = 144$; \cref{tab:ood-far}), lo que confirma, como era de esperar, que las imágenes ajenas al contexto médico se detectan sin dificultad. 
 Esta mayor dificultad de detecciónd de Near-OOD frente a Far-OOD coincide con los resultados también obtenidos en ~\cite{openood15}.
 No obstante, con MDS (0,956) Textures resulta más difícil de detectar que TUM, NORM o LYM, lo que indica que la dificultad que encuentra cada detector no coincide necesariamente con la distancia semántica intuitiva.
 \inputH{tablas/t10_far}
 
 \section{Métodos basados en logits y en modificación de activaciones}\label{sec:ood-familias}
 
-\textbf{Métodos basados en logits y en modificación de activaciones.} MSP supera a MaxLogit y a Energy en los nueve conjuntos, al contrario de lo habitual en la literatura. Una explicación plausible es el uso de \emph{label smoothing} durante el entrenamiento, que comprime la escala de los logits; comprobarlo requeriría entrenar el modelo sin esta técnica. Los métodos que modifican activaciones, diseñados para redes con activaciones ReLU y BatchNorm, no se trasladan bien a un Swin Transformer con LayerNorm. ReAct mejora a Energy, pero no a MSP. DICE queda por debajo de Energy en ocho de los nueve conjuntos, con un AUROC inferior al azar en DTD (0,436). ASH colapsa por completo: al redistribuir la suma de las activaciones, que es negativa en el 27,5\,\% de las imágenes, invierte los logits y reduce la exactitud ID al 68,3\,\%. Por último, SHE con producto escalar resulta irregular (0,795), mientras que sus variantes con distancia coseno (0,938) y euclídea (0,942) mejoran notablemente, lo que apunta de nuevo a la incompatibilidad entre las características con signo del Swin y los supuestos del método.
-\revisar{«al contrario de lo habitual en la literatura»: falta cita}
-\revisar{ReAct mejora a Energy en ocho de los nueve conjuntos; en el control de resolución queda por debajo (0,602 frente a 0,622)}
-\revisar{el 27,5\,\% se midió en la validación ID}
+\textbf{Métodos basados en logits y en modificación de activaciones.} MSP supera a MaxLogit y a Energy en los nueve conjuntos, al contrario de lo habitual en la literatura~\cite{liu2020energy}. Una explicación plausible es el uso de \emph{label smoothing} durante el entrenamiento, que comprime la escala de los logits; comprobarlo requeriría entrenar el modelo sin esta técnica. Los métodos que modifican activaciones, diseñados para redes con activaciones ReLU y BatchNorm, no se trasladan bien a un Swin Transformer con LayerNorm. ReAct mejora a Energy en ocho de los nueve conjuntos, pero no a MSP. DICE queda por debajo de Energy en ocho de los nueve conjuntos, con un AUROC inferior al azar en DTD (0,436). ASH colapsa por completo: al redistribuir la suma de las activaciones, que es negativa en el 27,5\,\% de las imágenes (en la validación ID), invierte los logits y reduce la exactitud ID al 68,3\,\%. Por último, SHE con producto escalar resulta irregular (0,795), mientras que sus variantes con distancia coseno (0,938) y euclídea (0,942) mejoran notablemente, lo que apunta de nuevo a la incompatibilidad entre las características con signo del Swin y los supuestos del método.
 
 \input{tablas/t10_familias}
 
@@ -291,9 +286,9 @@ Lee et al.\ suponen gaussianas de clase con covarianza común y muestran que las
 \centering
 \footnotesize
 \setlength{\tabcolsep}{4pt}
-\caption{Resultado global de los 17 métodos: media $\pm$ desviación típica de \AUROC y \CCRn{5} (más alto es mejor) y de \FPRn{95} (más bajo es mejor) sobre ocho conjuntos (TUM, NORM, STR, LYM, MUS, PANDA, control de 128\,px y DTD; se excluye TUM+NORM, unión de TUM y NORM). Clase positiva: OOD. En negrita, la mejor media entre los métodos no exploratorios. $^{a}$ASH reduce la exactitud ID al 68{,}3\,\%. $^{\dagger}$Variante exploratoria ($K_c=\min(500,\lfloor n_c/2\rfloor)$). $^{\ddagger}$100\,\% de las características y $K=144$ (\cref{sec:stoodx-seleccion-k}); el resto de filas de \stoodx usan $K=500$.}
+\caption{Resultado global de los 17 métodos: media $\pm$ desviación típica de \AUROC y \CCRn{5} (más alto es mejor) y de \FPRn{95} (más bajo es mejor) sobre ocho conjuntos (TUM, NORM, STR, LYM, MUS, PANDA, control de 128\,px y DTD; se excluye TUM+NORM, unión de TUM y NORM).}
 \label{tab:ood-global}
-\begin{tabular}{lccc}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lccc}
 \toprule
 Método & \AUROC $\uparrow$ & \FPRn{95} $\downarrow$ & \CCRn{5} $\uparrow$ \\
 \midrule
@@ -322,7 +317,10 @@ STOOD-X ($K=144$)$^{\ddagger}$ & \textbf{0{,}972} $\pm$ 0{,}023 & \textbf{0{,}12
 STOOD-X (87,5\,\%) & 0{,}943 $\pm$ 0{,}043 & 0{,}276 $\pm$ 0{,}222 & 0{,}714 $\pm$ 0{,}214 \\
 STOOD-X $K_c$$^{\dagger}$ & 0{,}931 $\pm$ 0{,}064 & 0{,}247 $\pm$ 0{,}193 & 0{,}742 $\pm$ 0{,}185 \\
 \bottomrule
-\end{tabular}
+\end{tabular*}
+
+\smallskip
+\parbox{\linewidth}{\scriptsize Clase positiva: OOD. En negrita, la mejor media entre los métodos no exploratorios. $^{a}$ASH reduce la exactitud ID al 68{,}3\,\%. $^{\dagger}$Variante exploratoria ($K_c=\min(500,\lfloor n_c/2\rfloor)$). $^{\ddagger}$100\,\% de las características y $K=144$ (\cref{sec:stoodx-seleccion-k}); el resto de filas de \stoodx usan $K=500$.}
 \end{table}
 % Orden por AUROC medio: STOOD-X K=144 0,972; STOOD-X 100 % 0,944; 87,5 % 0,943; K_c 0,931; ViM 0,929;
 % MDS 0,926; KNN 0,911; RMDS 0,899. Sin STOOD-X K=144, el menor FPR@95 medio es ViM (0,241) y el mayor
@@ -364,7 +362,7 @@ Para comprobar si las diferencias entre los métodos competitivos son significat
 
 Además, en las corrupciones sintéticas \stoodx es el método más sensible al \emph{covariate shift} (\cref{sec:ood-corr-deteccion}): con $K = 500$ obtiene el mejor \AUROC en 25 de las 27 celdas y la mejor \FPRn{95} en 22, y con $K = 144$ su \FPRn{95} mejora todavía más (\cref{tab:apc-corr-k144}). Sin embargo, la principal debilidad que presenta es la saturación de su estadístico: una vez que todas las distancias de la imagen superan a las de sus vecinos, la puntuación deja de cambiar. Con $K = 500$, esto le impide graduar la severidad de la alteración (CEC de 0,128, frente a 0,106 de ViM y 0,109 de MDS; \cref{sec:ood-corr-cec,sec:ood-corr-saturacion}) y distinguir PANDA del control de resolución (\cref{sec:ood-panda}). Con $K = 144$ la saturación es menor (\cref{tab:stoodx-saturacion-k144}), pero PANDA y el control siguen casi igualados (0,939 y 0,935), por lo que la saturación no basta para explicar esa coincidencia.
 
-Por último, el valor medio de 0,120 en \FPRn{95} esconde situaciones muy distintas: en el near-OOD principal y en Textures \stoodx con $K = 144$ baja a 0,026 y 0,020, pero en LYM sube a 0,170, en PANDA a 0,226 y en el control de resolución a 0,339. Es decir, el cambio en las condiciones de adquisición sigue siendo el caso más difícil, y estos valores son todavía demasiado altos a nivel clínico, por lo que se trata de un campo en el que se tiene que seguir investigando. Una forma de controlar las falsas alarmas con garantías es fijar el umbral mediante predicción conforme (\cref{sec:conforme-ood}).
+Por último, el valor medio de 0,120 en \FPRn{95} esconde situaciones muy distintas: en el near-OOD principal y en Textures \stoodx con $K = 144$ baja a 0,026 y 0,020, pero en LYM sube a 0,170, en PANDA a 0,226 y en el control de resolución a 0,339. Es decir, el cambio en las condiciones de adquisición sigue siendo el caso más difícil: para detectar el 95\,\% de esas imágenes hay que rechazar como OOD entre el 22,6\,\% y el 33,9\,\% de las imágenes de próstata, valores todavía demasiado altos a nivel clínico, por lo que se trata de un campo en el que se tiene que seguir investigando. Una forma de controlar las falsas alarmas con garantías es fijar el umbral mediante predicción conforme (\cref{sec:conforme-ood}).
 % Cifras por conjunto de STOOD-X K = 144: results_ood/faseC_K144/tabla_principal.csv
 %   (TUM+NORM 0,026; DTD 0,020; LYM 0,170; PANDA 0,226; control 128 px 0,339).
 % Texto original del autor (punto de partida de esta discusión, 2026-11-21): «STOOD-X (k = 144) ha quedado

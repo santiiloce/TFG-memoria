@@ -5,7 +5,7 @@
 \setlength{\tabcolsep}{2.5pt}
 \caption{Métodos basados en logits, en la modificación de activaciones y variantes de SHE: \AUROC (más alto es mejor) en los nueve conjuntos y exactitud ID de la clasificación resultante. Clase positiva: OOD. $^{a}$ASH modifica las características y con ellas la predicción.}
 \label{tab:ood-familias}
-\begin{tabular}{lcccccccccc}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lcccccccccc}
 \toprule
 Método & TUM+NORM & TUM & NORM & STR & LYM & MUS & PANDA & Control 128\,px & DTD & Exact.\ ID (\%) \\
 \midrule
@@ -24,5 +24,5 @@ SHE (prod.\ escalar) & 0{,}795 & 0{,}746 & 0{,}875 & 0{,}780 & 0{,}647 & 0{,}660
 SHE (coseno) & 0{,}938 & 0{,}931 & 0{,}948 & 0{,}898 & 0{,}914 & 0{,}837 & 0{,}834 & 0{,}651 & 0{,}898 & 96{,}87 \\
 SHE (euclídea) & 0{,}942 & 0{,}937 & 0{,}950 & 0{,}902 & 0{,}928 & 0{,}845 & 0{,}851 & 0{,}646 & 0{,}899 & 96{,}87 \\
 \bottomrule
-\end{tabular}
+\end{tabular*}
 \end{table}

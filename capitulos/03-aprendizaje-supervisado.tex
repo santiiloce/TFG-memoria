@@ -20,7 +20,6 @@ $y_i\in\{1,\dots,K\}$ es la etiqueta del ejemplo $i$; $q$ y $p$ denotan
 distribuciones sobre las clases (en particular, $q$ es la distribución
 \emph{one-hot} de la etiqueta y $p$ la que asigna la red); $f(x;\phi)$ es la red,
 con parámetros $\phi$; y $L$ es el número de capas, con índice $\ell$.
-\revisar{párrafo añadido para justificar la unificación de la notación; antes, $K$ era también el número de capas ocultas (\cref{def:mlp}) y de bloques residuales (\cref{def:residual}), e $y$, $y^{LS}$ el vector \emph{one-hot} y los objetivos suavizados (\cref{def:label-smoothing}).}
 
 \section{Redes neuronales}\label{sec:redes}
 
@@ -187,14 +186,13 @@ Sea $H_k$ el espacio de los polinomios homogéneos de grado $k$ en $n$ variables
 
 \begin{proof}
 Los monomios $x^\alpha = x_1^{\alpha_1}\cdots x_n^{\alpha_n}$ con $|\alpha|=k$ forman una base de $H_k$, siendo $|\alpha|=\alpha_1+\dots+\alpha_n$, con $|\cdot|:\mathbb{N}^n\to\mathbb{N}$, conocido como el grado total del monomio. Para $p=\sum_\alpha p_\alpha x^\alpha \in H_k$ y $q=\sum_\alpha q_\alpha x^\alpha \in H_k$, con $p_\alpha, q_\alpha \in \mathbb{R}$, definimos
-\revisar{corregido: $|\cdot|$ actúa sobre los multiíndices $\alpha\in\mathbb{N}^n$, no sobre $H_k$ (antes «$|\cdot|:H_K \Rightarrow \mathbb{N}$»); los coeficientes $p_\alpha, q_\alpha$ son números reales, no vectores de $\mathbb{R}^n$; erratas «q\textbackslash alpha» y «H\_K»} el producto escalar $\langle p,q\rangle = \sum_{|\alpha|=k}\alpha!\,p_\alpha q_\alpha$, donde $\alpha! = \alpha_1!\cdots\alpha_n!$. Por la fórmula multinomial,
+el producto escalar $\langle p,q\rangle = \sum_{|\alpha|=k}\alpha!\,p_\alpha q_\alpha$, donde $\alpha! = \alpha_1!\cdots\alpha_n!$. Por la fórmula multinomial,
 \[
   (a\cdot x)^k = \sum_{|\alpha|=k}\frac{k!}{\alpha!}\,a^\alpha x^\alpha,
   \qquad\text{luego}\qquad
   \bigl\langle (a\cdot x)^k, q\bigr\rangle = \sum_{|\alpha|=k} k!\,a^\alpha q_\alpha = k!\,q(a).
 \]
 Sea $W=\spn\{(a\cdot x)^k : a\in\mathbb{R}^n\}\subseteq H_k$ y sea $q\in W^\perp$. En particular, $q$ es ortogonal a cada $(a\cdot x)^k$, luego $k!\,q(a)=0$ y $q(a)=0$ para todo $a\in\mathbb{R}^n$. Un polinomio que se anula en todo $\mathbb{R}^n$ es el polinomio nulo, así que $q=0$ y $W^\perp=\{0\}$. Como $H_k$ tiene dimensión finita, $H_k=W\oplus W^\perp$: si $\pi_W$ es la proyección ortogonal sobre $W$, todo $p\in H_k$ se escribe $p=\pi_W(p)+\bigl(p-\pi_W(p)\bigr)$ con $p-\pi_W(p)\in W^\perp$. Por tanto, $H_k=W$. En dimensión infinita, $W^\perp=\{0\}$ solo garantizaría que $W$ es denso.
-\revisar{desarrollo añadido: se explicitan $W$, que $W^\perp=\{0\}$ y la descomposición $H_k=W\oplus W^\perp$; antes decía «Si $q$ es ortogonal a todos los $(a\cdot x)^k$, entonces $q(a)=0$ para todo $a$, y por tanto $q=0$. Como $H_k$ tiene dimensión finita, el complemento ortogonal del subespacio generado es trivial y se tiene la igualdad.»}
 \end{proof}
 
 \begin{lema}[Reducción a dimensión uno]\label{lem:reduccion}
@@ -229,8 +227,7 @@ pertenece a $\mathcal{M}(\sigma)$ y, por el teorema del valor medio para diferen
 que tiende a $0$ cuando $h\to 0$ por la continuidad uniforme de $\sigma^{(k)}$ en compactos. Luego $x^k\sigma^{(k)}(wx+b)\in\overline{\mathcal{M}(\sigma)}$, y basta tomar $w=0$.
 
 (b) Si $\sigma$ no es un polinomio, ninguna $\sigma^{(k)}$ es idénticamente nula, así que para cada $k$ existe $b_k$ con $\sigma^{(k)}(b_k)\ne 0$. Por (a), $x^k\sigma^{(k)}(b_k)\in\overline{\mathcal{M}(\sigma)}$ y, dividiendo por $\sigma^{(k)}(b_k)\ne 0$ (la clausura es un subespacio vectorial), $x^k\in\overline{\mathcal{M}(\sigma)}$ para todo $k$.
-\revisar{añadido el paso intermedio: se divide por $\sigma^{(k)}(b_k)\ne 0$; antes decía «Por (a), $x^k\in\overline{\mathcal{M}(\sigma)}$ para todo $k$.»} Como la clausura es un subespacio vectorial, contiene todos los polinomios. Sean ahora $f\in C(\mathbb{R})$, $K\subset\mathbb{R}$ compacto y $\varepsilon>0$, y sea $[a,b]\supset K$. Por el teorema de Weierstrass existe un polinomio $P$ con $\sup_{[a,b]}|f-P|<\varepsilon/2$ y, como $P\in\overline{\mathcal{M}(\sigma)}$, existe $N\in\mathcal{M}(\sigma)$ con $\sup_K|P-N|<\varepsilon/2$. Por la desigualdad triangular, $\sup_K|f-N|<\varepsilon$, luego $f\in\overline{\mathcal{M}(\sigma)}$ y $\overline{\mathcal{M}(\sigma)}=C(\mathbb{R})$.
-\revisar{añadido el argumento de $\varepsilon/2$; antes decía «La clausura contiene todos los polinomios y, por el teorema de Weierstrass, es todo $C(\mathbb{R})$.»}
+Como la clausura es un subespacio vectorial, contiene todos los polinomios. Sean ahora $f\in C(\mathbb{R})$, $K\subset\mathbb{R}$ compacto y $\varepsilon>0$, y sea $[a,b]\supset K$. Por el teorema de Weierstrass existe un polinomio $P$ con $\sup_{[a,b]}|f-P|<\varepsilon/2$ y, como $P\in\overline{\mathcal{M}(\sigma)}$, existe $N\in\mathcal{M}(\sigma)$ con $\sup_K|P-N|<\varepsilon/2$. Por la desigualdad triangular, $\sup_K|f-N|<\varepsilon$, luego $f\in\overline{\mathcal{M}(\sigma)}$ y $\overline{\mathcal{M}(\sigma)}=C(\mathbb{R})$.
 \end{demostracion}
 
 \begin{demostracion}[Demostración del \cref{teo:aprox-universal}]
@@ -372,8 +369,7 @@ distribución que le asigna la red,
 \]
 Sean
 $q_k = 1$ si $k = y$ y $q_k = 0$ en otro caso los \emph{objetivos exactos}, es decir,
-la distribución empírica $q_i$ de la \cref{prop:ce-mv}.
-\revisar{notación unificada: el vector \emph{one-hot} y los objetivos suavizados se llamaban $y$ e $y^{LS}$; ahora son $q$ y $q^{LS}$, como en la \cref{prop:ce-mv}, para que $y$ sea siempre la etiqueta (un entero). Se añade que se fija un ejemplo y se omite el índice $i$} La
+la distribución empírica $q_i$ de la \cref{prop:ce-mv}. La
 entropía cruzada entre los objetivos y la predicción es
 \[
   H(q, p) = \sum_{k=1}^{K} -q_k \log p_k .
@@ -398,7 +394,6 @@ Desarrollando la suma,
                + \frac{\varepsilon}{K}\sum_{k=1}^{K} \bigl(-\log p_k\bigr),
 \]
 donde la primera suma se reduce al sumando $k=y$ porque $q_k=0$ para $k\ne y$.
-\revisar{añadido el paso intermedio del desarrollo y la frase que explica por qué la primera suma se reduce a $-\log p_y$}
 % En el entrenamiento se usó LabelSmoothingCrossEntropy de fastai con \varepsilon = 0,1 (valor por
 % defecto), que corresponde a esta expresión: con K = 14, objetivos 0,907 y 0,00714.
 
@@ -412,7 +407,6 @@ propiedad de la divergencia de Kullback-Leibler.
 Sean $q$ y $p$ dos distribuciones cualesquiera sobre $\{1,\dots,K\}$ con $p_k > 0$ para todo
 $k$. Entonces $D_{\mathrm{KL}}(q\,\|\,p) \ge 0$, y la igualdad se da si y solo si
 $p = q$.
-\revisar{enunciado generalizado; antes decía «Si además $q_k > 0$ para todo $k$, la igualdad se da si y solo si $p = q$»}
 \end{lema}
 La demostración se recoge en la \cref{sec:dem-aprendizaje}.
 
@@ -500,7 +494,7 @@ componente: para $j = 1,\dots,n$,
     = \frac{\widehat{m}_{t,j}}{\sqrt{\widehat{v}_{t,j}} + \varepsilon},
 \]
 y $\beta_1^t$, $\beta_2^t$ denotan potencias.
-\revisar{añadido: se escriben explícitamente las tres operaciones componente a componente} Los valores propuestos
+Los valores propuestos
 por defecto son $\alpha = 10^{-3}$, $\beta_1 = 0{,}9$, $\beta_2 = 0{,}999$ y
 $\varepsilon = 10^{-8}$.
 \end{definicion}
@@ -1180,7 +1174,7 @@ bloque con $C$ canales calcula
 donde $\operatorname{DW}_{7\times7}$ es una convolución por canal de $7\times7$,
 $\operatorname{LN}$ normaliza los $C$ canales en cada posición espacial,
 $\operatorname{PW}_1$ es una convolución puntual de $C$ a $4C$ canales y
-$\operatorname{PW}_2$ otra de $4C$ a $C$. Es el bloque de la figura~4 de Liu et
+$\operatorname{PW}_2$ otra de $4C$ a $C$. Es el bloque de la Figura~4 de Liu et
 al.~\cite[fig.~4]{liu2022convnext}.
 % Orden comprobado en el resumen de capas (Conv2d, LayerNorm, Linear, GELU, Linear) y en la fig. 4
 % de Liu et al. (2022). El parámetro gamma (escalado por capa) se ha comprobado en

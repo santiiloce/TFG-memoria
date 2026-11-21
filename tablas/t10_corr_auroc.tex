@@ -5,7 +5,7 @@
 \setlength{\tabcolsep}{3pt}
 \caption{\AUROC (más alto es mejor) de los seis detectores principales en cada corrupción y nivel de severidad. ID: las imágenes limpias del test; OOD: sus versiones corruptas. En negrita, el mejor valor de cada fila. Las demás configuraciones y los IC del 95\,\% están en la \cref{tab:apc-corr-auroc}.}
 \label{tab:ood-corr-auroc}
-\begin{tabular}{llcccccc}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}llcccccc}
 \toprule
 Corrupción & Nivel & MSP & MDS & KNN & ViM & RMDS & STOOD-X (100\,\%) \\
 \midrule
@@ -45,5 +45,5 @@ Movimiento & 1 & 0{,}664 & 0{,}784 & 0{,}755 & 0{,}795 & 0{,}748 & \textbf{0{,}8
  & 3 & 0{,}840 & 0{,}943 & 0{,}925 & 0{,}947 & 0{,}926 & \textbf{0{,}974} \\
  & 5 & 0{,}900 & 0{,}975 & 0{,}961 & 0{,}977 & 0{,}954 & \textbf{0{,}981} \\
 \bottomrule
-\end{tabular}
+\end{tabular*}
 \end{table}

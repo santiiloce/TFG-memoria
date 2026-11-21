@@ -3,9 +3,9 @@
 \centering
 \scriptsize
 \setlength{\tabcolsep}{3pt}
-\caption{Calibración de los $p$-valores de \stoodx ($K=500$) en la validación ID (solo datos ID), por clase predicha. Si el test estuviera calibrado, los $p$-valores seguirían una $U(0,1)$: KS $D$ (distancia de Kolmogorov-Smirnov a la uniforme) cercano a 0 y alrededor de un 5\,\% de $p<0{,}05$. $n_c$: imágenes de entrenamiento predichas en la clase (conjunto de referencia); $n_{\mathrm{val}}$: imágenes de validación predichas en ella.}
+\caption{Calibración de los $p$-valores de \stoodx ($K=500$) en la validación ID (solo datos ID), por clase predicha.}
 \label{tab:stoodx-calibracion}
-\begin{tabular}{lrrccccc}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lrrccccc}
 \toprule
 Clase predicha & $n_c$ & $n_{\mathrm{val}}$ & KS $D$ & $p<0{,}05$ & $p=0$ & $p=1$ & Mediana de $p$ \\
 \midrule
@@ -26,5 +26,8 @@ Clase predicha & $n_c$ & $n_{\mathrm{val}}$ & KS $D$ & $p<0{,}05$ & $p=0$ & $p=1
 \midrule
 \textbf{Todas} & \num{90800} & \num{22691} & 0{,}802 & 81{,}9\,\% & 8{,}1\,\% & 7{,}3\,\% & $\approx 0$ \\
 \bottomrule
-\end{tabular}
+\end{tabular*}
+
+\smallskip
+\parbox{\linewidth}{\scriptsize Si el test estuviera calibrado, los $p$-valores seguirían una $U(0,1)$: KS $D$ (distancia de Kolmogorov-Smirnov a la uniforme) cercano a 0 y alrededor de un 5\,\% de $p<0{,}05$. $n_c$: imágenes de entrenamiento predichas en la clase (conjunto de referencia); $n_{\mathrm{val}}$: imágenes de validación predichas en ella.}
 \end{table}

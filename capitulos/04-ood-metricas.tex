@@ -101,17 +101,61 @@ Además, los conjuntos OOD se clasifican en dos grupos según su dificultad: \em
  puede ser semántico (cuánto se parecen las imágenes a las de la tarea ID) o empírico (lo difícil que resulta detectarlas en la práctica). Esta división permite analizar 
  con más detalle el comportamiento de los detectores ante distintos tipos de muestras OOD.
 
- Como se mencionó en \ref{def:deteccionfullspectrum} la detección del espectro completo considera también muestras con covariate shift (csID). En la práctica esto se realiza mediante 
+ Como se mencionó en la \cref{def:deteccionfullspectrum} la detección del espectro completo considera también muestras con covariate shift (csID). En la práctica esto se realiza mediante 
  incorporar muestras csID $\mathcal{D}^{\mathrm{test}}_{\mathrm{cdID}}$, juntas con $\mathcal{D}^{\mathrm{test}}_{\mathrm{ID}}$, para que sirva como datos ID de test. 
-% Aprendibilidad de la detección OOD (Fang et al., 2022): condiciones bajo las que la detección
-% OOD es aprendible en el sentido PAC.
-\pendiente{aprendibilidad de la detección OOD (Fang et al.~\cite{fang2022})}
 
 Al igual que existe el conjunto ID, el benchmark ~\cite{openood15} define también los conjutnos: Near-OOD y Far-OOD.
 Según la definición de ~\cite{ren2021} ~\cite{openood15} ~\cite{linmans2023}, se considerará Near OOD muestras que semánticamente son más similares a las muestras 
 de ID distribuion, si solamenten presentan covariate shift no pueden ser clasificadas en esta categoría debido a que es esencial que presenten
 covariate shift. Finalmente, aquellas muestras que presenten tanto covariate shift como semantic shift, y sean muy diferentes del conjunto ID serán consideradas como Far-OOD.
   
+
+\section{Aprendibilidad de la detección OOD}\label{sec:aprendibilidad}
+
+% Fuente: Fang et al. (2022), sec. 2 (definición 1 y riesgos), sec. 4 (condición 1, definición 4,
+% teoremas 3 y 4) y ap. G.1 (demostración del teorema 3). La necesidad de la condición lineal en los
+% espacios a priori desconocidos es su lema 1 (ap. F).
+Fang et al.~\cite{fang2022} estudian cuándo la detección OOD es aprendible en el sentido de la teoría PAC (\emph{probably approximately correct}). Sean $\mathcal{X} \subset \R^{d}$ el espacio de entradas, $\mathcal{Y} = \{1, \dots, K\}$ las clases ID y $K + 1$ una única etiqueta para todos los datos OOD, y sea $\mathcal{Y}_{\mathrm{all}} = \mathcal{Y} \cup \{K+1\}$. Un \emph{dominio} es una distribución conjunta
+\[
+  D_{XY} = (1 - \pi)\, D_{X_I Y_I} + \pi\, D_{X_O Y_O}, \qquad \pi \in [0, 1),
+\]
+mezcla de una distribución ID $D_{X_I Y_I}$ sobre $\mathcal{X} \times \mathcal{Y}$ y de una distribución OOD $D_{X_O Y_O}$, cuyas etiquetas valen $K+1$; la proporción $\pi$ de datos OOD es desconocida. Un \emph{espacio de dominios} $\mathcal{D}$ es un conjunto de dominios, y un \emph{espacio de hipótesis} es un conjunto $\mathcal{H}$ de funciones $h\colon \mathcal{X} \to \mathcal{Y}_{\mathrm{all}}$~\cite[sec.~2]{fang2022}.
+
+\begin{definicion}[{Riesgos~\cite[sec.~2]{fang2022}}]\label{def:riesgos-ood}
+Sea $\ell\colon \mathcal{Y}_{\mathrm{all}} \times \mathcal{Y}_{\mathrm{all}} \to \R_{\geq 0}$ una función de pérdida con $\ell(y_1, y_2) = 0$ si y solo si $y_1 = y_2$. Para $h \in \mathcal{H}$ se definen el riesgo ID, el riesgo OOD y, para $\alpha \in [0, 1]$, el $\alpha$-riesgo:
+\[
+  R^{\mathrm{in}}_{D}(h) = \E_{(x, y) \sim D_{X_I Y_I}} \ell\bigl(h(x), y\bigr), \quad
+  R^{\mathrm{out}}_{D}(h) = \E_{x \sim D_{X_O}} \ell\bigl(h(x), K + 1\bigr), \quad
+  R^{\alpha}_{D}(h) = (1 - \alpha)\, R^{\mathrm{in}}_{D}(h) + \alpha\, R^{\mathrm{out}}_{D}(h).
+\]
+El riesgo $R_D(h)$ respecto del dominio completo es el $\alpha$-riesgo con $\alpha = \pi$.
+\end{definicion}
+
+\begin{definicion}[{Aprendibilidad de la detección OOD~\cite[def.~1]{fang2022}}]\label{def:aprendibilidad}
+La detección OOD es \emph{aprendible} en $\mathcal{D}$ para $\mathcal{H}$ si existen un algoritmo $A$, que a cada muestra de entrenamiento $S$ le asigna una hipótesis $A(S) \in \mathcal{H}$, y una sucesión decreciente $\epsilon(n) \to 0$ tales que, para todo dominio $D_{XY} \in \mathcal{D}$ y todo $n$,
+\[
+  \E_{S \sim D^{n}_{X_I Y_I}} \Bigl[ R_D\bigl(A(S)\bigr) - \inf_{h \in \mathcal{H}} R_D(h) \Bigr] \leq \epsilon(n),
+\]
+donde $S$ está formada por $n$ ejemplos ID independientes.
+\end{definicion}
+
+La diferencia con el aprendizaje supervisado es que la muestra solo contiene datos ID, mientras que el riesgo se mide sobre la mezcla con los OOD. Fang et al.\ demuestran que, en los espacios de dominios que contienen todas las mezclas $(1-\alpha) D_{X_I Y_I} + \alpha D_{X_O Y_O}$ de cada uno de sus dominios, una condición necesaria para la aprendibilidad es la siguiente~\cite[sec.~4 y lema~1]{fang2022}.
+
+\begin{definicion}[{Condición lineal~\cite[cond.~1]{fang2022}}]\label{def:condicion-lineal}
+Para todo $D_{XY} \in \mathcal{D}$ y todo $\alpha \in [0, 1)$,
+\[
+  \inf_{h \in \mathcal{H}} R^{\alpha}_{D}(h) = (1 - \alpha) \inf_{h \in \mathcal{H}} R^{\mathrm{in}}_{D}(h) + \alpha \inf_{h \in \mathcal{H}} R^{\mathrm{out}}_{D}(h).
+\]
+\end{definicion}
+
+La condición falla cuando las distribuciones ID y OOD se solapan. Se dice que un dominio tiene \emph{solapamiento} si existe una medida $\sigma$-finita $\mu$ respecto de la que $D_X$ es absolutamente continua y, siendo $f_I$ y $f_O$ las densidades de $D_{X_I}$ y $D_{X_O}$ respecto de $\mu$, el conjunto $A = \{x \in \mathcal{X} : f_I(x) > 0,\ f_O(x) > 0\}$ cumple $\mu(A) > 0$~\cite[def.~4]{fang2022}.
+
+\begin{proposicion}[{Solapamiento y condición lineal~\cite[teor.~3]{fang2022}}]\label{prop:solapamiento}
+Si un dominio $D_{XY}$ tiene solapamiento y $\inf_{h \in \mathcal{H}} R^{\mathrm{in}}_{D}(h) = \inf_{h \in \mathcal{H}} R^{\mathrm{out}}_{D}(h) = 0$, entonces $\inf_{h \in \mathcal{H}} R^{\alpha}_{D}(h) > 0$ para todo $\alpha \in (0, 1)$, y la condición lineal no se cumple.
+\end{proposicion}
+La demostración se recoge en la \cref{sec:dem-ood}.
+
+Es decir, si existen hipótesis que clasifican sin error los datos ID y otras que rechazan sin error los OOD, pero las dos distribuciones comparten una región de probabilidad positiva, ninguna hipótesis puede hacer ambas cosas a la vez, y la detección OOD no es aprendible en ningún espacio de dominios como los anteriores que contenga ese dominio. Como consecuencia, no es aprendible en el espacio de todos los dominios para ningún espacio de hipótesis no trivial; y aunque se excluyan los solapamientos, sigue sin serlo en general para espacios de dimensión de Vapnik--Chervonenkis finita~\cite[teors.~4 y~5]{fang2022}. Sí lo es en espacios más restringidos, como aquellos con un número finito de distribuciones ID, bajo una condición de compatibilidad entre el espacio de dominios y el de hipótesis~\cite[sec.~5]{fang2022}.
 
 \section{Regla de decisión por umbral}\label{sec:regla-umbral}
 
@@ -134,9 +178,6 @@ Esta es la formulación de OpenOOD~\cite[ec.~(1)]{openood15} con la orientación
 Debido a que la detección se trata de un problema de clasificación binaria según \cref{def:ID} se utilizarán las siguintes métricas: área bajo la curva característica de funcionamiento del receptor (AUROC), area bajo la curva precisión-recuperación (AUPR) y tasa falsos positivos al 95\% de tasa de verdaderos positivos (FPR@95).
 El inconveniente de estas métricas está en que no miden si la clasificación de las 14 clases es correcta. Para ello se ha considerado añadir en este trabajo la mejor CCR@FPR$x$.
 
-Evaluación. Además de las puntuaciones F, AUROC y AUPR, otra métrica comúnmente utilizada es FPR@TPR$x$, que mide la FPR cuando la TPR es $x$ (por ejemplo, $0{,}95$). Algunos trabajos también utilizan una métrica alternativa, TNR@TPR$x$, que es equivalente a $1 - \text{FPR@TPR}x$. La detección de OOD también afecta al rendimiento de la clasificación de ID.
-\revisar{traducción casi literal; parafrasear y citar}
-
 \subsection{Curva ROC y AUROC}\label{sec:auroc}
 
 \textbf{AUROC}: representa la probabilidad de que el modelo asigne una puntuación o probabilidad más alta a un ejemplo positivo elegido al azar que a uno negativo. 
@@ -150,14 +191,14 @@ Puede ser interpretado como la probabilidad de que el detector separe correctame
   \centering
   \caption{Categorías diagnósticas obtenidas al contrastar las predicciones de un test con el valor verdadero. Fuente: Cerda y Cifuentes~\cite{cerda2012roc}.}
   \label{tab:categorias-diagnosticas}
-  \begin{tabular}{lcc}
+  \begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lcc}
     \toprule
     & Valor verdadero positivo & Valor verdadero negativo \\
     \midrule
     Predicción positiva & Verdadero positivo (VP) & Falso positivo (FP) \\
     Predicción negativa & Falso negativo (FN) & Verdadero negativo (VN) \\
     \bottomrule
-  \end{tabular}
+  \end{tabular*}
 \end{table}
 
 Al contrastar las predicciones de un test diagnóstico con el valor verdadero se obtienen las cuatro categorías de la \cref{tab:categorias-diagnosticas}, a partir de las cuales se definen~\cite{cerda2012roc}
@@ -253,16 +294,35 @@ Cada uno de los $a_k$ valores $u_i = w_k$ aporta lo mismo, luego, sumando en $k$
 son rechazadas por error como OOD con el umbral fijo en un punto. De esta forma cuanto más bajo sea el valor de la métrica mejor.
 
 \begin{definicion}[FPR@TPR$x$]\label{def:fpr95}
-\pendiente{definición}
+Sea $x \in (0, 1)$ y, con la notación de la \cref{def:roc}, sea
+$\tau_x = \inf\{\tau \in \R : \mathrm{TPR}(\tau) \geq x\}$ el umbral a partir del
+cual se detecta una proporción $x$ de las muestras OOD. Se define
+\[
+  \mathrm{FPR@TPR}x = \mathrm{FPR}(\tau_x),
+\]
+la proporción de muestras ID rechazadas como OOD con ese umbral~\cite{yang2024}. Con
+$x = 0{,}95$ se obtiene el \FPRn{95}. Cuanto más bajo, mejor.
 \end{definicion}
 
 \subsection{AUPR-In y AUPR-Out}\label{sec:aupr}
 
 \textbf{AUPR}: esta métrica va acompañada de AUROC, ya que AUROC no es sensible a desbalance entre clases mientras que AUPR sí. Principalmente se basa en dos conceptos: precisión y exhaustividad (\emph{recall}). De esta métrica obtenemos dos versiones: AUPR-In (mide lo bien que se recuperan imágenes de próstata sin que se cuelen OOD) y AUPR-Out (mide lo bien que se encuentran las OOD sin falsas alarmas sobre las de próstata). En el primer caso el caso positivo es ID y por eso mismo nos interesa un valor alto, y en el segundo el caso positivo es el OOD, por lo que también interesa un valor alto.
-\revisar{las notas decían que en AUPR-Out interesa un valor «más bajo»; es incorrecto: en ambas versiones interesa un valor alto}
-
 \begin{definicion}[Precisión, exhaustividad y AUPR]\label{def:aupr}
-\pendiente{definición}
+Sean un conjunto de prueba con muestras ID y OOD, una de las dos clases tomada como
+positiva y, para cada umbral $\tau$, $\mathrm{VP}(\tau)$, $\mathrm{FP}(\tau)$ y
+$\mathrm{FN}(\tau)$ el número de verdaderos positivos, falsos positivos y falsos
+negativos. La \emph{precisión} y la \emph{exhaustividad} son
+\[
+  \mathrm{Prec}(\tau) = \frac{\mathrm{VP}(\tau)}{\mathrm{VP}(\tau) + \mathrm{FP}(\tau)},
+  \qquad
+  \mathrm{Exh}(\tau) = \frac{\mathrm{VP}(\tau)}{\mathrm{VP}(\tau) + \mathrm{FN}(\tau)},
+\]
+de modo que la exhaustividad es la tasa de verdaderos positivos~\cite{fawcett2006}. La
+\emph{curva precisión-exhaustividad} es
+$\bigl\{\bigl(\mathrm{Exh}(\tau), \mathrm{Prec}(\tau)\bigr) : \tau \in \R\bigr\}$, y el
+AUPR es el área bajo ella. El \emph{AUPR-Out} toma como positiva la clase OOD (una
+muestra se predice positiva si $s(x) < \tau$) y el \emph{AUPR-In}, la clase ID (si
+$s(x) \geq \tau$)~\cite{yang2024}. En ambos casos, cuanto más alto, mejor.
 \end{definicion}
 
 \subsection{CCR@FPR$x$}\label{sec:ccr}

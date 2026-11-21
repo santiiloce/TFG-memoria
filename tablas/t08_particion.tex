@@ -4,7 +4,7 @@
 \small
 \caption{Número de imágenes por clase en la partición original del conjunto ID (carpetas \texttt{train} y \texttt{val}) y en la partición usada en este trabajo (el \texttt{train} original dividido 80/20 por clase en entrenamiento y validación; el \texttt{val} original como test).}
 \label{tab:particion}
-\begin{tabular}{lrrrrr}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lrrrrr}
 \toprule
 & \multicolumn{2}{c}{Original} & \multicolumn{3}{c}{Partición del TFG} \\
 \cmidrule(lr){2-3}\cmidrule(lr){4-6}
@@ -27,5 +27,5 @@ Clase & Train & Val & Train & Validación & Test \\
 \midrule
 \textbf{Total} & \num{113491} & \num{12618} & \num{90800} & \num{22691} & \num{12618} \\
 \bottomrule
-\end{tabular}
+\end{tabular*}
 \end{table}

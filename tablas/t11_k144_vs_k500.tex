@@ -3,9 +3,9 @@
 \centering
 \scriptsize
 \setlength{\tabcolsep}{3pt}
-\caption{\stoodx (100\,\% de las características, puntuación $-z$) con $K=500$ (valor del artículo) y con $K=144$ (elegido solo con la validación ID, \cref{tab:stoodx-seleccion-k}), sobre las mismas imágenes. \AUROC y \CCRn{5}: más alto es mejor; \FPRn{95}: más bajo es mejor. Diferencia: \AUROC($K=144$) $-$ \AUROC($K=500$), con IC y $p$ por \emph{bootstrap} pareado (1.000 remuestreos, semilla 0); $p<0{,}001$: ninguna réplica cruzó el cero. Clase positiva: OOD.}
+\caption{\stoodx (100\,\% de las características, puntuación $-z$) con $K=500$ (valor del artículo) y con $K=144$ (elegido solo con la validación ID, \cref{tab:stoodx-seleccion-k}), sobre las mismas imágenes. \AUROC y \CCRn{5}: más alto es mejor; \FPRn{95}: más bajo es mejor.}
 \label{tab:stoodx-k144-k500}
-\begin{tabular}{lcccccccc}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lcccccccc}
 \toprule
 & \multicolumn{4}{c}{\AUROC $\uparrow$} & \multicolumn{2}{c}{\FPRn{95} $\downarrow$} & \multicolumn{2}{c}{\CCRn{5} $\uparrow$} \\
 \cmidrule(lr){2-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}
@@ -21,5 +21,8 @@ PANDA & 0{,}895 & 0{,}939 & +0{,}044 [0{,}041; 0{,}047] & $<0{,}001$ & 0{,}427 &
 Control 128\,px & 0{,}894 & 0{,}935 & +0{,}041 [0{,}039; 0{,}043] & $<0{,}001$ & 0{,}497 & 0{,}339 & 0{,}500 & 0{,}656 \\
 DTD & 0{,}991 & 0{,}993 & +0{,}002 [0{,}001; 0{,}003] & $<0{,}001$ & 0{,}028 & 0{,}020 & 0{,}949 & 0{,}955 \\
 \bottomrule
-\end{tabular}
+\end{tabular*}
+
+\smallskip
+\parbox{\linewidth}{\scriptsize Diferencia: \AUROC($K=144$) $-$ \AUROC($K=500$), con IC y $p$ por \emph{bootstrap} pareado (1.000 remuestreos, semilla 0); $p<0{,}001$: ninguna réplica cruzó el cero. Clase positiva: OOD.}
 \end{table}

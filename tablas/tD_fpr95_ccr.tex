@@ -3,9 +3,9 @@
 \centering
 \scriptsize
 \setlength{\tabcolsep}{2.5pt}
-\caption{ConvNeXt-S, espacio principal M: \FPRn{95} (más bajo es mejor) de los 14 métodos en los nueve conjuntos y \CCRn{5} (más alto es mejor) en TUM+NORM. Clase positiva: OOD. En negrita, el mejor valor de cada columna. Los IC de \FPRn{95} están en \texttt{tabla\_principal\_convnext.csv}. $^{B}$En el espacio B (512 dimensiones): requieren la capa que entra en el clasificador lineal. KNN, MDS, RMDS, SHE y \stoodx, en M (768); MSP, MaxLogit y Energy, en los logits. $^{a}$Modifican la predicción: la exactitud ID baja al 96{,}5\,\% (ASH) y al 28{,}5\,\% (DICE, con el postprocesador de OpenOOD sin cambios).}
+\caption{ConvNeXt-S, espacio principal M: \FPRn{95} (más bajo es mejor) de los 14 métodos en los nueve conjuntos y \CCRn{5} (más alto es mejor) en TUM+NORM.}
 \label{tab:convnext-fpr}
-\begin{tabular}{lcccccccccc}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lcccccccccc}
 \toprule
 & \multicolumn{9}{c}{\FPRn{95} $\downarrow$} & \CCRn{5} $\uparrow$ \\
 \cmidrule(lr){2-10}\cmidrule(lr){11-11}
@@ -33,5 +33,8 @@ SHE (euclídea) & 0{,}361 & 0{,}443 & 0{,}220 & 0{,}312 & 0{,}207 & 0{,}726 & 0{
 \multicolumn{11}{@{}l}{\textit{STOOD-X}} \\
 STOOD-X (100\,\%) & 0{,}624 & 0{,}711 & 0{,}266 & \textbf{0{,}053} & 0{,}691 & \textbf{0{,}160} & \textbf{0{,}140} & \textbf{0{,}673} & 0{,}005 & 0{,}373 \\
 \bottomrule
-\end{tabular}
+\end{tabular*}
+
+\smallskip
+\parbox{\linewidth}{\scriptsize Clase positiva: OOD. En negrita, el mejor valor de cada columna. Los IC de \FPRn{95} están en \texttt{tabla\_principal\_convnext.csv}. $^{B}$En el espacio B (512 dimensiones): requieren la capa que entra en el clasificador lineal. KNN, MDS, RMDS, SHE y \stoodx, en M (768); MSP, MaxLogit y Energy, en los logits. $^{a}$Modifican la predicción: la exactitud ID baja al 96{,}5\,\% (ASH) y al 28{,}5\,\% (DICE, con el postprocesador de OpenOOD sin cambios).}
 \end{table}

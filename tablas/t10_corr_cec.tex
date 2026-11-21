@@ -5,7 +5,7 @@
 \setlength{\tabcolsep}{4pt}
 \caption{CEC global (más bajo es mejor) de las 15 configuraciones de detectores, de menor a mayor, sobre las nueve corrupciones y los niveles 0, 1, 3 y 5. IC del 95\,\% por \emph{bootstrap} pareado por imagen (1.000 réplicas, semilla 0). Pares empatados: porcentaje de pares de niveles con la misma puntuación.}
 \label{tab:ood-corr-cec}
-\begin{tabular}{lccc}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lccc}
 \toprule
 Detector & CEC $\downarrow$ & IC 95\,\% & Pares empatados (\%) \\
 \midrule
@@ -25,7 +25,7 @@ ReAct & 0{,}322 & [0{,}320; 0{,}325] & 0{,}001 \\
 DICE & 0{,}408 & [0{,}404; 0{,}411] & 0{,}000 \\
 ASH & 0{,}447 & [0{,}445; 0{,}450] & 0{,}010 \\
 \bottomrule
-\end{tabular}
+\end{tabular*}
 
 \smallskip
 \parbox{\linewidth}{\scriptsize 0 = ordenación monótona; 0,5 = azar. La CEC de MSP es la métrica de Zhang et al.~\cite{zhang2022corruptions} adaptada a nuestros niveles. $^{\ast}$Los pares en los que los dos niveles tienen la puntuación saturada cuentan como empate; con empates exactos, la CEC es 0{,}138 [0{,}136; 0{,}139] (100\,\%) y 0{,}138 [0{,}136; 0{,}140] (87,5\,\%). $^{\ast\ast}$Pares con los dos niveles saturados.}

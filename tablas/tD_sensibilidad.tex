@@ -3,9 +3,9 @@
 \centering
 \scriptsize
 \setlength{\tabcolsep}{2pt}
-\caption{Sensibilidad de ConvNeXt-S al espacio de características: diferencia de \AUROC entre el espacio principal M (768 dimensiones) y los espacios B (512) y C (1.536), positiva si M es mejor. IC del 95\,\% por \emph{bootstrap} pareado por imagen (1.000 remuestreos estratificados ID/OOD, semilla 0). $^{\circ}$: el IC contiene el 0. Los IC del resto de conjuntos están en \texttt{sensibilidad\_pareada.csv}. \stoodx en C solo se calculó en TUM y NORM.}
+\caption{Sensibilidad de ConvNeXt-S al espacio de características: diferencia de \AUROC entre el espacio principal M (768 dimensiones) y los espacios B (512) y C (1.536), positiva si M es mejor.}
 \label{tab:convnext-sensibilidad}
-\begin{tabular}{lccccccccc}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lccccccccc}
 \toprule
 Método & TUM+NORM [IC 95\,\%] & TUM & NORM & STR & LYM & MUS & PANDA & Control 128\,px & DTD \\
 \midrule
@@ -27,5 +27,8 @@ SHE (coseno) & $-$0{,}035 [$-$0{,}037; $-$0{,}033] & $-$0{,}041 & $-$0{,}026 & $
 SHE (euclídea) & $-$0{,}002$^{\circ}$ [$-$0{,}004; +0{,}000] & $-$0{,}002$^{\circ}$ & $-$0{,}002 & +0{,}009 & +0{,}040 & $-$0{,}018 & $-$0{,}252 & $-$0{,}051 & +0{,}023 \\
 STOOD-X (100\,\%) & $-$0{,}000$^{\circ}$ [$-$0{,}001; +0{,}001] & $-$0{,}002 & +0{,}002 & -- & -- & -- & -- & -- & -- \\
 \bottomrule
-\end{tabular}
+\end{tabular*}
+
+\smallskip
+\parbox{\linewidth}{\scriptsize IC del 95\,\% por \emph{bootstrap} pareado por imagen (1.000 remuestreos estratificados ID/OOD, semilla 0). $^{\circ}$: el IC contiene el 0. Los IC del resto de conjuntos están en \texttt{sensibilidad\_pareada.csv}. \stoodx en C solo se calculó en TUM y NORM.}
 \end{table}

@@ -14,6 +14,7 @@ import argparse
 import csv
 import json
 import os
+import re
 from collections import OrderedDict
 
 # ---------------------------------------------------------------------------
@@ -119,8 +120,57 @@ def escribir(salida, nombre, lineas, origen):
     print('  ' + ruta)
 
 
+# Pies de tabla: como máximo unas tres líneas. Lo que sobra pasa a una nota bajo la tabla.
+LIMITE_PIE = 300   # caracteres de texto visible (unas tres líneas)
+
+
+def _texto_visible(t):
+    t = re.sub(r'\\(cite|cref|Cref|label|ref)\*?(\[[^\]]*\])?\{[^}]*\}', '[1]', t)
+    t = re.sub(r'\\[a-zA-Z]+\*?', '', t)
+    return re.sub(r'\s+', ' ', re.sub(r'[{}$\\~^_]', '', t))
+
+
+def _frases(t):
+    """Divide en frases por '. ' seguido de mayúscula, $, \\ o paréntesis, fuera de llaves."""
+    frases, ini, prof = [], 0, 0
+    for i, c in enumerate(t):
+        prof += (c == '{') - (c == '}')
+        if (c == '.' and prof == 0 and i + 2 < len(t) and t[i + 1] == ' '
+                and re.match(r'[A-ZÁÉÍÓÚÑ$\\(]', t[i + 2])):
+            frases.append(t[ini:i + 1])
+            ini = i + 2
+    frases.append(t[ini:])
+    return [f for f in frases if f.strip()]
+
+
+def partir_pie(caption):
+    """Devuelve (pie, resto): el pie llega hasta la frase que dice si más alto o más bajo es mejor."""
+    if len(_texto_visible(caption)) <= LIMITE_PIE:
+        return caption, None
+    frases = _frases(caption)
+    n_pie = 1
+    for i, f in enumerate(frases[:3]):
+        if 'mejor' in f:
+            n_pie = i + 1
+            break
+    if len(_texto_visible(' '.join(frases[:n_pie]))) > LIMITE_PIE:
+        n_pie = 1
+    resto = ' '.join(frases[n_pie:]).strip()
+    return ' '.join(frases[:n_pie]), (resto or None)
+
+
+def columnas_a_ancho(columnas):
+    """Especificación de tabular* que reparte el espacio sobrante entre las columnas."""
+    if columnas.startswith('@{}'):
+        return '@{\\extracolsep{\\fill}}' + columnas[3:]
+    return '@{\\extracolsep{\\fill}}' + columnas
+
+
 def tabla(caption, label, columnas, cuerpo, tamano='\\small', sep=None, entorno='tabular', ancho=None,
           notas=None):
+    caption, resto = partir_pie(caption)
+    if resto:
+        notas = resto + (' ' + notas if notas else '')
     l = ['\\begin{table}', '\\centering', tamano]
     if sep:
         l.append('\\setlength{\\tabcolsep}{%s}' % sep)
@@ -128,7 +178,8 @@ def tabla(caption, label, columnas, cuerpo, tamano='\\small', sep=None, entorno=
     if entorno == 'tabularx':
         l.append('\\begin{tabularx}{%s}{%s}' % (ancho or '\\textwidth', columnas))
     else:
-        l.append('\\begin{%s}{%s}' % (entorno, columnas))
+        entorno = 'tabular*'
+        l.append('\\begin{tabular*}{\\linewidth}{%s}' % columnas_a_ancho(columnas))
     l += cuerpo
     l.append('\\end{%s}' % entorno)
     if notas:
@@ -1223,26 +1274,27 @@ def tD_stoodx(R, S):
                              ic(pv[(mod, m)]['IC_inf'], pv[(mod, m)]['IC_sup'])) for mod in ('swin', 'convnext')]
         return '%s & %s \\\\' % (METODOS_CNX[m], ' & '.join(celdas))
 
+    nota = ('(a) \\AUROC con el control de 128\\,px como clase '
+            'negativa y PANDA como positiva: por encima de 0,5, la puntuación coloca PANDA como más OOD que el control; '
+            'ConvNeXt-S en el espacio M. %s %s (b) Porcentaje de imágenes con la puntuación $-z$ de \\stoodx ($K=500$) '
+            'saturada ($U=n_1n_2$) en cada espacio de ConvNeXt-S; en C solo se calculó en el test ID, TUM y NORM.') % (
+                NOTA_BOOT.replace(' Clase positiva: OOD.', ''), NOTA_B.split(' KNN,')[0])
     l = ['\\begin{table}', '\\centering', '\\footnotesize', '\\setlength{\\tabcolsep}{4pt}',
-         '\\caption{\\stoodx y la saturación con los dos modelos. (a) \\AUROC con el control de 128\\,px como clase '
-         'negativa y PANDA como positiva: por encima de 0,5, la puntuación coloca PANDA como más OOD que el control; '
-         'ConvNeXt-S en el espacio M. %s %s (b) Porcentaje de imágenes con la puntuación $-z$ de \\stoodx ($K=500$) '
-         'saturada ($U=n_1n_2$) en cada espacio de ConvNeXt-S; en C solo se calculó en el test ID, TUM y NORM.}' % (
-             NOTA_BOOT.replace(' Clase positiva: OOD.', ''), NOTA_B.split(' KNN,')[0]),
-         '\\label{tab:convnext-stoodx}', '',
+         '\\caption{\\stoodx y la saturación con los dos modelos.}', '\\label{tab:convnext-stoodx}', '',
          '\\textit{(a) PANDA frente al control}\\par\\smallskip',
-         '\\begin{tabular}{lcc}', '\\toprule', 'Método & Swin-S & ConvNeXt-S \\\\', '\\midrule']
+         '\\begin{tabular*}{\\linewidth}{@{\\extracolsep{\\fill}}lcc}', '\\toprule', 'Método & Swin-S & ConvNeXt-S \\\\', '\\midrule']
     l += filas_familias(set(METODOS_CNX), fila_pv, 3)
-    l += ['\\bottomrule', '\\end{tabular}', '', '\\bigskip',
+    l += ['\\bottomrule', '\\end{tabular*}', '', '\\bigskip',
           '\\textit{(b) Imágenes saturadas}\\par\\smallskip',
-          '\\begin{tabular}{lcccc}', '\\toprule',
+          '\\begin{tabular*}{\\linewidth}{@{\\extracolsep{\\fill}}lcccc}', '\\toprule',
           'Conjunto & Swin-S & ConvNeXt-S (M) & ConvNeXt-S (B) & ConvNeXt-S (C) \\\\', '\\midrule']
     for c, nombre in [('id_test', 'Test ID')] + list(CONJUNTOS.items()):
         celdas = [sat.get(k) for k in [('swin', '-', c), ('convnext', 'M', c), ('convnext', 'B', c),
                                        ('convnext', 'C', c)]]
         l.append('%s & %s \\\\' % (nombre, ' & '.join(pct(f['frac_saturadas']) + '\\,\\%' if f else '--'
                                                          for f in celdas)))
-    l += ['\\bottomrule', '\\end{tabular}', '\\end{table}']
+    l += ['\\bottomrule', '\\end{tabular*}', '', '\\smallskip', '\\parbox{\\linewidth}{\\scriptsize %s}' % nota,
+          '\\end{table}']
     escribir(S, 'tD_stoodx.tex', l, CONVNEXT + '/panda_vs_control.csv y saturacion_stoodx.csv')
 
 

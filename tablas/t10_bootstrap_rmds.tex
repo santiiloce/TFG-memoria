@@ -4,7 +4,7 @@
 \footnotesize
 \caption{\emph{Bootstrap} pareado (1.000 remuestreos, semilla 0) de la diferencia \AUROC(RMDS) $-$ \AUROC(método) en el near-OOD principal (TUM+NORM); RMDS es el método de referencia, por lo que no tiene fila propia. Diferencia positiva: RMDS es mejor. $p<0{,}001$: ninguna réplica cruzó el cero. $^{a}$, $^{\dagger}$: como en \cref{tab:ood-near}.}
 \label{tab:ood-bootstrap-rmds}
-\begin{tabular}{lccc}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lccc}
 \toprule
 Método & Diferencia & IC 95\,\% & $p$ \\
 \midrule
@@ -25,5 +25,5 @@ STOOD-X (87,5\,\%) & +0{,}001 & [-0{,}001; 0{,}003] & 0{,}556 \\
 STOOD-X $K_c$$^{\dagger}$ & +0{,}011 & [0{,}008; 0{,}013] & $<0{,}001$ \\
 STOOD-X ($K=144$)$^{\ddagger}$ & $-$0{,}037 & [-0{,}040; -0{,}035] & $<0{,}001$ \\
 \bottomrule
-\end{tabular}
+\end{tabular*}
 \end{table}

@@ -3,9 +3,9 @@
 \centering
 \scriptsize
 \setlength{\tabcolsep}{3pt}
-\caption{Clasificación de las 14 clases en el test ID (12.618 imágenes) con los cinco modelos: exactitud, F1 macro y \emph{balanced accuracy} (más alto es mejor). IC del 95\,\% por \emph{bootstrap} (1.000 remuestreos, semilla 0) sobre imágenes y sobre láminas (remuestreo de las 95 láminas). ConvNeXt-S se evalúa a 256\,px y el resto a 224\,px, cada uno con el preprocesado de su entrenamiento.}
+\caption{Clasificación de las 14 clases en el test ID (12.618 imágenes) con los cinco modelos: exactitud, F1 macro y \emph{balanced accuracy} (más alto es mejor).}
 \label{tab:modelos}
-\begin{tabular}{lccccccc}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lccccccc}
 \toprule
 Modelo & Exactitud & IC 95\,\% (imagen) & IC 95\,\% (lámina) & F1 macro & IC 95\,\% (imagen) & IC 95\,\% (lámina) & \emph{Balanced acc.} \\
 \midrule
@@ -15,5 +15,8 @@ EfficientNetV2-S & 0{,}9538 & [0{,}9500; 0{,}9575] & [0{,}9412; 0{,}9645] & 0{,}
 ViT-B/16 & 0{,}9525 & [0{,}9487; 0{,}9559] & [0{,}9391; 0{,}9631] & 0{,}8740 & [0{,}8565; 0{,}8883] & [0{,}8007; 0{,}8966] & 0{,}8674 \\
 ResNet-50 & 0{,}8964 & [0{,}8913; 0{,}9020] & [0{,}8687; 0{,}9166] & 0{,}7620 & [0{,}7434; 0{,}7796] & [0{,}6678; 0{,}7904] & 0{,}7375 \\
 \bottomrule
-\end{tabular}
+\end{tabular*}
+
+\smallskip
+\parbox{\linewidth}{\scriptsize IC del 95\,\% por \emph{bootstrap} (1.000 remuestreos, semilla 0) sobre imágenes y sobre láminas (remuestreo de las 95 láminas). ConvNeXt-S se evalúa a 256\,px y el resto a 224\,px, cada uno con el preprocesado de su entrenamiento.}
 \end{table}

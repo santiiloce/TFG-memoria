@@ -3,9 +3,9 @@
 \centering
 \footnotesize
 \setlength{\tabcolsep}{4pt}
-\caption{Clasificación agrupada en el test ID a partir de las predicciones de 14 clases (más alto es mejor). Cinco categorías: NM (\clase{No\_Cancer}, estroma, glándulas no neoplásicas, inflamatorio), G3, G4, G5 y NT (PIN de alto grado, carcinoma intraductal, adenocarcinoma ductal). Binario: maligno = G3 + G4 + G5 + NT. Sens.: sensibilidad; Esp.: especificidad; BA: \emph{balanced accuracy}. Referencia: XCiT-Medium del artículo del conjunto de datos~\cite{ayensa2026}, con otro reparto de NM y NT (su BA se calcula como la media de Sens. y Esp.). Media: media aritmética de los cinco modelos.}
+\caption{Clasificación agrupada en el test ID a partir de las predicciones de 14 clases (más alto es mejor).}
 \label{tab:agrupaciones}
-\begin{tabular}{lcccccc}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lcccccc}
 \toprule
 & \multicolumn{2}{c}{5 categorías} & \multicolumn{4}{c}{Binario} \\
 \cmidrule(lr){2-3}\cmidrule(lr){4-7}
@@ -21,5 +21,8 @@ Media (5 modelos) & 96{,}76 & 0{,}915 & 98{,}48 & 0{,}978 & 0{,}991 & 0{,}985 \\
 \midrule
 XCiT-M (artículo) & 98{,}34 & -- & 99{,}25 & 0{,}984 & 0{,}997 & 0{,}990 \\
 \bottomrule
-\end{tabular}
+\end{tabular*}
+
+\smallskip
+\parbox{\linewidth}{\scriptsize Cinco categorías: NM (\clase{No\_Cancer}, estroma, glándulas no neoplásicas, inflamatorio), G3, G4, G5 y NT (PIN de alto grado, carcinoma intraductal, adenocarcinoma ductal). Binario: maligno = G3 + G4 + G5 + NT. Sens.: sensibilidad; Esp.: especificidad; BA: \emph{balanced accuracy}. Referencia: XCiT-Medium del artículo del conjunto de datos~\cite{ayensa2026}, con otro reparto de NM y NT (su BA se calcula como la media de Sens. y Esp.). Media: media aritmética de los cinco modelos.}
 \end{table}

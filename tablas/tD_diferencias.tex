@@ -3,9 +3,9 @@
 \centering
 \footnotesize
 \setlength{\tabcolsep}{2.5pt}
-\caption{Diferencia de \AUROC ConvNeXt-S $-$ Swin-S (positiva: mejor ConvNeXt-S) en los métodos principales, con su IC debajo; ConvNeXt-S en el espacio M. IC del 95\,\% por \emph{bootstrap} pareado por imagen (1.000 remuestreos estratificados ID/OOD, semilla 0). $^{B}$En el espacio B (512 dimensiones): requieren la capa que entra en el clasificador lineal. Los demás métodos están en \texttt{diferencias\_auroc.csv}.}
+\caption{Diferencia de \AUROC ConvNeXt-S $-$ Swin-S (positiva: mejor ConvNeXt-S) en los métodos principales, con su IC debajo; ConvNeXt-S en el espacio M.}
 \label{tab:convnext-diferencias}
-\begin{tabular}{lcccccc}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lcccccc}
 \toprule
 Conjunto & MSP & KNN & MDS & RMDS & ViM$^{B}$ & STOOD-X (100\,\%) \\
 \midrule
@@ -28,5 +28,8 @@ Control 128\,px & +0{,}003 & $-$0{,}049 & $-$0{,}062 & $-$0{,}025 & $-$0{,}112 &
 DTD & +0{,}112 & +0{,}046 & +0{,}043 & +0{,}041 & +0{,}018 & +0{,}007 \\
 & {\scriptsize [+0{,}106; +0{,}118]} & {\scriptsize [+0{,}043; +0{,}049]} & {\scriptsize [+0{,}041; +0{,}046]} & {\scriptsize [+0{,}038; +0{,}044]} & {\scriptsize [+0{,}016; +0{,}021]} & {\scriptsize [+0{,}006; +0{,}008]} \\[2pt]
 \bottomrule
-\end{tabular}
+\end{tabular*}
+
+\smallskip
+\parbox{\linewidth}{\scriptsize IC del 95\,\% por \emph{bootstrap} pareado por imagen (1.000 remuestreos estratificados ID/OOD, semilla 0). $^{B}$En el espacio B (512 dimensiones): requieren la capa que entra en el clasificador lineal. Los demás métodos están en \texttt{diferencias\_auroc.csv}.}
 \end{table}

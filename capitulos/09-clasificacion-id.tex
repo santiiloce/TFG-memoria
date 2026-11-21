@@ -164,10 +164,8 @@ Se puede observar que Swin-S gana o empata en 8 clases y en otras 3 la diferenci
 
 \section{Elección del modelo}\label{sec:eleccion-swin}
 
-El modelo Swin Transformer obtiene la mayor exactitud (96,88\,\%), seguido muy de cerca por ConvNeXt (96,68\,\%). Dada la escasa diferencia entre ambos, cualquiera de los dos sería una base adecuada; se selecciona Swin por ser el que mejor resultado ha obtenido, aunque como ya se ha visto no se puede asegurar que sea el mejor modelo con certeza.
+El modelo Swin Transformer obtiene la mayor exactitud (96,88\,\%), seguido muy de cerca por ConvNeXt (96,68\,\%). Dada la escasa diferencia entre ambos, cualquiera de los dos sería una base adecuada; se selecciona Swin por tener la mayor exactitud, aunque como ya se ha visto no se puede asegurar que sea el mejor modelo con certeza.
 
-\revisar{exactitud del Swin-S: 96,87\,\% en las notas, 96,88\,\% en results\_fase1 (valor único de la memoria)}
-\revisar{la diferencia no es estadísticamente significativa (McNemar $p = 0{,}19$, \cref{tab:mcnemar-swin-convnext}; ConvNeXt-S tiene además mayor F1 macro y \emph{balanced accuracy}): la elección no puede justificarse por un mejor resultado, sino presentarse como elección entre dos modelos empatados}
 
 %\input{tablas/t09_mcnemar}
 A pesar de que Swin-S sea el modelo que ha dado mejores resultados cabe preguntarse si esto realmente puede llegar a ser suficiente como para considerarlo mejor 
@@ -177,14 +175,14 @@ que el segundo mejor modelo, ConvNeXt, habiendo sido ambos evaluados sobre las m
   \centering
   \caption{Tabla de contingencia del test de McNemar entre Swin-S y ConvNeXt-S sobre las \num{12618} imágenes del test ID. En negrita, los pares discordantes.}
   \label{tab:mcnemar-swin-convnext}
-  \begin{tabular}{lcc}
+  \begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lcc}
     \toprule
     & ConvNeXt-S acierta & ConvNeXt-S falla \\
     \midrule
     Swin-S acierta & \num{12045} & \textbf{179} \\
     Swin-S falla   & \textbf{154} & 240 \\
     \bottomrule
-  \end{tabular}
+  \end{tabular*}
 \end{table}
 
 Denotamos por $a$ el número de imágenes en las que ambos aciertan (\num{12045}), por $b$ aquellas en las que solo acierta Swin-S (179), por $c$ aquellas en las que solo acierta ConvNeXt-S (154) y por $d$ aquellas en las que ambos fallan (240).
@@ -238,7 +236,7 @@ que coincide con el exacto. Sin la corrección se obtendría $p = 0{,}171$, que 
 
 \textbf{Limitación.} El test supone que los pares discordantes son independientes. Esta hipótesis no se cumple del todo, porque las imágenes de una misma lámina están relacionadas. Por ello, para constratar este resultado se realizará un \emph{bootstrap} pareado por lámina (\cref{sec:bootstrap}):
 
-\textbf{\emph{Bootstrap} pareado por lámina.} Se aplica el procedimiento del \cref{sec:bootstrap} con dos particularidades (\cref{obs:bootstrap-variantes}): la unidad que se remuestrea es la lámina, no la imagen, y las dos exactitudes se calculan sobre la misma muestra remuestreada. Sean $L$ las láminas del test ID e $I_\ell$ el conjunto de imágenes de la lámina $\ell$. Para un multiconjunto de índices $J$, la exactitud del modelo $m$ es
+\textbf{\emph{Bootstrap} pareado por lámina.} Se aplica el procedimiento de la \cref{sec:bootstrap} con dos particularidades (\cref{obs:bootstrap-variantes}): la unidad que se remuestrea es la lámina, no la imagen, y las dos exactitudes se calculan sobre la misma muestra remuestreada. Sean $L$ las láminas del test ID e $I_\ell$ el conjunto de imágenes de la lámina $\ell$. Para un multiconjunto de índices $J$, la exactitud del modelo $m$ es
 \[
   \mathrm{Acc}_m(J) = \frac{1}{|J|} \sum_{i \in J} \Ind\bigl(\hat y^{(m)}_i = y_i\bigr),
 \]

@@ -115,7 +115,7 @@ El reparto se hizo sin fijar una semilla aleatoria, por lo que no es reproducibl
 
 \section{Conjuntos OOD}\label{sec:conjuntos-ood}
 
-\subsection{NCT-CRC-HE-100K-NONORM}\label{sec:nct}
+\subsection{Tejido colorrectal (NCT-CRC-HE-100K)}\label{sec:nct}
 
 \begin{itemize}
   \item Este es un conjunto de \num{100000} parches no superpuestos de imágenes histológicas teñidas con hematoxilina y eosina (H\&E) de cáncer colorrectal humano (CRC) y tejido normal~\cite{kather2018,kather2019}.
@@ -211,9 +211,8 @@ No se incluyen transformaciones geométricas: la orientación del tejido es arbi
 
 El diseño es pareado: las imágenes limpias son las ID y sus versiones corruptas de cada celda, las OOD. Las referencias de los detectores son las mismas que en el resto del \cref{cap:deteccion-ood} (calculadas con el train limpio), sin reajustar nada. Así, el efecto de la corrupción queda aislado de cualquier diferencia de centro, escala o lámina. En cada celda se miden la exactitud del clasificador, el \AUROC (\cref{sec:auroc}) y el \FPRn{95} (\cref{sec:fpr95}), con intervalos de confianza del 95\,\% por \emph{bootstrap} pareado por imagen (\cref{sec:bootstrap}; \num{1000} réplicas, semilla 0). Además se calculan la CEC (\cref{sec:cec}), el porcentaje de imágenes con la puntuación de \stoodx saturada (\cref{obs:u-empates}) y la correlación de Spearman entre la caída de exactitud y el \AUROC sobre las 27 celdas (\cref{def:spearman}).
 
-Se usó el test completo. La regla de recursos fijada de antemano daba una submuestra de \num{3000} imágenes, porque el test completo tardaba unas 14\,h en CPU; el cambio se decidió antes de ver ningún resultado. Con el nivel 0 se comprobó que el cálculo reproduce la evaluación del resto del capítulo: las predicciones coinciden al 100\,\%, la correlación de Spearman entre puntuaciones es al menos 0,9999998 en todos los detectores y la exactitud es la misma. \revisar{la exactitud del nivel 0 es 0,96870, igual a la de las \emph{features} congeladas de la evaluación OOD (0,9687 [0,9657; 0,9716] en exactitud\_celda.csv), pero no a la de results\_fase1 (0,9688 [0,9658; 0,9717]): no se da la cifra}
-
-Finalmente, en labor de facilitar al lector la compresión de las decisiones tomadas, se muestra en ~\ref{tab:diseno-ood} para sintetizar que conjuntos de datos se han usado y 
+Se usó el test completo. La regla de recursos fijada de antemano daba una submuestra de \num{3000} imágenes, porque el test completo tardaba unas 14\,h en CPU; el cambio se decidió antes de ver ningún resultado. Con el nivel 0 se comprobó que el cálculo reproduce la evaluación del resto del capítulo: las predicciones coinciden al 100\,\%, la correlación de Spearman entre puntuaciones es al menos 0,9999998 en todos los detectores y la exactitud es la misma.
+Finalmente, en labor de facilitar al lector la compresión de las decisiones tomadas, se muestra en la \cref{tab:diseno-ood} para sintetizar que conjuntos de datos se han usado y 
 con qué finalidad: 
 
 \begin{table}[tbp][H]
@@ -234,16 +233,12 @@ con qué finalidad:
     \bottomrule
   \end{tabularx}
 \end{table}
-\revisar{fila «Corrupciones sintéticas» añadida (\cref{sec:corrupciones})}
-\revisar{tabla de las notas: corregidas erratas y redacción mínima («si descarta por el centro o por el tejido», «discriminación», «órgano»)}
 
 
 \section{Entorno de ejecución}\label{sec:entorno}
 \revisar{Iván: Considero que no aporta nada añadir los entornos que he usado y las cosas que tengo
 instalados en ellos porque cada poco suelen cambiar, entonces algo que igual he usado yo, para un par de meses deja de servir}
 Vamos a usar el repositorio OpenOOD~\cite{openood} para continuar con nuestro análisis de resultados.
-\revisar{el enlace a GitHub se sustituye por la cita; el enlace al cuaderno de Colab con la explicación de uso y su captura de pantalla no van a la memoria}
-
 % Puntos que debería cubrir (cifras de los ficheros de configuración):
 % - Hardware: entrenamiento en una NVIDIA TITAN Xp (resultados.txt de param4; 583,6 min de
 %   entrenamiento del Swin-S); evaluación OOD en una NVIDIA GeForce RTX 2080 Ti + 8 CPU

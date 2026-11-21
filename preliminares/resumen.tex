@@ -7,9 +7,7 @@
 
 \chapter{Resumen}
 
-\revisar{validar y ajustar el estilo}
-
-Un clasificador de imágenes histopatológicas responde siempre con una de las clases con las que se entrenó, aunque la imagen proceda de otro órgano, de otro hospital o esté degradada, y no explica en qué se basa su decisión. Para que un sistema así pueda usarse en clínica, debe reconocer las entradas para las que no fue entrenado y ofrecer explicaciones fieles a su funcionamiento. Este trabajo estudia la detección de datos fuera de distribución (OOD) y la explicabilidad sobre un clasificador de parches de próstata teñidos con H\&E en 14 clases histológicas.
+Un clasificador de imágenes histopatológicas responde siempre con una de las clases con las que se entrenó, aunque la imagen proceda de otro órgano, de otro hospital o esté degradada, y además no explica en qué se basa para su decisión. Para que un sistema así pueda usarse en clínica, debe reconocer las entradas para las que no fue entrenado y ofrecer explicaciones fieles a su funcionamiento. Este trabajo estudia la detección de datos fuera de distribución (OOD) y la explicabilidad sobre un clasificador de parches de próstata teñidos con 14 clases histológicas.
 
 El objetivo general es estudiar métodos de detección OOD y de explicabilidad que permitan decidir cuándo confiar en el clasificador y entender en qué se basa, con una fundamentación matemática de cada método. En concreto, se formalizan la detección OOD y sus métricas, los detectores post hoc, la inferencia no paramétrica, la predicción conforme y la propagación de relevancia; se comparan cinco arquitecturas; se evalúan detectores OOD con un banco que separa el cambio de tejido, de centro, de resolución y las corrupciones sintéticas; se reimplementa \stoodx; y se aplican LRP y CRP a ConvNeXt-S.
 
@@ -17,7 +15,7 @@ El trabajo se ha desarrollado en Python con PyTorch, fastai, timm, OpenOOD, zenn
 
 Swin-S alcanza una exactitud de 0,9688 [0,9658; 0,9717], estadísticamente indistinguible de la de ConvNeXt-S (diferencia de +0,0020; McNemar, $p = 0{,}19$). Los detectores que trabajan en el espacio de características superan a los basados en logits, y responden más al cambio de condiciones de adquisición que al de tejido. \stoodx, con un número de vecinos elegido solo con datos ID, es el mejor detector: \AUROC de 0,991 y \FPRn{95} de 0,026 frente a tejido de colon. Sin embargo, sus $p$-valores no están calibrados, y la calibración conforme del umbral es la que controla las falsas alarmas. En explicabilidad, la variante de LRP empleada es poco fiel y los métodos de gradientes, más fieles, dan mapas ruidosos; aun así, el análisis revela un sesgo en el criterio de selección de características. \revisar{depende de la conclusión del cap. 12/13}
 
-En conclusión, la detección OOD post hoc es viable en este problema, pero el cambio de centro y de resolución sigue produciendo demasiadas falsas alarmas para un uso clínico, y las conclusiones dependen del clasificador.
+En conclusión, la detección OOD post hoc es viable en este problema, pero el cambio de centro y de resolución sigue siendo difícil de separar de los datos ID: detectar el 95\,\% de esas imágenes obliga a rechazar demasiadas imágenes de próstata para un uso clínico, y las conclusiones dependen del clasificador.
 
 \medskip
 \noindent\textbf{Palabras clave:} detección fuera de distribución, explicabilidad, histopatología, cáncer de próstata, STOOD-X, predicción conforme, propagación de relevancia.

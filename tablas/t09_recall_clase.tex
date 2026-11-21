@@ -5,7 +5,7 @@
 \setlength{\tabcolsep}{4pt}
 \caption{Sensibilidad (\emph{recall}) por clase en el test ID de los cinco modelos (más alto es mejor); $n$: imágenes de test de la clase. En negrita, el mejor valor de cada clase.}
 \label{tab:recall-clase}
-\begin{tabular}{lrccccc}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lrccccc}
 \toprule
 Clase & $n$ & Swin-S & ConvNeXt-S & EfficientNetV2-S & ViT-B/16 & ResNet-50 \\
 \midrule
@@ -24,5 +24,5 @@ Clase & $n$ & Swin-S & ConvNeXt-S & EfficientNetV2-S & ViT-B/16 & ResNet-50 \\
 \clase{Gleason\_5\_comedonecrosis} & \num{56} & \textbf{0{,}86} & \textbf{0{,}86} & 0{,}84 & \textbf{0{,}86} & 0{,}66 \\
 \clase{Gleason\_4\_glomeruloide} & \num{25} & 0{,}52 & \textbf{0{,}64} & 0{,}48 & \textbf{0{,}64} & 0{,}52 \\
 \bottomrule
-\end{tabular}
+\end{tabular*}
 \end{table}

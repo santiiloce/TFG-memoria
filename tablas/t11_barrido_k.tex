@@ -3,9 +3,9 @@
 \centering
 \scriptsize
 \setlength{\tabcolsep}{2.5pt}
-\caption{Sensibilidad de \stoodx al número de vecinos $K$ (análisis de sensibilidad; \emph{no} se usa para elegir $K$). Subconjunto de validación: 1.000 imágenes del test ID (estratificadas por clase) y 500 de cada conjunto OOD, semilla 0. Puntuación $-z$; 100\,\% de las características salvo indicación. \AUROC: más alto es mejor; \FPRn{95}: más bajo es mejor. Tiempo por imagen: GPU (cálculo de distancias) más CPU (test de Mann-Whitney). Última columna: proporción del test ID con $p=0$ exacto (subdesbordamiento). $^{\dagger}$Variante exploratoria $K_c=\min(500,\lfloor n_c/2\rfloor)$.}
+\caption{Sensibilidad de \stoodx al número de vecinos $K$ (análisis de sensibilidad; \emph{no} se usa para elegir $K$).}
 \label{tab:stoodx-barrido-k}
-\begin{tabular}{lcccccccccc}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lcccccccccc}
 \toprule
 & \multicolumn{2}{c}{TUM+NORM} & \multicolumn{2}{c}{LYM} & \multicolumn{2}{c}{PANDA} & \multicolumn{2}{c}{DTD} & Tiempo & $p=0$ \\
 \cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}
@@ -22,5 +22,8 @@ $K$ & \AUROC & \FPRn{95} & \AUROC & \FPRn{95} & \AUROC & \FPRn{95} & \AUROC & \F
 500 (87,5\,\%) & 0{,}952 & 0{,}346 & 0{,}889 & 0{,}553 & 0{,}877 & 0{,}464 & 0{,}985 & 0{,}041 & 14{,}4 & 9{,}2\,\% \\
 $K_c$$^{\dagger}$ & 0{,}941 & 0{,}474 & 0{,}790 & 0{,}428 & 0{,}900 & 0{,}291 & 0{,}985 & 0{,}045 & 13{,}2 & 9{,}0\,\% \\
 \bottomrule
-\end{tabular}
+\end{tabular*}
+
+\smallskip
+\parbox{\linewidth}{\scriptsize Subconjunto de validación: 1.000 imágenes del test ID (estratificadas por clase) y 500 de cada conjunto OOD, semilla 0. Puntuación $-z$; 100\,\% de las características salvo indicación. \AUROC: más alto es mejor; \FPRn{95}: más bajo es mejor. Tiempo por imagen: GPU (cálculo de distancias) más CPU (test de Mann-Whitney). Última columna: proporción del test ID con $p=0$ exacto (subdesbordamiento). $^{\dagger}$Variante exploratoria $K_c=\min(500,\lfloor n_c/2\rfloor)$.}
 \end{table}

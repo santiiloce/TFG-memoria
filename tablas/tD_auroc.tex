@@ -3,9 +3,9 @@
 \centering
 \scriptsize
 \setlength{\tabcolsep}{2pt}
-\caption{ConvNeXt-S, espacio principal M: \AUROC (más alto es mejor) de los 14 métodos en los nueve conjuntos. Clase positiva: OOD. En negrita, el mejor valor de cada conjunto. IC del 95\,\% por \emph{bootstrap} (1.000 remuestreos estratificados, semilla 0). Los IC del resto de conjuntos están en \texttt{tabla\_principal\_convnext.csv}. $^{B}$En el espacio B (512 dimensiones): requieren la capa que entra en el clasificador lineal. KNN, MDS, RMDS, SHE y \stoodx, en M (768); MSP, MaxLogit y Energy, en los logits. $^{a}$Modifican la predicción: la exactitud ID baja al 96{,}5\,\% (ASH) y al 28{,}5\,\% (DICE, con el postprocesador de OpenOOD sin cambios).}
+\caption{ConvNeXt-S, espacio principal M: \AUROC (más alto es mejor) de los 14 métodos en los nueve conjuntos.}
 \label{tab:convnext-auroc}
-\begin{tabular}{lccccccccc}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lccccccccc}
 \toprule
 Método & TUM+NORM [IC 95\,\%] & TUM & NORM & STR & LYM & MUS & PANDA & Control 128\,px & DTD \\
 \midrule
@@ -31,5 +31,8 @@ SHE (euclídea) & 0{,}891 [0{,}887; 0{,}895] & 0{,}868 & 0{,}928 & 0{,}925 & 0{,
 \multicolumn{10}{@{}l}{\textit{STOOD-X}} \\
 STOOD-X (100\,\%) & 0{,}908 [0{,}905; 0{,}911] & 0{,}871 & 0{,}969 & \textbf{0{,}986} & 0{,}862 & \textbf{0{,}966} & \textbf{0{,}961} & \textbf{0{,}809} & 0{,}998 \\
 \bottomrule
-\end{tabular}
+\end{tabular*}
+
+\smallskip
+\parbox{\linewidth}{\scriptsize Clase positiva: OOD. En negrita, el mejor valor de cada conjunto. IC del 95\,\% por \emph{bootstrap} (1.000 remuestreos estratificados, semilla 0). Los IC del resto de conjuntos están en \texttt{tabla\_principal\_convnext.csv}. $^{B}$En el espacio B (512 dimensiones): requieren la capa que entra en el clasificador lineal. KNN, MDS, RMDS, SHE y \stoodx, en M (768); MSP, MaxLogit y Energy, en los logits. $^{a}$Modifican la predicción: la exactitud ID baja al 96{,}5\,\% (ASH) y al 28{,}5\,\% (DICE, con el postprocesador de OpenOOD sin cambios).}
 \end{table}

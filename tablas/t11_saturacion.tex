@@ -5,7 +5,7 @@
 \setlength{\tabcolsep}{4pt}
 \caption{Saturación de la puntuación $-z$ de \stoodx (100\,\%, $K=500$) por separación completa: proporción de imágenes con $U=n_1n_2$ y cotas de su efecto en el \AUROC (más alto es mejor), forzando el peor y el mejor orden entre las imágenes ID y OOD saturadas. \FPRn{95} y \CCRn{5} no cambian en ningún conjunto.}
 \label{tab:stoodx-saturacion}
-\begin{tabular}{lccccc}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lccccc}
 \toprule
 Conjunto & Saturadas test ID & Saturadas OOD & \AUROC & \AUROC peor caso & \AUROC mejor caso \\
 \midrule
@@ -19,5 +19,5 @@ PANDA & 0{,}6\,\% & 19{,}4\,\% & 0{,}895 & 0{,}895 & 0{,}896 \\
 Control 128\,px & 0{,}6\,\% & 19{,}0\,\% & 0{,}894 & 0{,}893 & 0{,}895 \\
 DTD & 0{,}6\,\% & 76{,}3\,\% & 0{,}991 & 0{,}987 & 0{,}992 \\
 \bottomrule
-\end{tabular}
+\end{tabular*}
 \end{table}

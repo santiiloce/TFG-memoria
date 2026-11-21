@@ -3,9 +3,9 @@
 \centering
 \scriptsize
 \setlength{\tabcolsep}{3pt}
-\caption{Ablación de conceptos en ConvNeXt-S (112 imágenes de test): caída media de la salida de la clase $f_c$ al sustituir los $k$ canales más relevantes de la salida del último bloque (768 canales) según cada método (por la media de train o por cero), con intervalo del 95\,\% por bootstrap. Más alto: los canales elegidos pesan más en la predicción. Azar: media de 10 sorteos de $k$ canales.}
+\caption{Ablación de conceptos en ConvNeXt-S (112 imágenes de test): caída media de la salida de la clase $f_c$ al sustituir los $k$ canales más relevantes de la salida del último bloque (768 canales) según cada método (por la media de train o por cero), con intervalo del 95\,\% por bootstrap.}
 \label{tab:xai-ablacion}
-\begin{tabular}{llcccc}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}llcccc}
 \toprule
 Sustitución & $k$ & A & EG & G$\times$E & Azar \\
 \midrule
@@ -19,5 +19,8 @@ cero & 1 & 0{,}017 [0{,}009; 0{,}026] & 0{,}048 [0{,}039; 0{,}057] & 0{,}106 [0{
  & 5 & 0{,}055 [0{,}035; 0{,}076] & 0{,}192 [0{,}167; 0{,}219] & 0{,}389 [0{,}357; 0{,}421] & 0{,}001 \\
  & 10 & 0{,}095 [0{,}063; 0{,}125] & 0{,}336 [0{,}293; 0{,}381] & 0{,}665 [0{,}613; 0{,}718] & 0{,}006 \\
 \bottomrule
-\end{tabular}
+\end{tabular*}
+
+\smallskip
+\parbox{\linewidth}{\scriptsize Más alto: los canales elegidos pesan más en la predicción. Azar: media de 10 sorteos de $k$ canales.}
 \end{table}

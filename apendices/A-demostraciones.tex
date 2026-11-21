@@ -28,7 +28,6 @@ $t = p_k/q_k$,
 \]
 donde $\sum_{k\in S} q_k = 1$ porque $q_k = 0$ fuera de $S$, y
 $\sum_{k\in S} p_k \le \sum_{k=1}^{K} p_k = 1$ porque $p_k > 0$.
-\revisar{desarrollo añadido: se explica qué es $S$ (soporte de $q$, $k$ índice de clase), por qué se restringe la suma a $S$, la igualdad intermedia y de dónde salen $\sum_{k\in S} q_k = 1$ y $\sum_{k\in S} p_k \le 1$}
 Si $p = q$, todos los sumandos de la definición se anulan y
 $D_{\mathrm{KL}}(q\,\|\,p) = 0$. Recíprocamente, si $D_{\mathrm{KL}}(q\,\|\,p) = 0$,
 las dos desigualdades anteriores son igualdades. De la segunda,
@@ -37,7 +36,6 @@ fuera de $S$, así que $S = \{1,\dots,K\}$. De la primera, cada sumando cumple
 $-\log(p_k/q_k) = 1 - p_k/q_k$ (la diferencia entre ambos lados es una suma de
 términos no negativos, $q_k\,g(p_k/q_k)\ge 0$, que vale cero), luego $p_k/q_k = 1$
 para todo $k$, es decir, $p = q$.
-\revisar{caso de igualdad reescrito para el enunciado general; antes suponía $q_k > 0$ para todo $k$}
 \end{demostracion}
 
 \begin{demostracion}[Demostración de la \cref{prop:adam-sesgo}]
@@ -187,6 +185,27 @@ igual que en el caso global con $T = M^2$, con un coste de $2(M^2)^2C$. Como hay
 $hw/M^2$ ventanas, el coste total de la atención es
 $\frac{hw}{M^2}\cdot 2M^4C = 2M^2hwC$. Sumando las proyecciones, se obtiene
 $\Omega(\text{W-MSA})$.
+\end{demostracion}
+
+\section{Formalización de la detección OOD}\label{sec:dem-ood}
+
+% Fuente: Fang et al. (2022), ap. G.1.
+\begin{demostracion}[Demostración de la \cref{prop:solapamiento}]
+Para $m \geq 1$ sea $A_m = \{x \in \mathcal{X} : f_I(x) \geq 1/m,\ f_O(x) \geq 1/m\}$. Los conjuntos $A_m$ son crecientes y su unión es $A$, así que $\mu(A_m) \to \mu(A) > 0$ y existe $m_0$ con $\mu(A_{m_0}) > 0$.
+
+Fijado $\alpha \in (0, 1)$, sea
+\[
+  c_\alpha = \min_{y_1 \in \mathcal{Y}_{\mathrm{all}}} \Bigl( (1 - \alpha) \min_{y_2 \in \mathcal{Y}} \ell(y_1, y_2) + \alpha\, \ell(y_1, K + 1) \Bigr).
+\]
+Es un mínimo sobre un conjunto finito y es positivo: si $y_1 \in \mathcal{Y}$, entonces $\ell(y_1, K+1) > 0$, y si $y_1 = K + 1$, entonces $\ell(K+1, y_2) > 0$ para todo $y_2 \in \mathcal{Y}$. Para toda $h \in \mathcal{H}$, restringiendo las integrales a $A_{m_0}$ y usando que $f_I, f_O \geq 1/m_0$ en $A_{m_0}$,
+\begin{align*}
+  R^{\alpha}_{D}(h)
+  &\geq (1 - \alpha) \int_{A_{m_0}} \E\bigl[\ell(h(x), Y_I) \mid X_I = x\bigr] f_I(x)\, d\mu(x)
+     + \alpha \int_{A_{m_0}} \ell\bigl(h(x), K+1\bigr) f_O(x)\, d\mu(x) \\
+  &\geq \frac{1}{m_0} \int_{A_{m_0}} \Bigl( (1 - \alpha) \min_{y_2 \in \mathcal{Y}} \ell\bigl(h(x), y_2\bigr) + \alpha\, \ell\bigl(h(x), K+1\bigr) \Bigr) d\mu(x)
+  \geq \frac{c_\alpha}{m_0}\, \mu(A_{m_0}) > 0 ,
+\end{align*}
+donde en el primer paso se han descartado las integrales fuera de $A_{m_0}$, que son no negativas. La cota no depende de $h$, luego $\inf_{h} R^{\alpha}_{D}(h) \geq c_\alpha\, \mu(A_{m_0}) / m_0 > 0$. Si se cumpliera la condición lineal, la hipótesis daría $\inf_h R^{\alpha}_{D}(h) = (1 - \alpha) \cdot 0 + \alpha \cdot 0 = 0$, una contradicción~\cite[ap.~G.1]{fang2022}.
 \end{demostracion}
 
 \section{Métodos de detección post hoc}\label{sec:dem-posthoc}

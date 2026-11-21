@@ -3,9 +3,9 @@
 \centering
 \scriptsize
 \setlength{\tabcolsep}{3pt}
-\caption{Detección OOD conforme con el umbral calibrado en la validación ID (22.691 imágenes). Falsas alarmas: proporción del test ID marcada como OOD, con IC exacto del 95\,\% (debe ser compatible con $\alpha$ si validación y test son intercambiables). Resto de columnas: proporción detectada como OOD en cada conjunto (más alto es mejor).}
+\caption{Detección OOD conforme con el umbral calibrado en la validación ID (22.691 imágenes).}
 \label{tab:conforme-ood}
-\begin{tabular}{llcccccc}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}llcccccc}
 \toprule
 Método & $\alpha$ & Falsas alarmas test ID [IC 95\,\%] & TUM+NORM & LYM & PANDA & Control 128\,px & DTD \\
 \midrule
@@ -29,5 +29,8 @@ STOOD-X 100 \% ($-z$) & 0{,}01 & 0{,}011 [0{,}009; 0{,}013] & 0{,}748 & 0{,}385 
  & 0{,}05 & 0{,}049 [0{,}046; 0{,}053] & 0{,}879 & 0{,}671 & 0{,}568 & 0{,}596 & 0{,}972 \\
  & 0{,}10 & 0{,}103 [0{,}097; 0{,}108] & 0{,}889 & 0{,}753 & 0{,}705 & 0{,}724 & 0{,}986 \\
 \bottomrule
-\end{tabular}
+\end{tabular*}
+
+\smallskip
+\parbox{\linewidth}{\scriptsize Falsas alarmas: proporción del test ID marcada como OOD, con IC exacto del 95\,\% (debe ser compatible con $\alpha$ si validación y test son intercambiables). Resto de columnas: proporción detectada como OOD en cada conjunto (más alto es mejor).}
 \end{table}

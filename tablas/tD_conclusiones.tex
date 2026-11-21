@@ -3,7 +3,7 @@
 \centering
 \scriptsize
 \setlength{\tabcolsep}{3pt}
-\caption{Conclusiones del \cref{cap:deteccion-ood} con Swin-S, una por fila, y cifras que las sostienen con cada modelo (\AUROC salvo que se indique otra métrica); ConvNeXt-S en el espacio principal M (ViM, ReAct, ASH y DICE en B). La última columna da el estado que se obtenía con B como espacio principal. No concluyente: la ordenación se mantiene, pero los IC se solapan.}
+\caption{Conclusiones del \cref{cap:deteccion-ood} con Swin-S, una por fila, y cifras que las sostienen con cada modelo (\AUROC salvo que se indique otra métrica); ConvNeXt-S en el espacio principal M (ViM, ReAct, ASH y DICE en B).}
 \label{tab:convnext-conclusiones}
 \begin{tabularx}{\textwidth}{@{}l>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}p{1.3cm}>{\raggedright\arraybackslash}p{1.6cm}@{}}
 \toprule
@@ -22,4 +22,7 @@
 9 & MDS supera a KNN & MDS $-$ KNN $>$ 0 en 9/9; TUM+NORM +0,011 [+0,011; +0,012]; de +0,009 (MUS) a +0,020 (control) & MDS $-$ KNN $>$ 0 con IC sin el 0 en 9/9; TUM+NORM +0,013 [+0,012; +0,015]; de +0,007 (control) a +0,045 (LYM) & Se mantiene & Cambia (KNN $>$ MDS en 7/9) \\
 \bottomrule
 \end{tabularx}
+
+\smallskip
+\parbox{\linewidth}{\scriptsize La última columna da el estado que se obtenía con B como espacio principal. No concluyente: la ordenación se mantiene, pero los IC se solapan.}
 \end{table}

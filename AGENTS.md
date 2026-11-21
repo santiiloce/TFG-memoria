@@ -40,7 +40,7 @@ Además:
 Frontmatter: declaración de originalidad, dedicatoria, agradecimientos, índice de acrónimos (`preliminares/acronimos.tex`), summary (inglés, 800–1500 palabras), resumen, índice.
 
 - **Parte I. Introducción y estado del arte:** 1 Introducción; 2 Estado del arte.
-- **Parte II. Fundamentos matemáticos:** 3 Aprendizaje supervisado y redes profundas; 4 Formalización de la detección OOD y métricas; 5 Métodos de detección post hoc; 6 Inferencia estadística; 7 Explicabilidad.
+- **Parte II. Fundamentos matemáticos e informáticos:** 3 Aprendizaje supervisado y redes profundas; 4 Formalización de la detección OOD y métricas; 5 Métodos de detección post hoc; 6 Inferencia estadística; 7 Explicabilidad.
 - **Parte III. Experimentación, resultados y discusión:** 8 Materiales y métodos; 9 Clasificación ID; 10 Detección OOD; 11 STOOD-X (incluye la detección OOD conforme como sección); 12 Explicabilidad y eliminación de sesgos.
 - **Parte IV. Conclusiones y trabajo futuro:** 13 Conclusiones y trabajo futuro.
 - **Apéndices:** A Demostraciones complementarias (las demostraciones secundarias de la Parte II; ninguna demostración se elimina, decisión del autor, 2026-11-21); B Tablas de AUPR-In y AUPR-Out; C Material complementario (corrupciones sintéticas y adenocarcinoma ductal frente a NORM/TUM); D Detección OOD con ConvNeXt-S. Sin glosario, sin anexo de ADI/BACK/DEB/MUC y sin imágenes de muestra (decisión del autor, 2026-11-21).

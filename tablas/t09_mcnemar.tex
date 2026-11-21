@@ -2,14 +2,17 @@
 \begin{table}
 \centering
 \small
-\caption{Tabla de contingencia de aciertos de Swin-S y ConvNeXt-S sobre las mismas 12.618 imágenes de test. Test de McNemar: $p$ exacto (binomial) $= 0{,}188$; $\chi^2$ con corrección de continuidad $= 1{,}73$ ($p = 0{,}188$). \emph{Bootstrap} pareado de la diferencia de exactitud Swin-S $-$ ConvNeXt-S: $+0{,}0020$ [-0{,}0011; 0{,}0049] ($p = 0{,}18$; por lámina [-0{,}0013; 0{,}0049], $p = 0{,}24$); de F1 macro: $-0{,}0004$ [-0{,}0135; 0{,}0107] ($p = 0{,}98$).}
+\caption{Tabla de contingencia de aciertos de Swin-S y ConvNeXt-S sobre las mismas 12.618 imágenes de test.}
 \label{tab:mcnemar}
-\begin{tabular}{lcc}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lcc}
 \toprule
 & ConvNeXt-S acierta & ConvNeXt-S falla \\
 \midrule
 Swin-S acierta & \num{12045} & \num{179} \\
 Swin-S falla & \num{154} & \num{240} \\
 \bottomrule
-\end{tabular}
+\end{tabular*}
+
+\smallskip
+\parbox{\linewidth}{\scriptsize Test de McNemar: $p$ exacto (binomial) $= 0{,}188$; $\chi^2$ con corrección de continuidad $= 1{,}73$ ($p = 0{,}188$). \emph{Bootstrap} pareado de la diferencia de exactitud Swin-S $-$ ConvNeXt-S: $+0{,}0020$ [-0{,}0011; 0{,}0049] ($p = 0{,}18$; por lámina [-0{,}0013; 0{,}0049], $p = 0{,}24$); de F1 macro: $-0{,}0004$ [-0{,}0135; 0{,}0107] ($p = 0{,}98$).}
 \end{table}
