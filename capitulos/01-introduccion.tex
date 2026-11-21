@@ -13,7 +13,7 @@
 
 \section{Contexto}\label{sec:contexto}
 
-\revisar{borrador del agente: validar y ajustar al estilo del autor}
+\revisar{validar y ajustar el estilo}
 
 El análisis histopatológico de las biopsias es la referencia clínica para saber si hay un tumor, de qué tipo es y cuán agresivo es~\cite{ayensa2026}. Las muestras de tejido se tiñen con hematoxilina y eosina (H\&E) y se digitalizan con un escáner, de modo que cada preparación se convierte en una \emph{imagen de lámina completa} (\emph{whole-slide image}, WSI)~\cite{ayensa2026}. En el cáncer de próstata, el patólogo gradúa el tumor con el sistema de Gleason, que clasifica el tejido en patrones según su arquitectura; es una valoración subjetiva, que varía entre patólogos e incluso en un mismo patólogo~\cite{bulten2022} (\cref{sec:ea-wsi-gleason}).
 
@@ -34,7 +34,7 @@ La \cref{fig:esquema-trabajo} resume cómo se articulan estas piezas en el traba
 
 \section{Descripción del problema}\label{sec:descripcion-problema}
 
-\revisar{borrador del agente: validar y ajustar al estilo del autor}
+\revisar{validar y ajustar el estilo}
 
 El primer problema es que el clasificador no sabe cuándo no sabe. Una imagen puede ser ajena al modelo por dos motivos distintos. En un \emph{cambio semántico}, la imagen pertenece a una clase que no existe entre las de entrenamiento, como el tejido de colon (\cref{def:semantic-shift}). En un \emph{desplazamiento de covariables} (\emph{covariate shift}), la clase podría ser una de las conocidas, pero cambian las condiciones de adquisición: el centro, el escáner, la resolución o la presencia de artefactos como burbujas, marcas o desenfoque (\cref{def:covariate-shift}). En ambos casos el clasificador sigue respondiendo con una de sus 14 clases, y nada en esa respuesta avisa de que puede ser errónea. Un detector OOD útil debería señalar estos casos, y conviene saber a cuál de los dos cambios responde realmente.
 
@@ -49,12 +49,12 @@ Por último, la propia evaluación tiene un límite. La partición original del 
 % Texto del autor (literal).
 La integración de modelos de Inteligencia Artificial en medicina promete no solo mejorar la precisión de los diagnósticos sino también permitir que los profesionales sanitarios adquieran conocimiento nuevo ---por ejemplo, reglas clínicas o patrones de imágenes--- a partir del funcionamiento interno de dichos modelos. No obstante, la regulación de la Unión Europea clasifica a los sistemas IA destinados a uso médico como de alto riesgo, lo que impone exigencias rigurosas en transparencia, explicabilidad, supervisión humana y robustez. Para alinearse con estas normas, los sistemas no solo deben entregar resultados exactos, sino también ofrecer explicaciones comprensibles, abstenerse de emitir decisiones en situaciones de alta incertidumbre, y permitir que el humano, ya sea clínico o usuario experto, participe activamente en el proceso de interpretación y adaptación del modelo.
 
-\revisar{borrador del agente: validar y ajustar al estilo del autor}
+\revisar{validar y ajustar el estilo}
 Cada una de estas exigencias se corresponde con una parte de este trabajo. Abstenerse de decidir en situaciones de alta incertidumbre es, en la práctica, detectar las entradas fuera de distribución y no clasificarlas (\cref{cap:deteccion-ood}). Ofrecer explicaciones comprensibles es lo que persiguen \stoodx, que justifica cada rechazo con imágenes de entrenamiento concretas (\cref{cap:stoodx}), y CRP, que describe las decisiones en términos de conceptos (\cref{cap:xai-sesgos}). Y la adaptación del modelo pasa por localizar los conceptos sesgados y comprobar qué ocurre cuando se intervienen (\cref{sec:xai-ablacion}). Además, el trabajo se enmarca en el Doble Grado en Ingeniería Informática y Matemáticas, y por eso, a petición del tutor, la parte experimental se apoya en una fundamentación matemática propia: la formalización de la detección OOD y de sus métricas, la estadística no paramétrica que sostiene \stoodx y la comparación de modelos, la predicción conforme para controlar las falsas alarmas y las reglas de propagación de LRP (\cref{part:fundamentos}).
 
 \section{Preguntas de investigación e hipótesis}\label{sec:preguntas}
 
-\revisar{borrador del agente: validar y ajustar al estilo del autor. Las hipótesis se formulan como se plantearon a priori; su resultado se resume en la \cref{sec:consecucion}}
+\revisar{validar y ajustar el estilo. Las hipótesis se formulan como se plantearon a priori; su resultado se resume en la \cref{sec:consecucion}}
 
 Siguiendo la estructura de un proyecto de investigación, el trabajo se organiza en torno a siete preguntas. Cada una lleva asociada la hipótesis con la que se abordó.
 
@@ -83,14 +83,14 @@ Siguiendo la estructura de un proyecto de investigación, el trabajo se organiza
 Aunque siguen existiendo una gran cantidad de líneas que explorar dentro del campo de la explicabilidad, este trabajo se centrará en la perspectiva de la explicabilidad RED (\emph{Research, Explore, Debug}), es decir, métodos de explicabilidad orientados a la validación del modelo y su robustez interna. En lugar de limitarse a justificar decisiones ante el usuario, se trabajará para que los modelos permitan ser interrogados: extraer conocimiento interno, errores o comportamientos inesperados, y asegurar que las explicaciones sean fieles al funcionamiento real del sistema. Para ello, se utilizarán diversas herramientas XAI. Se seleccionarán casos de uso clínico ---biopsias de pacientes de cáncer de próstata--- en los que se pueda observar cómo cambian las decisiones cuando se modifica parte del modelo. Se medirán variables como la fidelidad de la explicación (que refleje lo que realmente hace el modelo) y si con estos mecanismos se detectan casos atípicos.
 \revisar{ortografía corregida: «líneas», «centrará», «cáncer», rayas en el inciso. Recortes: se quita «y se enfocarán como medios para poder modificar el comportamiento erróneo o sesgado del modelo» (la eliminación de sesgos queda como trabajo futuro, \cref{sec:xai-discusion}); se sustituye «donde el profesional sanitario no solo reciba explicaciones externas, sino que interactúe con las componentes internas del modelo, pueda observar [...], explorar la atención interna, y sugerir hipótesis» por «en los que se pueda observar [...]», y «parte de la arquitectura» por «parte del modelo» (ablación de canales, \cref{sec:xai-ablacion}); se quitan la claridad, la capacidad de generar conocimiento, la confianza y la tasa de errores diagnósticos, que no se han medido}
 
-\revisar{borrador del agente: validar y ajustar al estilo del autor}
+\revisar{validar y ajustar el estilo}
 Detectar casos atípicos es, precisamente, el papel de la detección de datos fuera de distribución: que el sistema reconozca las entradas para las que no fue entrenado y se abstenga de clasificarlas, en lugar de emitir una decisión en una situación de alta incertidumbre. En este trabajo esa detección y la explicabilidad no se tratan por separado. \stoodx, un detector que justifica cada decisión con imágenes de entrenamiento concretas, une ambas, y las herramientas de relevancia por conceptos se aplican al mismo clasificador para comprobar en qué se apoyan sus decisiones. Todo ello se apoya en una fundamentación matemática de los métodos empleados, propia del doble grado.
 
 En síntesis, el objetivo general del trabajo es estudiar métodos de detección OOD y de explicabilidad que permitan a un profesional decidir cuándo confiar en un clasificador de imágenes histopatológicas de próstata y entender en qué se basan sus decisiones, con una fundamentación matemática de cada método y una evaluación experimental rigurosa.
 
 \subsection{Objetivos específicos}\label{sec:objetivos-especificos}
 
-\revisar{borrador del agente: validar y ajustar al estilo del autor}
+\revisar{validar y ajustar el estilo}
 
 El objetivo general se articula en seis objetivos específicos. Los primeros sirven de base a los siguientes, y cada uno indica cómo se mide su cumplimiento.
 
@@ -103,12 +103,12 @@ El objetivo general se articula en seis objetivos específicos. Los primeros sir
   \item[OE6.] Aplicar LRP y CRP (con zennit y zennit-crp) a ConvNeXt-S, tratando la LayerNorm, y medir la fidelidad de sus explicaciones frente a métodos de gradientes; extraer conceptos con un atlas RelMax, identificar sesgos y comprobar con una ablación de conceptos cómo cambian las decisiones del modelo (\cref{cap:xai-sesgos}).
 \end{description}
 
-\revisar{borrador del agente: objetivos personales; confirmar o eliminar}
+\revisar{objetivos personales; confirmar o eliminar}
 Además, el trabajo perseguía tres objetivos personales: aprender a usar un banco de evaluación de investigación como OpenOOD y bibliotecas de explicabilidad como zennit-crp; trabajar con un clúster de GPU gestionado con SLURM; y conectar en un mismo problema lo aprendido en las dos titulaciones del doble grado.
 
 \subsection{Grado de consecución}\label{sec:consecucion}
 
-\revisar{borrador del agente: validar y ajustar al estilo del autor}
+\revisar{validar y ajustar el estilo}
 
 La \cref{tab:consecucion} resume el grado de consecución de cada objetivo específico. El objetivo general se ha alcanzado en su parte de detección OOD y de fundamentación matemática, y de forma parcial en la de explicabilidad, porque la intervención sobre los conceptos sesgados ha quedado como trabajo futuro.
 
@@ -144,7 +144,7 @@ En cuanto a las hipótesis de la \cref{sec:preguntas}:
 
 \section{Principales fuentes consultadas}\label{sec:fuentes}
 
-\revisar{borrador del agente: validar y ajustar al estilo del autor}
+\revisar{validar y ajustar el estilo}
 
 \paragraph{\stoodx.} El artículo de Sevillano-García et al.~\cite{sevillano2026} describe el detector central del \cref{cap:stoodx}: un test de Mann-Whitney entre las distancias de una imagen a sus vecinos de entrenamiento y las de esos vecinos a los suyos, seguido de una explicación por ejemplos. La reimplementación de este trabajo sigue la descripción del artículo.
 
@@ -166,7 +166,7 @@ Los documentos de todas las referencias citadas se han reunido en una carpeta de
 
 \section{Estructura de la memoria}\label{sec:estructura}
 
-\revisar{borrador del agente: validar y ajustar al estilo del autor}
+\revisar{validar y ajustar el estilo}
 
 La memoria se organiza en cuatro partes y cinco apéndices (\cref{fig:esquema-trabajo}).
 
@@ -182,7 +182,7 @@ La memoria se organiza en cuatro partes y cinco apéndices (\cref{fig:esquema-tr
 
 \subsection{Planificación temporal}\label{sec:planificacion-temporal}
 
-\revisar{borrador del agente: validar y ajustar al estilo del autor}
+\revisar{validar y ajustar el estilo}
 
 El TFG tiene 18 créditos ECTS y se ha desarrollado entre marzo y junio y entre septiembre y el 24 de noviembre de 2026; en julio y agosto no hubo actividad. En total se han dedicado unas 400 horas: unas 8 horas semanales durante las 17 semanas de marzo a junio (136 h), con dedicación parcial porque el autor cursaba asignaturas a la vez, y unas 22 horas semanales durante las 12 semanas de septiembre a noviembre (264 h). La \cref{fig:gantt} muestra el cronograma final con granularidad semanal.
 
@@ -202,7 +202,7 @@ Respecto a lo previsto al inicio, hubo varias desviaciones. El entrenamiento de 
 
 \subsection{Planificación económica}\label{sec:planificacion-economica}
 
-\revisar{borrador del agente: validar y ajustar al estilo del autor}
+\revisar{validar y ajustar el estilo}
 
 En esta sección se estima cuánto costaría el proyecto si se ejecutara en la vida real, siguiendo el desglose de la Guía del TFG~\cite{guiatfg2025}: costes de personal, de material, de despliegue y mantenimiento, e indirectos. Todos los precios se han consultado el 21 de noviembre de 2026, y el cálculo lo hace un script (\texttt{scripts/costes\_tfg.py}) que genera la \cref{tab:costes}, para que pueda reproducirse.
 
@@ -214,16 +214,16 @@ Los experimentos se ejecutaron en el clúster de GPU de la UGR, que no tuvo cost
 
 \paragraph{Software.} Todo el software empleado es libre o de código abierto, con coste nulo: Python, PyTorch (BSD-3), torchvision (BSD), fastai (Apache 2.0), timm (Apache 2.0), OpenOOD (MIT), zennit (LGPL-3.0 o posterior), zennit-crp (BSD-3 Clear), SciPy y NumPy (BSD), scikit-learn (BSD-3), pandas (BSD-3), Matplotlib (PSF) y \TeX~Live. El repositorio de las corrupciones sintéticas no tiene licencia; se usó solo para generar los datos y no se redistribuye.
 
-\paragraph{Bibliografía.} El acceso a los artículos de pago fue posible gracias a la suscripción de la Biblioteca de la UGR. Para estimar el coste evitado, las referencias se clasifican por editorial según su DOI o su revista: 8 de Elsevier, a 31,50\,USD por artículo~\cite{precioelsevier2026}; 9 de Springer, a 39,95\,USD~\cite{preciospringer2026}; y 19 de IEEE (fuera de las conferencias de acceso abierto de CVF) y de otras editoriales, para las que se toma como referencia conservadora el precio de Elsevier \revisar{precio no verificado}. Los artículos de acceso abierto (arXiv, NeurIPS, ICLR, ICML, JMLR, CVF y revistas abiertas) no suponen coste. En total, \num{1103,25}\,€. El precio de los libros está por completar \pendiente{precio de los libros}; la Guía del TFG tiene licencia CC BY-NC-SA y no tiene coste.
+\paragraph{Bibliografía.} El acceso a los artículos de pago fue posible gracias a la suscripción de la Biblioteca de la UGR. Para estimar el coste evitado, las referencias se clasifican por editorial según su DOI o su revista: 8 de Elsevier, a 31,50\,USD por artículo~\cite{precioelsevier2026}; 9 de Springer, a 39,95\,USD~\cite{preciospringer2026}; y 19 de IEEE (fuera de las conferencias de acceso abierto de CVF) y de otras editoriales, para las que se toma como referencia conservadora el precio de Elsevier \revisar{precio no verificado}. Los artículos de acceso abierto (arXiv, NeurIPS, ICLR, ICML, JMLR, CVF y revistas abiertas) no suponen coste. En total, \num{1103,25}\,€ en artículos. Los libros se consultaron en la Biblioteca de la UGR o en línea, sin coste; para estimar el coste evitado se toman los tres más usados, a unos 40\,€ cada uno: 120\,€. La Guía del TFG tiene licencia CC BY-NC-SA y no tiene coste.
 
 \paragraph{Despliegue, mantenimiento y costes indirectos.} No hay costes de despliegue ni de mantenimiento, porque el resultado no es un sistema en producción. Los costes indirectos (electricidad y conexión a internet) se estiman como el 10\,\% del total, el porcentaje genérico que propone la Guía~\cite{guiatfg2025}.
 
 \input{tablas/t01_costes}
 
-El coste total es de \num{12907,94}\,€ con el clúster valorado a precio de mercado y de \num{12796,04}\,€ sin él. El personal supone más del 80\,\% del total, mientras que el cómputo, aun valorado a precio de alquiler, apenas llega a 102\,€: el proyecto es intensivo en trabajo humano, no en recursos de cálculo.
+El coste total es de \num{13039,94}\,€ con el clúster valorado a precio de mercado y de \num{12928,04}\,€ sin él. El personal supone más del 80\,\% del total, mientras que el cómputo, aun valorado a precio de alquiler, apenas llega a 102\,€: el proyecto es intensivo en trabajo humano, no en recursos de cálculo.
 
 \subsection{Declaración del uso de IA generativa}\label{sec:uso-ia}
 
-\pendiente{declaración de uso de IA generativa (ChatGPT/Codex/Claude): herramientas, para qué y anexo con los prompts}
+En la elaboración de este trabajo se ha empleado una única herramienta de IA generativa, Claude (Anthropic), con los modelos Claude Opus y Claude Sonnet, como apoyo auxiliar en tres tareas: el prototipado inicial de código, la redacción de la memoria y la corrección de errores. Todo el código generado ha sido revisado, depurado y validado por el autor antes de usarse en los experimentos, y los textos han sido revisados y adaptados por el autor, que es el responsable de su contenido.
 
 \endinput

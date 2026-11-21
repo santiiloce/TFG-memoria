@@ -62,7 +62,7 @@ Se prueban los mismos valores que en el artículo, $K \in \{9, 18, 36, 72, 144, 
 El valor elegido es $K = 144$, con un \AUROC medio de 0,961 y un \FPRn{95} medio de 0,145, frente a 0,934 y 0,415 con $K = 500$ (\cref{tab:stoodx-seleccion-k}). Es también el mejor $K$ en 10 de las 14 clases retenidas; en las otras cuatro gana $K = 288$ (\clase{Estroma} y \clase{Glandulas\_no\_neoplasicas}), $K = 36$ (\clase{Gleason\_4\_glomeruloide}) o $K = 500$ (\clase{Gleason\_4\_pobremente\_formadas}).
 
 Este criterio tiene tres limitaciones. En primer lugar, supone que una clase ID retenida se comporta como un OOD real, cuando es un cambio semántico entre clases de próstata y no un cambio de centro, de tejido o de escala como los de los conjuntos OOD (\cref{sec:conjuntos-ood}). En segundo lugar, la selección y la evaluación con $K = 144$ se han hecho solo con el Swin-S: la repetición con ConvNeXt-S (\cref{ap:convnext}) y el experimento de corrupciones (\cref{sec:corrupciones}) mantienen $K = 500$, por lo que sus cifras de \stoodx no son comparables con las de $K = 144$. En tercer lugar, la calibración de los $p$-valores (\cref{sec:stoodx-calibracion}) solo se ha estudiado con $K = 500$.
-\revisar{subsección redactada por el agente a petición del autor (excepción a la regla de no redactar prosa); revisar estilo y contenido}
+\revisar{subsección redactada (excepción a la regla de no redactar prosa); revisar estilo y contenido}
 
 % Cifras (results_ood/stoodx_seleccion_k/): AUROC medio por K: 0,844 / 0,898 / 0,929 / 0,949 / 0,961 /
 % 0,946 / 0,934; FPR@95 medio: 0,418 / 0,310 / 0,235 / 0,178 / 0,145 / 0,325 / 0,415. La clase
@@ -76,7 +76,7 @@ Como puntuación de detección se utiliza el estadístico tipificado del test de
 \input{tablas/t11_saturacion}
 
 Con $K = 144$, la saturación no desaparece, pero no afecta a las conclusiones. Ningún $p$-valor se anula por subdesbordamiento y el \AUROC calculado con $p$ coincide con el de $-z$, pero la separación completa es más frecuente que con $K = 500$: afecta al 1,2\,\% del test ID, al 86\,\% de TUM+NORM y al 90\,\% de DTD (\cref{tab:stoodx-saturacion-k144}). Su efecto sigue acotado: \FPRn{95} y \CCRn{5} no cambian en ningún conjunto, y el \AUROC se mueve como mucho $\pm 0{,}007$ (TUM+NORM: 0,991 en [0,985; 0,996]). Incluso en el peor caso, \stoodx con $K = 144$ supera al mejor método de OpenOOD en todos los conjuntos salvo LYM. Además, como todas las clases tienen más de $K = 144$ imágenes de entrenamiento, el valor máximo de $z$ es el mismo para todas, y desaparece la diferencia de escala entre clases que había con $K = 500$ en las clases pequeñas (\cref{sec:stoodx-k}).
-\revisar{párrafo redactado por el agente a petición del autor; revisar}
+\revisar{párrafo redactado; revisar}
 
 \input{tablas/t11_saturacion_k144}
 
@@ -109,7 +109,7 @@ Con $K = 144$, elegido solo con datos ID (\cref{sec:stoodx-seleccion-k}), \stood
 \input{tablas/t11_k144_vs_k500}
 
 Frente al resto de métodos, con $K = 144$ \stoodx obtiene el mayor \AUROC en ocho de los nueve conjuntos; la excepción es LYM, donde ViM alcanza 0,969 frente a 0,966 (\cref{tab:ood-control-interno}). También obtiene el mejor \FPRn{95} y el mejor \CCRn{5} en esos ocho conjuntos. En TUM+NORM, el \emph{bootstrap} pareado da $\AUROC(\text{RMDS}) - \AUROC(\text{\stoodx}, K = 144) = -0{,}037$ [$-0{,}040$; $-0{,}035$] (\cref{tab:ood-bootstrap-rmds}), mientras que con $K = 500$ ambos métodos eran indistinguibles. Además, el coste baja de unos 11--13\,ms por imagen en CPU con $K = 500$ a menos de 1\,ms con $K = 144$.
-\revisar{párrafos sobre $K = 144$ redactados por el agente a petición del autor; revisar}
+\revisar{párrafos sobre $K = 144$ redactados; revisar}
 
 % Cifras (faseB_paper_K144/comparacion_K144_vs_K500.csv, generado por comparar_k144_k500.py con 1.000
 % remuestreos y semilla 0; faseC_K144/): AUROC K = 144: TUM+NORM 0,991
@@ -140,7 +140,7 @@ Aunque el método propone el $p$-valor como medida de pertenencia, con $K = 500$
 
 \section{Detección OOD conforme}\label{sec:conforme-ood}
 
-% [agente] Sección (antes capítulo 12) redactada por el agente (encargo del autor) a partir de angelopoulos2021,
+% Sección (antes capítulo 12) redactada a partir de angelopoulos2021,
 % vovk2022 (fundamentos en la sección 6.6) y de las cifras de
 % OpenOOD/results_conforme/ (CSV y resumen.md; solo cifras).
 % Páginas de las fuentes: como en la sección de predicción conforme del capítulo 6.

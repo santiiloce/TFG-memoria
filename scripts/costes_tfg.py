@@ -65,6 +65,11 @@ PAGO = {
                                   'wilk1968', 'lilliefors1967', 'dunn1961']),
 }
 
+# Libros: consultados en la Biblioteca de la UGR o en línea, sin coste. Estimación del autor
+# (21/11/2026): unos 40 € por libro para los 3 más usados.
+LIBROS_N = 3
+LIBROS_PRECIO_EUR = 40.0
+
 INDIRECTOS = 0.10                       # Guía TFG, § 6.3
 
 
@@ -75,10 +80,11 @@ def calcular():
     gpu_h = sum(HORAS_GPU.values())
     cluster = (gpu_h * PRECIO_GPU_USD + HORAS_CPU * PRECIO_CPU_USD) / USD_POR_EUR
     biblio = {k: (len(v), p, len(v) * p / USD_POR_EUR) for k, (p, v) in PAGO.items()}
-    biblio_total = sum(x[2] for x in biblio.values())
+    libros = LIBROS_N * LIBROS_PRECIO_EUR
+    biblio_total = sum(x[2] for x in biblio.values()) + libros
     sin_cluster = personal + portatil + biblio_total
     con_cluster = sin_cluster + cluster
-    return dict(coste_hora=coste_hora, personal=personal, portatil=portatil, gpu_h=gpu_h,
+    return dict(libros=libros, coste_hora=coste_hora, personal=personal, portatil=portatil, gpu_h=gpu_h,
                 cluster=cluster, biblio=biblio, biblio_total=biblio_total,
                 total_con=con_cluster * (1 + INDIRECTOS), total_sin=sin_cluster * (1 + INDIRECTOS),
                 ind_con=con_cluster * INDIRECTOS, ind_sin=sin_cluster * INDIRECTOS)
@@ -131,7 +137,8 @@ def tabla_latex(r):
     for a, b, c in filas:
         lineas.append(f'{a} & {b} & {eur(c)} \\\\')
     lineas += [
-        'Bibliografía: libros & \\pendiente{precio} & -- \\\\',
+        f'Bibliografía: libros & {LIBROS_N} libros $\\times$ {num(LIBROS_PRECIO_EUR)}\\,€ (estimación) & '
+        f'{eur(r["libros"])} \\\\',
         'Despliegue y mantenimiento & No aplica & 0,00 \\\\',
         f'Costes indirectos (con clúster) & {INDIRECTOS * 100:.0f}\\,\\% del subtotal & {eur(r["ind_con"])} \\\\',
         '\\midrule',
@@ -160,6 +167,7 @@ def main():
     print(f'Clúster: {r["gpu_h"]:.2f} h GPU + {HORAS_CPU:.2f} h CPU = {r["cluster"]:.2f} €')
     for k, (n, p, e) in r['biblio'].items():
         print(f'Bibliografía {k}: {n} x {p} USD = {e:.2f} €')
+    print(f'Bibliografía libros: {LIBROS_N} x {LIBROS_PRECIO_EUR} € = {r["libros"]:.2f} €')
     print(f'Bibliografía total: {r["biblio_total"]:.2f} €')
     print(f'Indirectos: {r["ind_con"]:.2f} € (con clúster), {r["ind_sin"]:.2f} € (sin clúster)')
     print(f'Total con clúster: {r["total_con"]:.2f} €; sin clúster: {r["total_sin"]:.2f} €')

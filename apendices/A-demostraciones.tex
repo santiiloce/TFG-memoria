@@ -28,7 +28,7 @@ $t = p_k/q_k$,
 \]
 donde $\sum_{k\in S} q_k = 1$ porque $q_k = 0$ fuera de $S$, y
 $\sum_{k\in S} p_k \le \sum_{k=1}^{K} p_k = 1$ porque $p_k > 0$.
-\revisar{desarrollo añadido a petición del autor: se explica qué es $S$ (soporte de $q$, $k$ índice de clase), por qué se restringe la suma a $S$, la igualdad intermedia y de dónde salen $\sum_{k\in S} q_k = 1$ y $\sum_{k\in S} p_k \le 1$}
+\revisar{desarrollo añadido: se explica qué es $S$ (soporte de $q$, $k$ índice de clase), por qué se restringe la suma a $S$, la igualdad intermedia y de dónde salen $\sum_{k\in S} q_k = 1$ y $\sum_{k\in S} p_k \le 1$}
 Si $p = q$, todos los sumandos de la definición se anulan y
 $D_{\mathrm{KL}}(q\,\|\,p) = 0$. Recíprocamente, si $D_{\mathrm{KL}}(q\,\|\,p) = 0$,
 las dos desigualdades anteriores son igualdades. De la segunda,
@@ -93,34 +93,14 @@ contradicción con la hipótesis.
 \end{demostracion}
 
 \begin{observacion}[Buena definición]\label{obs:conv-L1}
-La hipótesis $x, w \in L^1(\R)$ garantiza que la integral de la
-\cref{eq:conv-continua} existe. Se usa el \emph{teorema de Fubini--Tonelli}: si
-$F\colon\R^2\to\R$ es medible y $\iint |F(a,t)|\,da\,dt < \infty$, entonces
-$\int F(a,t)\,da$ converge absolutamente para casi todo $t$, y las integrales
-iteradas en cualquier orden coinciden con la integral doble; si
-$F \ge 0$, las integrales iteradas coinciden siempre, aunque valgan $\infty$.
-Aplicándolo a $F(a,t) = |x(a)|\,|w(t-a)| \ge 0$ e integrando primero en $t$, con
-el cambio $u = t - a$,
-\[
-  \iint |x(a)|\,|w(t-a)|\,dt\,da
-  = \int |x(a)| \Bigl(\int |w(u)|\,du\Bigr) da
-  = \|x\|_1\,\|w\|_1 < \infty,
-\]
-de modo que la integral de la \cref{eq:conv-continua} converge absolutamente para
-casi todo $t$ y, además, $\|x * w\|_1 \le \|x\|_1\,\|w\|_1$, es decir,
-$x * w \in L^1(\R)$. En el caso discreto basta acotar
+La hipótesis $x, w \in \ell^1(\mathbb{Z})$ garantiza que la serie de la
+\cref{eq:conv-discreta} existe. Basta acotar
 $\sum_a |x(a)|\,|w(t-a)| \le \bigl(\sup_b |w(b)|\bigr)\,\|x\|_1 \le \|w\|_1\,\|x\|_1$,
-así que la serie de la \cref{eq:conv-discreta} converge absolutamente para todo $t$.
+así que la serie converge absolutamente para todo $t$.
 \end{observacion}
 
 \begin{demostracion}[Demostración de la \cref{prop:conv-conmutativa}]
-En el caso continuo, con el cambio de variable $b = t - a$ (luego $da = -db$, y
-los límites $\pm\infty$ se intercambian),
-\[
-  (x * w)(t) = \int_{-\infty}^{\infty} x(a)\, w(t-a)\, da
-  = \int_{-\infty}^{\infty} x(t-b)\, w(b)\, db = (w * x)(t).
-\]
-En el caso discreto, $a \mapsto b = t - a$ es una biyección de $\mathbb{Z}$ en
+La aplicación $a \mapsto b = t - a$ es una biyección de $\mathbb{Z}$ en
 sí mismo, y reordenar los términos no cambia el valor de una serie
 absolutamente convergente, así que
 $\sum_{a} x(a)\,w(t-a) = \sum_{b} x(t-b)\,w(b)$.

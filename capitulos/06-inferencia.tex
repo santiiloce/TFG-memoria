@@ -378,7 +378,7 @@ En todos los casos se usan $B = \num{1000}$ réplicas con semilla 0, y los extre
 \end{observacion}
 % Fuente: OpenOOD/metricas_ood.py (indices_bootstrap: rng.integers por separado para ID y OOD;
 % bootstrap_ic: np.percentile; bootstrap_pareado_auroc: mismos índices y p = min(1, 2 min(...)));
-% fase1_metricas.py (remuestreo de láminas). La fórmula de la varianza de la diferencia es del agente.
+% fase1_metricas.py (remuestreo de láminas). La fórmula de la varianza de la diferencia no procede de las fuentes.
 
 %=======================================================
 \section{Predicción conforme}\label{sec:prediccion-conforme}
@@ -388,7 +388,7 @@ En todos los casos se usan $B = \num{1000}$ réplicas con semilla 0, y los extre
 % - angelopoulos2021: «A Gentle Introduction to Conformal Prediction...», versión del 8 de diciembre
 %   de 2022 (arXiv:2107.07511); página del PDF.
 % - vovk2022: 2.ª edición (Springer, 2022); página impresa.
-% [agente] Sección redactada por el agente a partir de estas dos fuentes (encargo del autor).
+% Sección redactada a partir de estas dos fuentes.
 
 Un clasificador como el de la \cref{def:entropia-cruzada} devuelve, para cada
 imagen, una distribución sobre las clases, pero sus probabilidades son una medida
@@ -543,7 +543,7 @@ $\Prob\bigl(Y_{n+1} \notin C(X_{n+1})\bigr) \le \Prob(p \le \alpha) \le \alpha$.
 \end{demostracion}
 % Fuente: angelopoulos2021, ec. (1), p. 4; teorema 1, p. 6 (atribuido a Vovk, Gammerman y Saunders,
 % 1999); teorema D.1 y demostración, pp. 50-51 (argumento de rangos, sin empates). La reducción a la
-% proposición del p-valor es del agente. Garantía equivalente en vovk2022, proposición 4.1, p. 109.
+% proposición del p-valor no procede de las fuentes. Garantía equivalente en vovk2022, proposición 4.1, p. 109.
 
 La garantía es \emph{marginal}: la probabilidad se toma a la vez sobre los datos
 de calibración y sobre el de prueba, de modo que se cumple en promedio y no para

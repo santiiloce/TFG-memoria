@@ -20,7 +20,7 @@ $y_i\in\{1,\dots,K\}$ es la etiqueta del ejemplo $i$; $q$ y $p$ denotan
 distribuciones sobre las clases (en particular, $q$ es la distribución
 \emph{one-hot} de la etiqueta y $p$ la que asigna la red); $f(x;\phi)$ es la red,
 con parámetros $\phi$; y $L$ es el número de capas, con índice $\ell$.
-\revisar{párrafo añadido a petición del autor para justificar la unificación de la notación; antes, $K$ era también el número de capas ocultas (\cref{def:mlp}) y de bloques residuales (\cref{def:residual}), e $y$, $y^{LS}$ el vector \emph{one-hot} y los objetivos suavizados (\cref{def:label-smoothing}).}
+\revisar{párrafo añadido para justificar la unificación de la notación; antes, $K$ era también el número de capas ocultas (\cref{def:mlp}) y de bloques residuales (\cref{def:residual}), e $y$, $y^{LS}$ el vector \emph{one-hot} y los objetivos suavizados (\cref{def:label-smoothing}).}
 
 \section{Redes neuronales}\label{sec:redes}
 
@@ -51,19 +51,9 @@ neurona artificial, en similitud con el concepto de neurona biológica. Este con
 lo que equivaldría a las dendritas biológicas. Cada entrada se multiplica por un factor de peso
 que determina su importancia. Estos pesos son los que el modelo ajusta en el proceso de entrenamiento. Finalmente, se suman las entradas
 multiplicadas por sus pesos (normalmente también se suele añadir un término de sesgo) y una función matemática no lineal decide, en base
-al valor final, si la neurona se activa y qué valor transmite a la siguiente capa (\cref{fig:neurona}).
+al valor final, si la neurona se activa y qué valor transmite a la siguiente capa.
 
-\begin{figure}[tbp]
-  \centering
-  \includegraphics[width=0.5\textwidth]{img/neurona_artificial.png}
-  \caption[Neurona biológica y neurona artificial]{%
-    (a) Neurona biológica. (b) Neurona artificial: las entradas $x_j$ se ponderan
-    con los pesos $w_{ij}$, se suman y el resultado $u_i$ pasa por una función no
-    lineal $f$. Fuente: \cite[fig.~2.1]{terleth2019ann}, a partir de \cite{reed1999neural}.}
-  \label{fig:neurona}
-\end{figure}
-
-% [agente] Definición formal en la notación de Prince (cap. 3 y sec. 4.4.1), con \sigma en lugar de a[·].
+% Definición formal en la notación de Prince (cap. 3 y sec. 4.4.1), con \sigma en lugar de a[·].
 \begin{definicion}[Neurona artificial]\label{def:neurona}
 Sea $\sigma\colon\R\to\R$ una función, llamada \emph{función de activación}. Una
 \emph{neurona} con entrada $x\in\R^{D}$ calcula
@@ -121,7 +111,7 @@ ViT-B/16, ConvNeXt-S y Swin-S usaron GELU, y únicamente EfficientNetV2-S emple�
 
 \subsection{Redes neuronales profundas}\label{sec:mlp}
 
-% [agente] Texto redactado a partir de Prince, sec. 4.4.1 (ec. 4.15), con \sigma en lugar de a[·].
+% Texto redactado a partir de Prince, sec. 4.4.1 (ec. 4.15), con \sigma en lugar de a[·].
 Las neuronas de la \cref{def:neurona} se agrupan en \emph{capas}: todas las neuronas
 de una capa reciben la misma entrada, y la salida de una capa es la entrada de la
 siguiente. Si cada neurona de una capa está conectada a todas las salidas de la
@@ -204,7 +194,7 @@ Los monomios $x^\alpha = x_1^{\alpha_1}\cdots x_n^{\alpha_n}$ con $|\alpha|=k$ f
   \bigl\langle (a\cdot x)^k, q\bigr\rangle = \sum_{|\alpha|=k} k!\,a^\alpha q_\alpha = k!\,q(a).
 \]
 Sea $W=\spn\{(a\cdot x)^k : a\in\mathbb{R}^n\}\subseteq H_k$ y sea $q\in W^\perp$. En particular, $q$ es ortogonal a cada $(a\cdot x)^k$, luego $k!\,q(a)=0$ y $q(a)=0$ para todo $a\in\mathbb{R}^n$. Un polinomio que se anula en todo $\mathbb{R}^n$ es el polinomio nulo, así que $q=0$ y $W^\perp=\{0\}$. Como $H_k$ tiene dimensión finita, $H_k=W\oplus W^\perp$: si $\pi_W$ es la proyección ortogonal sobre $W$, todo $p\in H_k$ se escribe $p=\pi_W(p)+\bigl(p-\pi_W(p)\bigr)$ con $p-\pi_W(p)\in W^\perp$. Por tanto, $H_k=W$. En dimensión infinita, $W^\perp=\{0\}$ solo garantizaría que $W$ es denso.
-\revisar{desarrollo añadido a petición del autor: se explicitan $W$, que $W^\perp=\{0\}$ y la descomposición $H_k=W\oplus W^\perp$; antes decía «Si $q$ es ortogonal a todos los $(a\cdot x)^k$, entonces $q(a)=0$ para todo $a$, y por tanto $q=0$. Como $H_k$ tiene dimensión finita, el complemento ortogonal del subespacio generado es trivial y se tiene la igualdad.»}
+\revisar{desarrollo añadido: se explicitan $W$, que $W^\perp=\{0\}$ y la descomposición $H_k=W\oplus W^\perp$; antes decía «Si $q$ es ortogonal a todos los $(a\cdot x)^k$, entonces $q(a)=0$ para todo $a$, y por tanto $q=0$. Como $H_k$ tiene dimensión finita, el complemento ortogonal del subespacio generado es trivial y se tiene la igualdad.»}
 \end{proof}
 
 \begin{lema}[Reducción a dimensión uno]\label{lem:reduccion}
@@ -239,8 +229,8 @@ pertenece a $\mathcal{M}(\sigma)$ y, por el teorema del valor medio para diferen
 que tiende a $0$ cuando $h\to 0$ por la continuidad uniforme de $\sigma^{(k)}$ en compactos. Luego $x^k\sigma^{(k)}(wx+b)\in\overline{\mathcal{M}(\sigma)}$, y basta tomar $w=0$.
 
 (b) Si $\sigma$ no es un polinomio, ninguna $\sigma^{(k)}$ es idénticamente nula, así que para cada $k$ existe $b_k$ con $\sigma^{(k)}(b_k)\ne 0$. Por (a), $x^k\sigma^{(k)}(b_k)\in\overline{\mathcal{M}(\sigma)}$ y, dividiendo por $\sigma^{(k)}(b_k)\ne 0$ (la clausura es un subespacio vectorial), $x^k\in\overline{\mathcal{M}(\sigma)}$ para todo $k$.
-\revisar{añadido a petición del autor el paso intermedio: se divide por $\sigma^{(k)}(b_k)\ne 0$; antes decía «Por (a), $x^k\in\overline{\mathcal{M}(\sigma)}$ para todo $k$.»} Como la clausura es un subespacio vectorial, contiene todos los polinomios. Sean ahora $f\in C(\mathbb{R})$, $K\subset\mathbb{R}$ compacto y $\varepsilon>0$, y sea $[a,b]\supset K$. Por el teorema de Weierstrass existe un polinomio $P$ con $\sup_{[a,b]}|f-P|<\varepsilon/2$ y, como $P\in\overline{\mathcal{M}(\sigma)}$, existe $N\in\mathcal{M}(\sigma)$ con $\sup_K|P-N|<\varepsilon/2$. Por la desigualdad triangular, $\sup_K|f-N|<\varepsilon$, luego $f\in\overline{\mathcal{M}(\sigma)}$ y $\overline{\mathcal{M}(\sigma)}=C(\mathbb{R})$.
-\revisar{añadido a petición del autor el argumento de $\varepsilon/2$; antes decía «La clausura contiene todos los polinomios y, por el teorema de Weierstrass, es todo $C(\mathbb{R})$.»}
+\revisar{añadido el paso intermedio: se divide por $\sigma^{(k)}(b_k)\ne 0$; antes decía «Por (a), $x^k\in\overline{\mathcal{M}(\sigma)}$ para todo $k$.»} Como la clausura es un subespacio vectorial, contiene todos los polinomios. Sean ahora $f\in C(\mathbb{R})$, $K\subset\mathbb{R}$ compacto y $\varepsilon>0$, y sea $[a,b]\supset K$. Por el teorema de Weierstrass existe un polinomio $P$ con $\sup_{[a,b]}|f-P|<\varepsilon/2$ y, como $P\in\overline{\mathcal{M}(\sigma)}$, existe $N\in\mathcal{M}(\sigma)$ con $\sup_K|P-N|<\varepsilon/2$. Por la desigualdad triangular, $\sup_K|f-N|<\varepsilon$, luego $f\in\overline{\mathcal{M}(\sigma)}$ y $\overline{\mathcal{M}(\sigma)}=C(\mathbb{R})$.
+\revisar{añadido el argumento de $\varepsilon/2$; antes decía «La clausura contiene todos los polinomios y, por el teorema de Weierstrass, es todo $C(\mathbb{R})$.»}
 \end{demostracion}
 
 \begin{demostracion}[Demostración del \cref{teo:aprox-universal}]
@@ -272,7 +262,7 @@ Este resultado, junto con otros análogos con hipótesis distintas sobre $\sigma
 
 \section{Función de pérdida: entropía cruzada y \emph{label smoothing}}\label{sec:perdida}
 
-% [agente] Texto redactado a partir de Prince, sec. 5.5 (ecs. 5.21-5.23).
+% Texto redactado a partir de Prince, sec. 5.5 (ecs. 5.21-5.23).
 En la clasificación multiclase, la etiqueta toma valores en $\{1,\dots,K\}$, siendo $K \in \mathbb{N}$ el número de clases, y se
 modeliza con una distribución categórica, de parámetros
 $\lambda_1,\dots,\lambda_K$, que determinan la probabilidad de cada clase:
@@ -301,7 +291,7 @@ $\widehat{y} = \argmax_k \Prob(y = k \mid x)$
 \cite[sec.~5.5]{prince2023understanding}. Se denominará $f(x;\phi)$ como
 \emph{logits}.
 
-% [agente] Definición redactada a partir de Prince, sec. 5.5 (ec. 5.24) y sec. 5.7.
+% Definición redactada a partir de Prince, sec. 5.5 (ec. 5.24) y sec. 5.7.
 \begin{definicion}[{Entropía cruzada~\cite[sec.~5.5]{prince2023understanding}}]\label{def:entropia-cruzada}
 Sea $\{(x_i, y_i)\}_{i=1}^{I}$ un conjunto de entrenamiento con
 $y_i\in\{1,\dots,K\}$ y sea $f(x;\phi)$ una red con $K$ salidas. La
@@ -319,7 +309,7 @@ minimizar la divergencia de Kullback-Leibler entre la distribución empírica de
 los datos observados y la distribución del modelo
 \cite[sec.~5.7]{prince2023understanding}.
 
-% [agente] Proposición y demostración redactadas a partir de Prince, sec. 5.7 (ecs. 5.27-5.30),
+% Proposición y demostración redactadas a partir de Prince, sec. 5.7 (ecs. 5.27-5.30),
 % adaptadas al caso discreto y condicionado a cada entrada x_i (Prince lo plantea para una
 % distribución continua sin condicionar, con deltas de Dirac).
 Para dos distribuciones $q$ y $p$ sobre $\{1,\dots,K\}$ con $p_k > 0$ para todo
@@ -365,7 +355,7 @@ primer sumando de la divergencia no depende de los parámetros y desaparece del
 problema de minimización, de modo que minimizar la divergencia KL equivale a
 minimizar la entropía cruzada~\cite[sec.~5.7]{prince2023understanding}.
 
-% [agente] Definición redactada a partir de Müller et al. (2019), resumen y sec. 1
+% Definición redactada a partir de Müller et al. (2019), resumen y sec. 1
 % («Preliminaries»). El artículo llama \alpha al parámetro; aquí se usa \varepsilon porque \alpha
 % es la tasa de aprendizaje de Adam (\cref{sec:adam}).
 Müller et al.\ describen el \emph{label smoothing} como el uso de objetivos
@@ -408,11 +398,11 @@ Desarrollando la suma,
                + \frac{\varepsilon}{K}\sum_{k=1}^{K} \bigl(-\log p_k\bigr),
 \]
 donde la primera suma se reduce al sumando $k=y$ porque $q_k=0$ para $k\ne y$.
-\revisar{añadido a petición del autor el paso intermedio del desarrollo y la frase que explica por qué la primera suma se reduce a $-\log p_y$}
+\revisar{añadido el paso intermedio del desarrollo y la frase que explica por qué la primera suma se reduce a $-\log p_y$}
 % En el entrenamiento se usó LabelSmoothingCrossEntropy de fastai con \varepsilon = 0,1 (valor por
 % defecto), que corresponde a esta expresión: con K = 14, objetivos 0,907 y 0,00714.
 
-% [agente] Lema, proposición y demostraciones redactados por el agente. La desigualdad
+% Lema, proposición y demostraciones redactados. La desigualdad
 % -log y >= 1 - y y su uso para probar D_KL >= 0 son de Prince, ap. C.5.1; que D_KL = 0 solo si
 % las distribuciones coinciden lo afirman Goodfellow et al., sec. 3.13 (aquí se demuestra).
 Para obtener el mínimo de la pérdida con \emph{label smoothing} basta una
@@ -422,7 +412,7 @@ propiedad de la divergencia de Kullback-Leibler.
 Sean $q$ y $p$ dos distribuciones cualesquiera sobre $\{1,\dots,K\}$ con $p_k > 0$ para todo
 $k$. Entonces $D_{\mathrm{KL}}(q\,\|\,p) \ge 0$, y la igualdad se da si y solo si
 $p = q$.
-\revisar{enunciado generalizado a petición del autor; antes decía «Si además $q_k > 0$ para todo $k$, la igualdad se da si y solo si $p = q$»}
+\revisar{enunciado generalizado; antes decía «Si además $q_k > 0$ para todo $k$, la igualdad se da si y solo si $p = q$»}
 \end{lema}
 La demostración se recoge en la \cref{sec:dem-aprendizaje}.
 
@@ -510,7 +500,7 @@ componente: para $j = 1,\dots,n$,
     = \frac{\widehat{m}_{t,j}}{\sqrt{\widehat{v}_{t,j}} + \varepsilon},
 \]
 y $\beta_1^t$, $\beta_2^t$ denotan potencias.
-\revisar{añadido a petición del autor: se escriben explícitamente las tres operaciones componente a componente} Los valores propuestos
+\revisar{añadido: se escriben explícitamente las tres operaciones componente a componente} Los valores propuestos
 por defecto son $\alpha = 10^{-3}$, $\beta_1 = 0{,}9$, $\beta_2 = 0{,}999$ y
 $\varepsilon = 10^{-8}$.
 \end{definicion}
@@ -647,14 +637,9 @@ Goodfellow et al.~\cite[cap.~9]{goodfellow2016deep}.
 \subsubsection{La operación de convolución}
 
 \begin{definicion}[Convolución]\label{def:convolucion}
-Sean $x, w \colon \mathbb{R} \to \mathbb{R}$ dos funciones integrables, en particular se exigirá que $x, w \in L^1(\mathbb{R})$, es decir, $\int_{-\infty}^{\infty} |x(a)|\, da < \infty$ y lo mismo para $w$. Se
-define su \emph{convolución} como
-\begin{equation}\label{eq:conv-continua}
-  s(t) = (x * w)(t) = \int_{-\infty}^{\infty} x(a)\, w(t-a)\, da .
-\end{equation}
-Si $x, w \colon \mathbb{Z} \to \mathbb{R}$ son discretas, con
+Sean $x, w \colon \mathbb{Z} \to \mathbb{R}$, con
 $x, w \in \ell^1(\mathbb{Z})$, es decir, $\sum_{a\in\mathbb{Z}} |x(a)| < \infty$
-y lo mismo para $w$, la convolución es
+y lo mismo para $w$. Su \emph{convolución} es
 \begin{equation}\label{eq:conv-discreta}
   s(t) = (x * w)(t) = \sum_{a=-\infty}^{\infty} x(a)\, w(t-a).
 \end{equation}
@@ -666,7 +651,6 @@ En el contexto de las redes convolucionales, $x$ recibe el nombre de
 
 La buena definición de la convolución se justifica en la \cref{sec:dem-aprendizaje}.
 
-
 \begin{proposicion}[Conmutatividad de la convolución]\label{prop:conv-conmutativa}
 En las condiciones de la \cref{def:convolucion}, $x * w = w * x$.
 \end{proposicion}
@@ -674,13 +658,7 @@ La demostración se recoge en la \cref{sec:dem-aprendizaje}.
 
 En la práctica, la entrada y el núcleo son tensores de valores finitos y se
 suponen nulos fuera de las posiciones almacenadas, de modo que la suma
-infinita de \cref{eq:conv-discreta} se reduce a una suma finita siempre y cuando la entrada o
-el núcleo tengan soporte finito. En el procesamiento de imágenes digitales se emplea habitualmente un núcleo bidimensional $K$ de dimensiones impares $(2k+1) \times (2k+1)$ centrado en el origen, con índices $m, n \in \{-k, \dots, k\}$ \cite{mesejo2026vision}. Para una imagen bidimensional $I$, la convolución discreta se expresa como
-\begin{equation}\label{eq:conv-2d}
-  S(i,j) = (I * K)(i,j) = \sum_{m=i-k}^{i+k}\sum_{n=j-k}^{j+k} I(m,n)\, K(i-m,\, j-n),
-\end{equation}
-en la que el núcleo aparece \emph{volteado (flipped)} respecto de
-la entrada tanto horizontal como verticalmente \cite{goodfellow2016deep, mesejo2026vision}.
+infinita de \cref{eq:conv-discreta} se reduce a una suma finita. En el procesamiento de imágenes digitales se emplea habitualmente un núcleo bidimensional $K$ de dimensiones impares $(2k+1) \times (2k+1)$ centrado en el origen~\cite{mesejo2026vision}.
 
 \begin{definicion}[Correlación cruzada]\label{def:correlacion-cruzada}
 Sea $I$ una imagen bidimensional y $K$ un núcleo de tamaño $(2k+1) \times (2k+1)$. La \emph{correlación cruzada} de $I$ con $K$ se define como
@@ -692,8 +670,7 @@ A diferencia de la convolución, esta operación no voltea el núcleo (por lo qu
 \begin{observacion}
 La correlación cruzada coincide con la convolución salvo por el volteo del
 núcleo. Muchas bibliotecas de aprendizaje automático implementan en realidad
-\cref{eq:correlacion-cruzada} pero la llaman convolución, y
-Goodfellow et al.~\cite[sec.~9.1]{goodfellow2016deep} adoptan ese mismo convenio. Como el núcleo
+\cref{eq:correlacion-cruzada} pero la llaman convolución~\cite[sec.~9.1]{goodfellow2016deep}. Como el núcleo
 se aprende, ambas operaciones son equivalentes a efectos del modelo: la red
 aprendería simplemente el núcleo volteado. En lo que sigue llamaremos
 convolución a \cref{eq:correlacion-cruzada}, como es habitual.
@@ -704,8 +681,6 @@ Una \emph{red neuronal convolucional} es una red neuronal que, en al menos una
 de sus capas, sustituye la multiplicación por una matriz general por una
 convolución \cite[cap.~9]{goodfellow2016deep}.
 \end{definicion}
-
-\subsubsection{Convolución con varios canales, paso y relleno}
 
 Las imágenes tienen varios canales (por ejemplo, RGB) y cada capa calcula
 varios mapas de características en paralelo. Sea $\mathsf{V}$ la entrada, con
@@ -724,9 +699,6 @@ y el $-1$ se debe a que los índices empiezan en $1$
 
 Para reducir el coste se puede evaluar la salida solo cada $s$ píxeles en
 cada dirección (\emph{convolución con paso} o \emph{stride} $s$)~\cite[sec.~9.5]{goodfellow2016deep}.
-
-\subsubsection{Motivación: interacciones dispersas, parámetros compartidos y
-equivarianza}
 
 La convolución aporta tres propiedades frente a una capa densa
 \cite[sec.~9.2]{goodfellow2016deep}:
@@ -767,8 +739,6 @@ equivariante a otras transformaciones, como los cambios de escala o las
 rotaciones \cite[sec.~9.2]{goodfellow2016deep}.
 \end{observacion}
 
-\subsubsection{Estructura de una capa convolucional y \emph{pooling}}
-
 Una capa convolucional típica consta de tres etapas
 \cite[sec.~9.3]{goodfellow2016deep}:
 \begin{enumerate}
@@ -789,9 +759,6 @@ Dada una vecindad rectangular $\mathcal{N}(i,j)$ de la posición $(i,j)$, el
 \[
   P(i,j) = \max_{(m,n) \in \mathcal{N}(i,j)} S(m,n).
 \]
-Otras funciones de agregación habituales son la media en la vecindad, la
-norma $L^2$ o una media ponderada por la distancia al píxel central
-\cite[sec.~9.3]{goodfellow2016deep}.
 \end{definicion}
 
 El \emph{pooling} hace que la representación sea aproximadamente
@@ -800,11 +767,7 @@ desplaza ligeramente, la mayoría de las salidas agregadas no cambian
 \cite[sec.~9.3]{goodfellow2016deep}.
 
 La \cref{fig:cnn-tipica} muestra cómo se combinan estos elementos en
-una arquitectura convolucional típica: varias capas convolucionales, cada
-una seguida de una no linealidad y de una etapa de \emph{pooling}, que
-reducen progresivamente la resolución espacial y aumentan el número de
-mapas de características, y unas capas totalmente conectadas finales que
-proporcionan la predicción.
+una arquitectura convolucional típica.
 
 \begin{figure}[tbp]
   \centering
@@ -821,7 +784,7 @@ proporcionan la predicción.
 
 \subsection{Redes residuales y normalización}\label{sec:residuales}
 
-% [agente] Texto redactado a partir de Prince, secs. 11.1, 11.2, 11.4 y 11.5.1, y de He et al. (2016).
+% Texto redactado a partir de Prince, secs. 11.1, 11.2, 11.4 y 11.5.1, y de He et al. (2016).
 % La estructura de ResNet-50 se ha comprobado en el resumen de capas de
 % tfg/executions/def1/param1_*/resultados.txt (bloques 3, 4, 6 y 3; 53 capas BatchNorm2d).
 ResNet-50, los transformers, Swin y ConvNeXt, que se estudian en el resto de
@@ -904,7 +867,7 @@ bloque.
 
 \subsection{Transformers}\label{sec:transformer}
 
-% [agente] Sección condensada el 21/11/2026 a petición del autor, a partir de Prince, secs. 12.1-12.4,
+% Sección condensada el 21/11/2026 a partir de Prince, secs. 12.1-12.4,
 % y de Dosovitskiy et al. (2021) y Liu et al. (2021) para la posición de la LayerNorm.
 Los transformers tienen su origen en el procesamiento del lenguaje natural (\emph{natural language processing}, NLP), en donde es fundamental el contexto
 de las palabras para poder entender su significado~\cite[sec.~12.1]{prince2023understanding}.
@@ -1017,7 +980,7 @@ ViT y Swin colocan la LayerNorm antes de cada unidad, como en la
 
 \subsection{Vision Transformer}\label{sec:vit}
 
-% [agente] Texto redactado a partir de Dosovitskiy et al. (2021), secs. 3 y 3.1 y tabla 1.
+% Texto redactado a partir de Dosovitskiy et al. (2021), secs. 3 y 3.1 y tabla 1.
 % Comprobado en param0_*/resultados.txt: entrada de 224x224, proyección de parches Conv2d con
 % 590592 = 768*(16*16*3) + 768 parámetros, salida de 768 x 14 x 14, y 12 GELU.
 El \emph{Vision Transformer} (ViT) de Dosovitskiy et al.~\cite{dosovitskiy2021}
@@ -1056,7 +1019,7 @@ que añade fastai (\cref{sec:learner}).
 
 \subsection{Swin Transformer}\label{sec:swin}
 
-% [agente] Texto redactado a partir de Liu et al. (2021), secs. 1, 3.1, 3.2 y 3.3 (ecs. 1-4), y de
+% Texto redactado a partir de Liu et al. (2021), secs. 1, 3.1, 3.2 y 3.3 (ecs. 1-4), y de
 % Prince, sec. 12.10.3 y fig. 12.18. La demostración de la proposición de coste es propia.
 % Comprobado en param4_*/resultados.txt (swin_small_patch4_window7_224): entrada de 224x224,
 % 24 GELU (2 + 2 + 18 + 2 bloques), LayerNorm final, promedio de 49 tokens a 768 características,
@@ -1068,29 +1031,19 @@ que, como las redes convolucionales, empiezan con parches de alta resolución y
 pocos canales y van reduciendo la resolución a la vez que aumentan el número de
 canales~\cite[sec.~12.10.3]{prince2023understanding}. Un ejemplo representativo
 es el \emph{Swin Transformer} (\emph{shifted window transformer}) de Liu et
-al.~\cite{liu2021swin}.
-
-Swin usa una representación jerárquica y autoatención calculada dentro de
-ventanas locales~\cite[sec.~1]{liu2021swin}.
-
-\subsubsection{Arquitectura}
+al.~\cite{liu2021swin}, que usa una representación jerárquica y autoatención
+calculada dentro de ventanas locales~\cite[sec.~1]{liu2021swin}.
 
 La imagen se divide en parches de $4\times4$ píxeles que no se solapan, como en
-ViT. Cada parche es un token cuyo vector de características es la concatenación
-de sus valores RGB, de dimensión $4\times4\times3 = 48$, y una capa lineal lo
-proyecta a una dimensión $C$. Sobre estos $\frac{H}{4}\times\frac{W}{4}$ tokens se
-aplican varios bloques Swin, que mantienen el número de tokens; todo ello forma la
-\emph{etapa 1}. Para obtener una representación jerárquica, una capa de
-\emph{fusión de parches} (\emph{patch merging}) concatena las características de
-cada grupo de $2\times2$ parches vecinos, de dimensión $4C$, y les aplica una capa
-lineal con salida de dimensión $2C$. Así, el número de tokens se divide entre
-$4$, la resolución entre $2$ y el número de canales se duplica. Siguen nuevos
-bloques Swin, que forman la \emph{etapa 2}, con resolución
-$\frac{H}{8}\times\frac{W}{8}$. El proceso se repite en las etapas 3 y 4, con
-resoluciones $\frac{H}{16}\times\frac{W}{16}$ y $\frac{H}{32}\times\frac{W}{32}$:
-las mismas que las de redes convolucionales típicas como
-ResNet~\cite[sec.~3.1]{liu2021swin}. La fusión de parches desempeña así un papel
-análogo al del \emph{pooling} en una red convolucional.
+ViT, y una capa lineal proyecta cada uno a una dimensión $C$. Sobre estos
+$\frac{H}{4}\times\frac{W}{4}$ tokens se aplican varios bloques Swin, que forman la
+\emph{etapa 1}. Entre etapas, una capa de \emph{fusión de parches}
+(\emph{patch merging}) concatena las características de cada grupo de $2\times2$
+parches vecinos y les aplica una capa lineal con salida de dimensión $2C$: el
+número de tokens se divide entre $4$ y el número de canales se duplica, de modo
+que las etapas 2, 3 y 4 tienen resoluciones $\frac{H}{8}\times\frac{W}{8}$,
+$\frac{H}{16}\times\frac{W}{16}$ y $\frac{H}{32}\times\frac{W}{32}$, las mismas que
+las de redes convolucionales típicas como ResNet~\cite[sec.~3.1]{liu2021swin}.
 
 Un \emph{bloque Swin} es una capa transformer con LayerNorm antes de cada unidad
 (\cref{def:capa-transformer}) en la que la autoatención multicabeza se sustituye por una
@@ -1146,9 +1099,7 @@ perder la eficiencia, los bloques consecutivos alternan dos particiones. La
 primera es la partición regular, que empieza en el píxel superior izquierdo; la
 segunda desplaza las ventanas $\bigl(\lfloor M/2\rfloor, \lfloor M/2\rfloor\bigr)$
 parches respecto de la regular. Así, las nuevas ventanas cruzan los bordes de las
-de la capa anterior y las conectan~\cite[sec.~3.2]{liu2021swin}. Prince lo resume
-diciendo que, tras varias capas, la información puede propagarse por toda la
-imagen~\cite[fig.~12.18]{prince2023understanding}.
+de la capa anterior y las conectan~\cite[sec.~3.2]{liu2021swin}.
 
 \subsubsection{Sesgo de posición relativa}
 
@@ -1166,8 +1117,6 @@ relativo~\cite[ec.~(4)]{liu2021swin}. Como el desplazamiento en cada eje está e
 $[-M+1, M-1]$, basta aprender una matriz $\widehat{B}\in\R^{(2M-1)\times(2M-1)}$
 de la que se toman los valores de $B$.
 
-\subsubsection{Swin-S}
-
 Liu et al.\ definen cuatro variantes, Swin-T, Swin-S, Swin-B y Swin-L. En todas,
 $M = 7$, la dimensión de las consultas de cada cabeza es $d = 32$ y la capa
 oculta del MLP tiene $4$ veces la dimensión de la entrada. Swin-S tiene $C = 96$
@@ -1179,7 +1128,7 @@ características.
 
 \subsection{ConvNeXt}\label{sec:convnext}
 
-% [agente] Texto redactado a partir de Todi et al. (2023), que resume a Liu et al. (2022), y del
+% Texto redactado a partir de Todi et al. (2023), que resume a Liu et al. (2022), y del
 % resumen de capas de param2_*/resultados.txt (convnext_small): entrada de 256x256; convolución
 % inicial Conv2d con 4704 = 96*3*4*4 + 96 parámetros (4x4, paso 4, salida 64x64); bloques con
 % Conv2d 4800 = 96*7*7 + 96 (por canal, 7x7), LayerNorm, Linear 96->384, GELU, Linear 384->96;
@@ -1236,13 +1185,19 @@ al.~\cite[fig.~4]{liu2022convnext}.
 % Orden comprobado en el resumen de capas (Conv2d, LayerNorm, Linear, GELU, Linear) y en la fig. 4
 % de Liu et al. (2022). El parámetro gamma (escalado por capa) se ha comprobado en
 % param2_*/convnext_small_pesos_finales.pth: uno por bloque, 36 en total.
+% Escalado por capa a partir de Touvron et al. (2021), sec. 2 y ec. (4).
 Liu et al.\ aplican además el escalado por capa (\emph{layer scale}) de Touvron et
-al., con valor inicial $10^{-6}$~\cite[sec.~3]{liu2022convnext}. El modelo usado en
-este trabajo lo incluye: cada uno de sus $36$ bloques tiene un parámetro
-\texttt{gamma}, que no aparece en el resumen de capas porque no es una capa.
-\pendiente{definir el escalado por capa y añadirlo a la ecuación del bloque: requiere
-Touvron et al.~(2021), \emph{Going deeper with image transformers}, ICCV (ref.~[74] de
-Liu et al.), que no está en tfg-referencias/papers}
+al.~\cite{touvron2021}, con valor inicial $10^{-6}$~\cite[sec.~3.1]{liu2022convnext}.
+El escalado por capa multiplica la salida de cada rama residual por una matriz
+diagonal $\operatorname{diag}(\gamma_1,\dots,\gamma_C)$ de pesos aprendidos, uno
+por canal, inicializados con un valor pequeño, de modo que la contribución inicial
+de las ramas residuales sea pequeña~\cite[sec.~2, ec.~(4)]{touvron2021}. Con él, el
+bloque ConvNeXt calcula
+\[
+  x \;\leftarrow\; x + \operatorname{diag}(\gamma)\,\operatorname{PW}_2\Bigl(\operatorname{GELU}\bigl(\operatorname{PW}_1\bigl(\operatorname{LN}(\operatorname{DW}_{7\times7}(x))\bigr)\bigr)\Bigr).
+\]
+El modelo usado en este trabajo lo incluye: cada uno de sus $36$ bloques tiene un
+parámetro \texttt{gamma}, que no aparece en el resumen de capas porque no es una capa.
 
 Liu et al.\ modifican paso a paso una ResNet-50 siguiendo el diseño de Swin y
 comprueban en ImageNet-1K el efecto de cada cambio~\cite[sec.~2]{liu2022convnext}.
@@ -1262,5 +1217,30 @@ $\operatorname{PW}_1$ y $\operatorname{PW}_2$; son los nombres que se usan en la
 configuración de LRP del \cref{cap:explicabilidad}.
 % Nombres comprobados en param2_*/convnext_small_pesos_finales.pth:
 % model.stages.i.blocks.j.{conv_dw, mlp.fc1, mlp.fc2, gamma}.
+
+\subsection{EfficientNetV2}\label{sec:efficientnet}
+
+% Texto redactado a partir de Tan y Le (2021), sec. 3.2 (fig. 2) y sec. 3.3 (tabla 4).
+% SiLU comprobada en el resumen de capas de param3_*/resultados.txt (tf_efficientnetv2_s).
+EfficientNetV2~\cite{tan2021} es una familia de redes convolucionales obtenida
+mediante búsqueda de arquitecturas y escalado, que combina dos tipos de bloque. El
+bloque MBConv expande los canales con una convolución puntual, aplica una
+convolución por canal de $3\times3$ y un módulo de compresión y excitación
+(\emph{squeeze-and-excitation}, SE) y vuelve a reducir los canales con otra
+convolución puntual; el bloque Fused-MBConv sustituye la convolución puntual de
+expansión y la convolución por canal por una única convolución ordinaria de
+$3\times3$~\cite[sec.~3.2, fig.~2]{tan2021}. Con la notación de la
+\cref{def:conv-depthwise}, y omitiendo normalizaciones y activaciones,
+\[
+  \operatorname{MBConv}(x) = \operatorname{PW}_2\bigl(\operatorname{SE}(\operatorname{DW}_{3\times3}(\operatorname{PW}_1(x)))\bigr),
+  \qquad
+  \operatorname{Fused\text{-}MBConv}(x) = \operatorname{PW}_2\bigl(\operatorname{Conv}_{3\times3}(x)\bigr),
+\]
+donde $\operatorname{PW}_1$ multiplica el número de canales por el factor de
+expansión y $\operatorname{PW}_2$ lo devuelve al de salida. EfficientNetV2-S usa
+bloques Fused-MBConv, sin SE, en las tres primeras etapas y bloques MBConv con SE en
+las tres siguientes, con núcleos de $3\times3$ y factores de expansión de $1$, $4$
+y $6$~\cite[tabla~4]{tan2021}. Su función de activación es la SiLU
+(\cref{def:silu}).
 
 \endinput

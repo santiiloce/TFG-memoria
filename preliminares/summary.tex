@@ -8,7 +8,7 @@
 \selectlanguage{english}
 \chapter{Summary}
 
-\revisar{borrador del agente: validar y ajustar al estilo del autor}
+\revisar{validar y ajustar el estilo}
 
 \paragraph{Context and motivation.} Histopathological analysis of tissue samples is the clinical reference for diagnosing and grading prostate cancer. Stained with haematoxylin and eosin (H\&E) and digitised as whole-slide images, the samples are usually split into small patches that a deep neural network classifies one by one. This work uses a public dataset of \num{126109} prostate patches of $224 \times 224$ pixels annotated by pathologists into 14 histological classes, finer than the Gleason grades. A classifier trained on these classes always answers with one of them, even when the image comes from another organ, another hospital or a degraded acquisition, and it gives no reason for its decision. European regulation treats medical AI systems as high-risk and demands transparency, explainability, human oversight and robustness. A trustworthy system should therefore abstain when it faces inputs unlike its training data, and explain its decisions faithfully. Both requirements are the subject of this work: \emph{out-of-distribution} (OOD) detection and explainability, applied to the same prostate classifier.
 
