@@ -1,0 +1,318 @@
+% !TeX root = ../tfg.tex
+% !TeX encoding = utf8
+%
+% Demostraciones trasladadas desde la Parte II para aligerar los capítulos de fundamentos.
+
+\chapter{Demostraciones complementarias}\label{ap:demostraciones}
+
+\section{Aprendizaje supervisado y redes profundas}\label{sec:dem-aprendizaje}
+
+\begin{demostracion}[Demostración del \cref{lem:kl-no-negativa}]
+Sea $g(t) = -\log t - (1 - t)$ para $t > 0$. Como $g'(t) = 1 - 1/t$ es negativa en
+$(0,1)$ y positiva en $(1,\infty)$, $g$ alcanza su mínimo únicamente en $t = 1$,
+donde $g(1) = 0$. Por tanto, $-\log t \ge 1 - t$, con igualdad si y solo si
+$t = 1$~\cite[ap.~C.5.1]{prince2023understanding}. Sea
+$S = \{k\in\{1,\dots,K\} : q_k > 0\}$ el conjunto de clases a las que $q$ asigna
+probabilidad positiva (el \emph{soporte} de $q$). Los sumandos con $k\notin S$
+son nulos, porque $q_k = 0$ y, por el convenio $0\log 0 = 0$, también
+$q_k\log q_k = 0$; además, para $k\in S$ el cociente $p_k/q_k$ está definido y es
+positivo. Agrupando las dos sumas de la definición con
+$\log q_k - \log p_k = -\log(p_k/q_k)$ y aplicando la desigualdad con
+$t = p_k/q_k$,
+\[
+  D_{\mathrm{KL}}(q\,\|\,p) = \sum_{k\in S} q_k\bigl(\log q_k - \log p_k\bigr)
+  = \sum_{k\in S} q_k\Bigl(-\log\frac{p_k}{q_k}\Bigr)
+  \ge \sum_{k\in S} q_k\Bigl(1 - \frac{p_k}{q_k}\Bigr)
+  = \sum_{k\in S} q_k - \sum_{k\in S} p_k
+  = 1 - \sum_{k\in S} p_k \ge 0,
+\]
+donde $\sum_{k\in S} q_k = 1$ porque $q_k = 0$ fuera de $S$, y
+$\sum_{k\in S} p_k \le \sum_{k=1}^{K} p_k = 1$ porque $p_k > 0$.
+\revisar{desarrollo añadido a petición del autor: se explica qué es $S$ (soporte de $q$, $k$ índice de clase), por qué se restringe la suma a $S$, la igualdad intermedia y de dónde salen $\sum_{k\in S} q_k = 1$ y $\sum_{k\in S} p_k \le 1$}
+Si $p = q$, todos los sumandos de la definición se anulan y
+$D_{\mathrm{KL}}(q\,\|\,p) = 0$. Recíprocamente, si $D_{\mathrm{KL}}(q\,\|\,p) = 0$,
+las dos desigualdades anteriores son igualdades. De la segunda,
+$\sum_{k\in S} p_k = 1$; como $p_k > 0$ para todo $k$, ninguna clase puede quedar
+fuera de $S$, así que $S = \{1,\dots,K\}$. De la primera, cada sumando cumple
+$-\log(p_k/q_k) = 1 - p_k/q_k$ (la diferencia entre ambos lados es una suma de
+términos no negativos, $q_k\,g(p_k/q_k)\ge 0$, que vale cero), luego $p_k/q_k = 1$
+para todo $k$, es decir, $p = q$.
+\revisar{caso de igualdad reescrito para el enunciado general; antes suponía $q_k > 0$ para todo $k$}
+\end{demostracion}
+
+\begin{demostracion}[Demostración de la \cref{prop:adam-sesgo}]
+Desarrollando la recurrencia de la \cref{eq:adam-v} a partir de $v_0 = 0$ se
+obtiene, por inducción sobre $t$,
+\[
+  v_t = (1 - \beta_2) \sum_{i=1}^{t} \beta_2^{\,t-i}\, g_i^{2}.
+\]
+En efecto, para $t = 1$ la \cref{eq:adam-v} da
+$v_1 = \beta_2 v_0 + (1-\beta_2)\, g_1^2 = (1-\beta_2)\, g_1^2$, que es la
+fórmula con un único sumando. Si la fórmula se cumple para $t-1$, entonces
+\[
+  v_t = \beta_2\, v_{t-1} + (1-\beta_2)\, g_t^2
+      = \beta_2 (1-\beta_2) \sum_{i=1}^{t-1} \beta_2^{\,t-1-i}\, g_i^{2} + (1-\beta_2)\, g_t^2
+      = (1-\beta_2) \sum_{i=1}^{t} \beta_2^{\,t-i}\, g_i^{2},
+\]
+pues $\beta_2 \cdot \beta_2^{\,t-1-i} = \beta_2^{\,t-i}$ y el último sumando es
+el término $i = t$, con $\beta_2^{\,0} = 1$.
+Tomando esperanzas, por linealidad y por la hipótesis,
+\[
+  \E[v_t] = \E[g^2]\, (1 - \beta_2) \sum_{i=1}^{t} \beta_2^{\,t-i}
+          = \E[g^2]\, (1 - \beta_2)\, \frac{1 - \beta_2^{t}}{1 - \beta_2}
+          = \bigl(1 - \beta_2^{t}\bigr)\, \E[g^2],
+\]
+donde se ha usado la suma de la progresión geométrica
+$\sum_{i=1}^{t} \beta_2^{\,t-i} = \sum_{k=0}^{t-1} \beta_2^{\,k}$, válida porque
+$\beta_2 < 1$. Dividiendo entre $1 - \beta_2^t > 0$ se obtiene
+$\E[\widehat{v}_t] = \E[g^2]$. El caso de $m_t$ es idéntico, sustituyendo
+$g_i^2$ por $g_i$ y $\beta_2$ por $\beta_1$.
+\end{demostracion}
+
+\begin{demostracion}[Demostración de la \cref{prop:sgd-l2-wd}]
+Como $\nabla_\phi L_t^{\mathrm{reg}}(\phi) = \nabla_\phi L_t(\phi) + \lambda' \phi$,
+SGD sobre $L_t^{\mathrm{reg}}$ da
+\[
+  \phi_t = \phi_{t-1} - \alpha \nabla_\phi L_t(\phi_{t-1}) - \alpha \lambda'\, \phi_{t-1}
+           = (1 - \alpha\lambda')\, \phi_{t-1} - \alpha \nabla_\phi L_t(\phi_{t-1}),
+\]
+que coincide con la regla del decaimiento de pesos si y solo si
+$\alpha\lambda' = \lambda$.
+\end{demostracion}
+
+\begin{demostracion}[Demostración de la \cref{prop:adaptativo-l2-wd}]
+Sobre $L_t^{\mathrm{reg}}$, los iterados son
+\[
+  \phi_t = \phi_{t-1} - \alpha\lambda' M_t\, \phi_{t-1} - \alpha M_t \nabla_\phi L_t(\phi_{t-1}).
+\]
+Restando la regla con decaimiento de pesos, ambos iterados coinciden para todo
+$\phi_{t-1}$ si y solo si $\lambda\, \phi_{t-1} = \alpha\lambda' M_t\, \phi_{t-1}$
+para todo $\phi_{t-1}$, es decir, si $\alpha\lambda' M_t = \lambda I$. Como
+$\lambda > 0$, esto exige que $M_t$ sea un múltiplo de la identidad, en
+contradicción con la hipótesis.
+\end{demostracion}
+
+\begin{observacion}[Buena definición]\label{obs:conv-L1}
+La hipótesis $x, w \in L^1(\R)$ garantiza que la integral de la
+\cref{eq:conv-continua} existe. Se usa el \emph{teorema de Fubini--Tonelli}: si
+$F\colon\R^2\to\R$ es medible y $\iint |F(a,t)|\,da\,dt < \infty$, entonces
+$\int F(a,t)\,da$ converge absolutamente para casi todo $t$, y las integrales
+iteradas en cualquier orden coinciden con la integral doble; si
+$F \ge 0$, las integrales iteradas coinciden siempre, aunque valgan $\infty$.
+Aplicándolo a $F(a,t) = |x(a)|\,|w(t-a)| \ge 0$ e integrando primero en $t$, con
+el cambio $u = t - a$,
+\[
+  \iint |x(a)|\,|w(t-a)|\,dt\,da
+  = \int |x(a)| \Bigl(\int |w(u)|\,du\Bigr) da
+  = \|x\|_1\,\|w\|_1 < \infty,
+\]
+de modo que la integral de la \cref{eq:conv-continua} converge absolutamente para
+casi todo $t$ y, además, $\|x * w\|_1 \le \|x\|_1\,\|w\|_1$, es decir,
+$x * w \in L^1(\R)$. En el caso discreto basta acotar
+$\sum_a |x(a)|\,|w(t-a)| \le \bigl(\sup_b |w(b)|\bigr)\,\|x\|_1 \le \|w\|_1\,\|x\|_1$,
+así que la serie de la \cref{eq:conv-discreta} converge absolutamente para todo $t$.
+\end{observacion}
+
+\begin{demostracion}[Demostración de la \cref{prop:conv-conmutativa}]
+En el caso continuo, con el cambio de variable $b = t - a$ (luego $da = -db$, y
+los límites $\pm\infty$ se intercambian),
+\[
+  (x * w)(t) = \int_{-\infty}^{\infty} x(a)\, w(t-a)\, da
+  = \int_{-\infty}^{\infty} x(t-b)\, w(b)\, db = (w * x)(t).
+\]
+En el caso discreto, $a \mapsto b = t - a$ es una biyección de $\mathbb{Z}$ en
+sí mismo, y reordenar los términos no cambia el valor de una serie
+absolutamente convergente, así que
+$\sum_{a} x(a)\,w(t-a) = \sum_{b} x(t-b)\,w(b)$.
+\end{demostracion}
+
+\begin{demostracion}[Demostración de la \cref{prop:equivarianza-conv}]
+Para todo $(i,j) \in \mathbb{Z}^2$, por la definición
+\cref{eq:correlacion-cruzada},
+\begin{align*}
+  \bigl(K \star T_\tau I\bigr)(i,j)
+  &= \sum_{m}\sum_{n} \bigl(T_\tau I\bigr)(i+m,\, j+n)\, K(m,n)\\
+  &= \sum_{m}\sum_{n} I\bigl(i+m-\tau_1,\, j+n-\tau_2\bigr)\, K(m,n)\\
+  &= (K \star I)(i-\tau_1,\, j-\tau_2)
+  = \bigl(T_\tau(K \star I)\bigr)(i,j).
+\end{align*}
+Las sumas son finitas porque $K$ tiene soporte finito.
+\end{demostracion}
+
+\begin{demostracion}[Demostración de la \cref{prop:sa-permutaciones}]
+Cada columna de $P$ tiene un único uno, así que $\mathbf{1}^{\top}P = \mathbf{1}^{\top}$.
+Por tanto, los valores calculados a partir de $XP$ son
+\[
+  \beta_v\mathbf{1}^{\top} + \Omega_v XP = \bigl(\beta_v\mathbf{1}^{\top} + \Omega_v X\bigr)P = VP,
+\]
+y del mismo modo las consultas y las claves son $QP$ y $KP$. La matriz de
+compatibilidades pasa a ser $(KP)^{\top}QP/\sqrt{D_q} = P^{\top}AP$, con $A = K^{\top}Q/\sqrt{D_q}$.
+
+Veamos que $\Softmax(P^{\top}AP) = P^{\top}\Softmax(A)P$. Para un vector
+$z\in\R^{N}$ se tiene
+\[
+  (P^{\top}z)_m = e_{\pi(m)}^{\top}z = z_{\pi(m)}, \qquad m = 1,\dots,N,
+\]
+es decir,
+$P^{\top}z$ reordena las componentes de $z$. Como el denominador de la función
+\emph{softmax} no depende del orden,
+$\sum_{m'=1}^{N}\exp(z_{\pi(m')}) = \sum_{m'=1}^{N}\exp(z_{m'})$, y por tanto,
+componente a componente,
+\[
+  \bigl(\softmax(P^{\top}z)\bigr)_m
+  = \frac{\exp(z_{\pi(m)})}{\sum_{m'=1}^{N}\exp(z_{m'})}
+  = \bigl(\softmax(z)\bigr)_{\pi(m)}
+  = \bigl(P^{\top}\softmax(z)\bigr)_m,
+  \qquad\text{es decir,}\qquad
+  \softmax(P^{\top}z) = P^{\top}\softmax(z).
+\]
+La columna $n$-ésima de $AP$ es la columna $\pi(n)$-ésima de $A$, que denotamos
+$a_{\pi(n)}$, así que la columna $n$-ésima de $\Softmax(P^{\top}AP)$ es
+\[
+  \softmax\bigl(P^{\top}a_{\pi(n)}\bigr) = P^{\top}\softmax\bigl(a_{\pi(n)}\bigr),
+\]
+que es la columna $n$-ésima de $P^{\top}\Softmax(A)P$.
+
+Finalmente, como $PP^{\top} = I$,
+\[
+  \operatorname{Sa}(XP) = VP\,P^{\top}\Softmax(A)\,P = V\Softmax(A)\,P = \operatorname{Sa}(X)\,P.
+\]
+En la autoatención
+multicabeza, cada cabeza cumple $\operatorname{Sa}_h(XP) = \operatorname{Sa}_h(X)P$,
+de modo que la concatenación vertical de las cabezas queda multiplicada por $P$
+por la derecha, y también su producto por $\Omega_c$.
+\end{demostracion}
+
+\begin{demostracion}[Demostración de la \cref{prop:swin-coste}]
+Sean $T = hw$ el número de tokens, $X\in\R^{C\times T}$ la matriz de entrada y $H$
+el número de cabezas, cada una con consultas, claves y valores de dimensión
+$C/H$.
+
+\emph{Proyecciones.} Para cada cabeza, calcular $\Omega_{v_h}X$, con
+$\Omega_{v_h}\in\R^{(C/H)\times C}$, requiere $(C/H)\cdot C\cdot T$
+multiplicaciones; para las $H$ cabezas, $C^2T$. Lo mismo ocurre con las consultas
+y las claves, y con la proyección final $\Omega_c\in\R^{C\times C}$ de la
+\cref{def:multicabeza}. En total, $4C^2T = 4hwC^2$ multiplicaciones. Estas
+operaciones actúan sobre cada token por separado, así que su coste es el mismo en
+MSA y en W-MSA.
+
+\emph{Atención global.} Para cada cabeza, $K_h^{\top}Q_h$ es el producto de una
+matriz $T\times(C/H)$ por otra $(C/H)\times T$, con $T^2\,C/H$ multiplicaciones,
+y $V_h\Softmax(\cdot)$ es el producto de una matriz $(C/H)\times T$ por otra
+$T\times T$, con otras $T^2\,C/H$. Para las $H$ cabezas, $2T^2C = 2(hw)^2C$.
+Sumando, se obtiene $\Omega(\mathrm{MSA})$.
+
+\emph{Atención por ventanas.} Cada ventana contiene $M^2$ tokens y se procesa
+igual que en el caso global con $T = M^2$, con un coste de $2(M^2)^2C$. Como hay
+$hw/M^2$ ventanas, el coste total de la atención es
+$\frac{hw}{M^2}\cdot 2M^4C = 2M^2hwC$. Sumando las proyecciones, se obtiene
+$\Omega(\text{W-MSA})$.
+\end{demostracion}
+
+\section{Métodos de detección post hoc}\label{sec:dem-posthoc}
+
+\begin{demostracion}[Demostración de la \cref{prop:mds-lda}]
+La densidad gaussiana es $p(h \mid y = c) = (2\pi)^{-D/2} \det(\Sigma)^{-1/2} \exp\bigl(-\tfrac{1}{2}(h - \mu_c)^{\top} \Sigma^{-1} (h - \mu_c)\bigr)$, de donde se sigue el apartado 2 con $\kappa = -\tfrac{D}{2}\log(2\pi) - \tfrac{1}{2}\log\det\Sigma$, que no depende de la clase por ser la covarianza común. Tomando el máximo sobre $c$ y multiplicando por 2 se obtiene la expresión de $s_{\mathrm{MDS}}$.
+
+Para el apartado 1, como $\Sigma^{-1}$ es simétrica,
+\[
+  -\tfrac{1}{2}(h - \mu_c)^{\top} \Sigma^{-1} (h - \mu_c)
+  = -\tfrac{1}{2}\, h^{\top} \Sigma^{-1} h + \mu_c^{\top} \Sigma^{-1} h - \tfrac{1}{2}\, \mu_c^{\top} \Sigma^{-1} \mu_c ,
+\]
+luego $\pi_c\, p(h \mid y = c) = g(h) \exp\bigl(w_c^{\top} h + b_c\bigr)$, con $g(h) = e^{\kappa} \exp\bigl(-\tfrac{1}{2} h^{\top} \Sigma^{-1} h\bigr)$ igual para todas las clases. Por el teorema de Bayes,
+\[
+  \Prob(y = c \mid h) = \frac{\pi_c\, p(h \mid y = c)}{\sum_{c'} \pi_{c'}\, p(h \mid y = c')}
+  = \frac{g(h)\, e^{w_c^{\top} h + b_c}}{g(h) \sum_{c'} e^{w_{c'}^{\top} h + b_{c'}}}
+  = \softmax_c\bigl(w_1^{\top} h + b_1, \dots, w_C^{\top} h + b_C\bigr). \qedhere
+\]
+\end{demostracion}
+
+\section{Inferencia estadística}\label{sec:dem-inferencia}
+
+\begin{demostracion}[Demostración de la \cref{prop:spearman-sin-empates}]
+Sin empates, tanto $(X'_1, \dots, X'_n)$ como $(Y'_1, \dots, Y'_n)$ son permutaciones de $\{1, \dots, n\}$, así que
+\[
+  \sum_{i=1}^{n} X'_i = \sum_{i=1}^{n} Y'_i = \frac{n(n+1)}{2}, \qquad
+  \sum_{i=1}^{n} X'^2_i = \sum_{i=1}^{n} Y'^2_i = \frac{n(n+1)(2n+1)}{6}.
+\]
+Cada corchete del denominador vale
+$\frac{n(n+1)(2n+1)}{6} - \frac{n(n+1)^2}{4} = \frac{n(n^2-1)}{12}$, de modo que el denominador es $n(n^2-1)/12$. Para el numerador, de $d_i^2 = X'^2_i + Y'^2_i - 2X'_iY'_i$ se obtiene
+\[
+  \sum_{i=1}^{n} X'_i Y'_i = \frac12\Bigl[\sum_{i=1}^{n} X'^2_i + \sum_{i=1}^{n} Y'^2_i - \sum_{i=1}^{n} d_i^2\Bigr]
+  = \frac{n(n+1)(2n+1)}{6} - \frac12 \sum_{i=1}^{n} d_i^2 ,
+\]
+y el numerador es $\frac{n(n^2-1)}{12} - \frac12\sum_i d_i^2$. Dividiendo se obtiene la expresión del enunciado. Por ella, $r_S = 1$ si y solo si todos los $d_i$ son nulos, es decir, si $X'_i = Y'_i$ para todo $i$. Para el otro caso, si se sustituye cada $Y'_i$ por $n + 1 - Y'_i$ (los rangos de $-Y_i$), el numerador cambia de signo y el denominador no varía, luego $r_S$ cambia de signo; por tanto, $r_S = -1$ si y solo si $X'_i = n + 1 - Y'_i$ para todo $i$.
+\end{demostracion}
+
+\begin{demostracion}[Demostración de la \cref{prop:mcnemar}]
+Sean $b_0, c_0 \ge 0$ enteros con $b_0 + c_0 = m$. Sumando la función de probabilidad multinomial sobre los valores de $a$ y $d$ con $a + d = N - m$, y aplicando el binomio de Newton,
+\[
+  \Prob(b = b_0,\ c = c_0)
+  = \sum_{a + d = N - m} \frac{N!}{a!\, b_0!\, c_0!\, d!}\, \pi_{11}^{a} \pi_{10}^{b_0} \pi_{01}^{c_0} \pi_{00}^{d}
+  = \binom{N}{m} (\pi_{11} + \pi_{00})^{N - m} \binom{m}{b_0} \pi_{10}^{b_0} \pi_{01}^{c_0}.
+\]
+Por otra parte, cada imagen es discordante con probabilidad $\pi_{10} + \pi_{01}$, de modo que $b + c \sim \mathrm{Bin}(N, \pi_{10} + \pi_{01})$ y
+\[
+  \Prob(b + c = m) = \binom{N}{m} (\pi_{10} + \pi_{01})^{m} (\pi_{11} + \pi_{00})^{N - m}.
+\]
+Dividiendo,
+\[
+  \Prob(b = b_0 \mid b + c = m) = \binom{m}{b_0} \theta^{b_0} (1 - \theta)^{m - b_0},
+\]
+que es la función de probabilidad de una $\mathrm{Bin}(m, \theta)$. Bajo $H_0$, $\theta = \tfrac12$.
+\end{demostracion}
+
+\section{Explicabilidad}\label{sec:dem-explicabilidad}
+
+\begin{demostracion}[Demostración de la \cref{prop:dtd-lrp}]
+Sustituyendo $c_k = R_k / z_k$ en la \cref{eq:dtd-propagacion} se obtiene
+\begin{equation}\label{eq:dtd-dem-base}
+  R_j = \sum_{k} \bigl(a_j - \tilde{a}^{(k)}_j\bigr) \, \frac{w_{jk}}{z_k} \, R_k .
+\end{equation}
+
+\emph{Caso 1.} Si $\tilde{a}^{(k)} = 0$, entonces
+$a_j - \tilde{a}^{(k)}_j = a_j$ para todo $k$, y la \cref{eq:dtd-dem-base} queda
+\[
+  R_j = \sum_{k} \frac{a_j w_{jk}}{z_k} \, R_k ,
+\]
+que es exactamente la regla LRP-0 (\cref{eq:lrp-0}).
+
+\emph{Caso 2.} Si $\tilde{a}^{(k)} = \frac{\varepsilon}{z_k + \varepsilon}\, a$,
+entonces, para cada $k$,
+\[
+  a_j - \tilde{a}^{(k)}_j
+  = a_j - \frac{\varepsilon}{z_k + \varepsilon}\, a_j
+  = \frac{z_k + \varepsilon - \varepsilon}{z_k + \varepsilon}\, a_j
+  = \frac{z_k}{z_k + \varepsilon}\, a_j ,
+\]
+donde el denominador no se anula porque $z_k > 0$ y $\varepsilon > 0$.
+Sustituyendo en la \cref{eq:dtd-dem-base}, el factor $z_k$ se cancela:
+\[
+  R_j = \sum_{k} \frac{z_k}{z_k + \varepsilon}\, a_j \, \frac{w_{jk}}{z_k} \, R_k
+      = \sum_{k} \frac{a_j w_{jk}}{\varepsilon + z_k} \, R_k ,
+\]
+que es la regla LRP-$\varepsilon$ (\cref{eq:lrp-epsilon}).
+\end{demostracion}
+
+\begin{demostracion}[Demostración de la \cref{prop:dobrushin}]
+(1) Cada columna tiene norma 1 y entradas no negativas, así que $\lVert p_{\cdot k} - p_{\cdot k'} \rVert_1 \leq \lVert p_{\cdot k} \rVert_1 + \lVert p_{\cdot k'} \rVert_1 = 2$.
+
+(2) Se escribe $u = u^{+} - u^{-}$, con $u^{+}, u^{-} \geq 0$ sus partes positiva y negativa. Como $\sum_k u_k = 0$, ambas tienen la misma suma, $s = \lVert u^{+} \rVert_1 = \lVert u^{-} \rVert_1 = \lVert u \rVert_1 / 2$. Si $s = 0$ no hay nada que probar. En otro caso, como $\sum_{k'} u^{-}_{k'} / s = 1$ y $\sum_{k} u^{+}_{k} / s = 1$,
+\[
+  P u = \sum_{k} u^{+}_{k}\, p_{\cdot k} - \sum_{k'} u^{-}_{k'}\, p_{\cdot k'}
+      = \frac{1}{s} \sum_{k, k'} u^{+}_{k}\, u^{-}_{k'} \bigl(p_{\cdot k} - p_{\cdot k'}\bigr),
+\]
+y por la desigualdad triangular
+\[
+  \lVert P u \rVert_1 \leq \frac{1}{s} \sum_{k, k'} u^{+}_{k}\, u^{-}_{k'}\, 2\delta(P)
+  = \frac{1}{s}\, s^2\, 2 \delta(P) = \delta(P)\, \lVert u \rVert_1 .
+\]
+
+(3) La columna $k$ de $PQ$ es $P q_{\cdot k}$, así que $(PQ)_{\cdot k} - (PQ)_{\cdot k'} = P\,(q_{\cdot k} - q_{\cdot k'})$. El vector $q_{\cdot k} - q_{\cdot k'}$ suma cero, y por (2)
+\[
+  \bigl\lVert P\,(q_{\cdot k} - q_{\cdot k'}) \bigr\rVert_1 \leq \delta(P)\, \bigl\lVert q_{\cdot k} - q_{\cdot k'} \bigr\rVert_1 \leq \delta(P)\, 2 \delta(Q).
+\]
+Dividiendo entre 2 y tomando el máximo en $k, k'$ se obtiene el resultado.
+\end{demostracion}
+
+\endinput

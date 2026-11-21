@@ -1,0 +1,77 @@
+% !TeX root = ../../tfg.tex
+% Diagrama de Gantt (fig:gantt). Se carga con \input desde el capítulo 1 y desde
+% img/cap01/standalone-gantt.tex. Requiere pgfgantt y la librería patterns de TikZ.
+% Unidad: semana (lunes). Huecos 1-17: 2 mar - 28 jun; 18: julio y agosto (comprimidos, sin
+% actividad); 19-31: 31 ago - 29 nov. Fechas contrastadas con sacct, las carpetas de
+% tfg/executions y OpenOOD/results_* y el historial de git (véase el informe de la tarea).
+\definecolor{g1apr}{HTML}{4F81BD}  % aprendizaje
+\definecolor{g1des}{HTML}{9BBB59}  % desarrollo
+\definecolor{g1exp}{HTML}{F79646}  % experimentación
+\definecolor{g1red}{HTML}{8064A2}  % redacción
+\definecolor{g1org}{HTML}{7F7F7F}  % organización
+\begin{ganttchart}[
+    x unit=0.43cm, y unit title=0.45cm, y unit chart=0.47cm,
+    time slot format=simple, hgrid={*1{black!10}}, vgrid={*1{black!10}},
+    title/.style={draw=black!40, fill=black!5}, title label font=\scriptsize,
+    bar label font=\scriptsize, group label font=\scriptsize\bfseries,
+    milestone label font=\scriptsize\itshape,
+    bar height=0.55, group height=0.25, group peaks height=0.12,
+    group/.style={fill=black!70, draw=black!70},
+    milestone/.append style={fill=red!70!black, draw=red!70!black},
+    bar/.style={draw=black!60},
+    apr/.style={bar/.append style={fill=g1apr}},
+    aprl/.style={bar/.append style={fill=g1apr!35}},
+    des/.style={bar/.append style={fill=g1des}},
+    exp/.style={bar/.append style={fill=g1exp}},
+    red/.style={bar/.append style={fill=g1red}},
+    org/.style={bar/.append style={fill=g1org}},
+    nada/.style={bar/.append style={pattern=north east lines, pattern color=black!40, draw=black!30}},
+  ]{1}{31}
+  \gantttitle{2026}{31}\\
+  \gantttitle{mar}{5}\gantttitle{abr}{4}\gantttitle{may}{4}\gantttitle{jun}{4}%
+  \gantttitle{\tiny j--a}{1}\gantttitle{sep}{5}\gantttitle{oct}{4}\gantttitle{nov}{4}\\
+  \gantttitle{8\,h/semana (dedicación parcial)}{17}\gantttitle{}{1}\gantttitle{22\,h/semana}{13}\\
+  % Aprendizaje
+  \ganttgroup{Aprendizaje}{1}{31}\\
+  \ganttbar[apr]{Revisión bibliográfica inicial (histopatología, OOD, XAI)}{1}{6}\\
+  \ganttbar[aprl]{Revisión bibliográfica continua}{7}{17}\ganttbar[aprl]{}{19}{31}\\
+  \ganttbar[apr]{Aprendizaje de OpenOOD}{10}{13}\\
+  \ganttbar[apr]{Aprendizaje de zennit y zennit-crp}{27}{28}\\
+  % Datos y modelos
+  \ganttgroup{Datos y modelos}{1}{26}\\
+  \ganttbar[des]{Análisis del conjunto, partición 80/20 y DataLoader}{1}{2}\\
+  \ganttbar[exp]{Implementación y entrenamiento de los 5 modelos}{2}{4}\\
+  \ganttbar[exp]{Evaluación ID y elección del modelo}{5}{9}\\
+  \ganttbar[exp]{IC, McNemar y agrupaciones clínicas}{26}{26}\\
+  % Detección OOD
+  \ganttgroup{Detección OOD}{10}{30}\\
+  \ganttbar[des]{Integración en OpenOOD; NCT-CRC, PANDA y DTD}{10}{13}\\
+  \ganttbar[exp]{Primeras ejecuciones, primera versión de STOOD-X y notas}{12}{17}\\
+  \ganttbar[exp]{Fase C, IC \emph{bootstrap}, controles; STOOD-X del artículo}{19}{26}\\
+  \ganttbar[exp]{Integridad, láminas, PANDA frente al control, conforme}{26}{27}\\
+  \ganttbar[exp]{Corrupciones, ConvNeXt-S (ap.~D) y selección de $K$}{29}{30}\\
+  % Explicabilidad
+  \ganttgroup{Explicabilidad}{27}{30}\\
+  \ganttbar[exp]{LRP y CRP en ConvNeXt-S (fases 1--7)}{27}{28}\\
+  \ganttbar[exp]{IG, EG (fase 10), ablación y atlas RelMax}{29}{30}\\
+  % Redacción y organización
+  \ganttgroup{Redacción y organización}{1}{31}\\
+  \ganttbar[red]{Memoria en \LaTeX}{26}{31}\\
+  \ganttbar[org]{Reuniones con los tutores}{1}{1}\ganttbar[org]{}{5}{5}\ganttbar[org]{}{9}{9}%
+  \ganttbar[org]{}{13}{13}\ganttbar[org]{}{17}{17}\ganttbar[org]{}{19}{19}\ganttbar[org]{}{23}{23}%
+  \ganttbar[org]{}{27}{31}\\
+  \ganttbar[nada]{Sin actividad (julio y agosto)}{18}{18}\\
+  % Hitos
+  \ganttmilestone{Congelación de la evaluación OOD (20 oct)}{26}\\
+  \ganttmilestone{Borrador a los tutores (29 oct)}{27}\\
+  \ganttmilestone{Entrega (24 nov)}{31}
+\end{ganttchart}
+
+\smallskip
+{\scriptsize
+\tikz\fill[g1apr] (0,0) rectangle (0.3,0.2); Aprendizaje \quad
+\tikz\fill[g1des] (0,0) rectangle (0.3,0.2); Desarrollo \quad
+\tikz\fill[g1exp] (0,0) rectangle (0.3,0.2); Experimentación \quad
+\tikz\fill[g1red] (0,0) rectangle (0.3,0.2); Redacción \quad
+\tikz\fill[g1org] (0,0) rectangle (0.3,0.2); Organización (reuniones) \quad
+\tikz\fill[red!70!black] (0.15,0) -- (0.3,0.1) -- (0.15,0.2) -- (0,0.1) -- cycle; Hito}

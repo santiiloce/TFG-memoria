@@ -136,12 +136,7 @@ converge en distribución a la normal estándar $N(0, 1)$ cuando $n_1$ y $n_2$ t
 
 No se incluye la demostración, que se encuentra en el trabajo de Mann y Whitney~\cite[sec.~4]{mann1947}. Allí, a partir de una relación de recurrencia para la distribución exacta de $U$, obtienen la media y la varianza de la \cref{prop:u-momentos} y prueban que todos los momentos de la variable tipificada convergen a los de la normal estándar, de donde se sigue que la distribución límite es normal cuando $n_1$ y $n_2$ tienden a infinito de cualquier manera~\cite[sec.~4]{mann1947}. A diferencia de la media muestral, $U$ no es una suma de variables independientes, porque cada $X_i$ se compara con todas las $Y_j$, y el resultado no se sigue directamente del teorema central del límite. En la práctica, Canavos considera adecuada la aproximación cuando $n_1$ y $n_2$ son mayores que 10; para muestras más pequeñas, la distribución exacta de $U$ está tabulada~\cite[sec.~15.2.1]{canavos2003}. Para una alternativa bilateral se rechaza $H_0$ si $U$ es muy grande o muy pequeño, es decir, si $|z| \ge z_{1-\alpha/2}$.
 
-\begin{proposicion}[Relación entre $U$ y el AUROC]\label{prop:auroc-u}
-Si la primera muestra son las puntuaciones de $n_1$ imágenes ID y la segunda, las de $n_2$ imágenes OOD, entonces $\widehat{\AUROC} = U/(n_1 n_2)$.
-\end{proposicion}
-\begin{demostracion}
-Es el \cref{cor:auroc-u}.
-\end{demostracion}
+Si la primera muestra son las puntuaciones de $n_1$ imágenes ID y la segunda, las de $n_2$ imágenes OOD, entonces $\widehat{\AUROC} = U/(n_1 n_2)$ (\cref{cor:auroc-u}).
 
 % - Corrección por empates de la varianza.
 % - Corrección de continuidad (la usada por scipy.stats.mannwhitneyu).
@@ -204,20 +199,7 @@ Si no hay empates y $d_i = X'_i - Y'_i$, entonces
 \]
 En particular, $r_S = 1$ si y solo si las dos ordenaciones coinciden, y $r_S = -1$ si y solo si son opuestas.
 \end{proposicion}
-\begin{demostracion}
-Sin empates, tanto $(X'_1, \dots, X'_n)$ como $(Y'_1, \dots, Y'_n)$ son permutaciones de $\{1, \dots, n\}$, así que
-\[
-  \sum_{i=1}^{n} X'_i = \sum_{i=1}^{n} Y'_i = \frac{n(n+1)}{2}, \qquad
-  \sum_{i=1}^{n} X'^2_i = \sum_{i=1}^{n} Y'^2_i = \frac{n(n+1)(2n+1)}{6}.
-\]
-Cada corchete del denominador vale
-$\frac{n(n+1)(2n+1)}{6} - \frac{n(n+1)^2}{4} = \frac{n(n^2-1)}{12}$, de modo que el denominador es $n(n^2-1)/12$. Para el numerador, de $d_i^2 = X'^2_i + Y'^2_i - 2X'_iY'_i$ se obtiene
-\[
-  \sum_{i=1}^{n} X'_i Y'_i = \frac12\Bigl[\sum_{i=1}^{n} X'^2_i + \sum_{i=1}^{n} Y'^2_i - \sum_{i=1}^{n} d_i^2\Bigr]
-  = \frac{n(n+1)(2n+1)}{6} - \frac12 \sum_{i=1}^{n} d_i^2 ,
-\]
-y el numerador es $\frac{n(n^2-1)}{12} - \frac12\sum_i d_i^2$. Dividiendo se obtiene la expresión del enunciado. Por ella, $r_S = 1$ si y solo si todos los $d_i$ son nulos, es decir, si $X'_i = Y'_i$ para todo $i$. Para el otro caso, si se sustituye cada $Y'_i$ por $n + 1 - Y'_i$ (los rangos de $-Y_i$), el numerador cambia de signo y el denominador no varía, luego $r_S$ cambia de signo; por tanto, $r_S = -1$ si y solo si $X'_i = n + 1 - Y'_i$ para todo $i$.
-\end{demostracion}
+La demostración se recoge en la \cref{sec:dem-inferencia}.
 
 En este trabajo, $r_S$ se usa para medir si la caída de exactitud del clasificador y el \AUROC de los detectores varían de forma monótona a lo largo de las celdas de corrupciones sintéticas (\cref{sec:corrupciones,fig:apc-corr-dispersion}).
 
@@ -243,23 +225,7 @@ Los pares concordantes ($a$ y $d$) desempeñan el papel de los empates de la pru
 \begin{proposicion}[Distribución del estadístico de McNemar]\label{prop:mcnemar}
 Con la notación anterior y $\pi_{10} + \pi_{01} > 0$, condicionado a que haya $m$ pares discordantes, $b + c = m$, el número $b$ de pares favorables a $A$ sigue una distribución $\mathrm{Bin}(m, \theta)$, con $\theta = \pi_{10}/(\pi_{10} + \pi_{01})$. En particular, bajo $H_0$, $b \mid (b + c = m) \sim \mathrm{Bin}(m, \tfrac12)$.
 \end{proposicion}
-\begin{demostracion}
-Sean $b_0, c_0 \ge 0$ enteros con $b_0 + c_0 = m$. Sumando la función de probabilidad multinomial sobre los valores de $a$ y $d$ con $a + d = N - m$, y aplicando el binomio de Newton,
-\[
-  \Prob(b = b_0,\ c = c_0)
-  = \sum_{a + d = N - m} \frac{N!}{a!\, b_0!\, c_0!\, d!}\, \pi_{11}^{a} \pi_{10}^{b_0} \pi_{01}^{c_0} \pi_{00}^{d}
-  = \binom{N}{m} (\pi_{11} + \pi_{00})^{N - m} \binom{m}{b_0} \pi_{10}^{b_0} \pi_{01}^{c_0}.
-\]
-Por otra parte, cada imagen es discordante con probabilidad $\pi_{10} + \pi_{01}$, de modo que $b + c \sim \mathrm{Bin}(N, \pi_{10} + \pi_{01})$ y
-\[
-  \Prob(b + c = m) = \binom{N}{m} (\pi_{10} + \pi_{01})^{m} (\pi_{11} + \pi_{00})^{N - m}.
-\]
-Dividiendo,
-\[
-  \Prob(b = b_0 \mid b + c = m) = \binom{m}{b_0} \theta^{b_0} (1 - \theta)^{m - b_0},
-\]
-que es la función de probabilidad de una $\mathrm{Bin}(m, \theta)$. Bajo $H_0$, $\theta = \tfrac12$.
-\end{demostracion}
+La demostración se recoge en la \cref{sec:dem-inferencia}.
 
 Como $H_0$ equivale a $\theta = \tfrac12$, el test de McNemar es la prueba del signo sobre los pares discordantes, con $S = b$. El $p$-valor exacto bilateral es $\min\bigl\{1,\ 2\,\Prob\bigl(S \ge \max(b, c)\bigr)\bigr\}$, con $S \sim \mathrm{Bin}(b + c, \tfrac12)$. Cuando $m = b + c$ es grande, la binomial se aproxima por la normal (teorema de De Moivre-Laplace~\cite{canavos2003}): bajo $H_0$, $\E(b) = m/2$ y $\Var(b) = m/4$, de modo que
 \[

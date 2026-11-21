@@ -50,8 +50,6 @@ CONJUNTOS = OrderedDict([
     ('afin_nct_str', 'STR'), ('afin_nct_lym', 'LYM'), ('afin_nct_mus', 'MUS'),
     ('cov_panda', 'PANDA'), ('control_res_128', 'Control 128\\,px'), ('far_dtd', 'DTD'),
 ])
-ANEXO = OrderedDict([('anexo_nct_adi', 'ADI'), ('anexo_nct_back', 'BACK'),
-                     ('anexo_nct_deb', 'DEB'), ('anexo_nct_muc', 'MUC')])
 MODELOS = OrderedDict([
     ('swin_small_patch4_window7_224', 'Swin-S'), ('convnext_small', 'ConvNeXt-S'),
     ('tf_efficientnetv2_s', 'EfficientNetV2-S'), ('vit_base_patch16_224', 'ViT-B/16'),
@@ -1006,27 +1004,6 @@ def tA_aupr(R, S, datos, columna, nombre_fich, label, titulo):
              FASE_C + '/tabla_principal.csv')
 
 
-def tB_anexo(R, S):
-    filas = leer_csv(os.path.join(R, FASE_A, 'resultados_anexo.csv')) + \
-        leer_csv(os.path.join(R, FASE_B, 'resultados_anexo.csv'))
-    d = por_metodo_conjunto(filas)
-    cab = ' & '.join(ANEXO.values())
-
-    def fila(m):
-        return '%s & %s & %s \\\\' % (METODOS[m], ' & '.join(n(d[(m, c)]['AUROC']) for c in ANEXO),
-                                      ' & '.join(n(d[(m, c)]['FPR@95']) for c in ANEXO))
-
-    metodos = {m for m in METODOS if all((m, c) in d for c in ANEXO)}
-    cuerpo = ['\\toprule',
-              '& \\multicolumn{4}{c}{\\AUROC $\\uparrow$} & \\multicolumn{4}{c}{\\FPRn{95} $\\downarrow$} \\\\',
-              '\\cmidrule(lr){2-5}\\cmidrule(lr){6-9}', 'Método & %s & %s \\\\' % (cab, cab), '\\midrule']
-    cuerpo += filas_familias(metodos, fila, 9)
-    cuerpo.append('\\bottomrule')
-    cap = ('Clases restantes de \\nctcrc: tejido adiposo (ADI), fondo (BACK), restos celulares (DEB) y moco (MUC). '
-           '\\AUROC (más alto es mejor) y \\FPRn{95} (más bajo es mejor); clase positiva: OOD. '
-           '$^{a}$, $^{\\dagger}$: como en \\cref{tab:ood-near}.')
-    escribir(S, 'tB_anexo_nct.tex', tabla(cap, 'tab:anexo-nct', 'l' + 'c' * 8, cuerpo, '\\scriptsize', '3pt'),
-             FASE_A + ' y ' + FASE_B + ' (resultados_anexo.csv)')
 
 
 # ---------------------------------------------------------------------------
@@ -1353,7 +1330,6 @@ def main():
 
     tA_aupr(R, S, datos, 'AUPR_In', 'tA_aupr_in.tex', 'tab:aupr-in', '\\AUPRin (clase positiva: ID)')
     tA_aupr(R, S, datos, 'AUPR_Out', 'tA_aupr_out.tex', 'tab:aupr-out', '\\AUPRout (clase positiva: OOD)')
-    tB_anexo(R, S)
 
     tC_corr_completa(R, S, 'AUROC', 'tC_corr_auroc.tex', 'tab:apc-corr-auroc', '\\AUROC (más alto es mejor)')
     tC_corr_completa(R, S, 'FPR95', 'tC_corr_fpr95.tex', 'tab:apc-corr-fpr95', '\\FPRn{95} (más bajo es mejor)')

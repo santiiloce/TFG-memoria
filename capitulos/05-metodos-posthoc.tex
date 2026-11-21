@@ -197,21 +197,7 @@ Supongamos que $h \mid y = c \sim \mathcal{N}(\mu_c, \Sigma)$, con la misma cova
   \]
 \end{enumerate}
 \end{proposicion}
-\begin{demostracion}
-La densidad gaussiana es $p(h \mid y = c) = (2\pi)^{-D/2} \det(\Sigma)^{-1/2} \exp\bigl(-\tfrac{1}{2}(h - \mu_c)^{\top} \Sigma^{-1} (h - \mu_c)\bigr)$, de donde se sigue el apartado 2 con $\kappa = -\tfrac{D}{2}\log(2\pi) - \tfrac{1}{2}\log\det\Sigma$, que no depende de la clase por ser la covarianza común. Tomando el máximo sobre $c$ y multiplicando por 2 se obtiene la expresión de $s_{\mathrm{MDS}}$.
-
-Para el apartado 1, como $\Sigma^{-1}$ es simétrica,
-\[
-  -\tfrac{1}{2}(h - \mu_c)^{\top} \Sigma^{-1} (h - \mu_c)
-  = -\tfrac{1}{2}\, h^{\top} \Sigma^{-1} h + \mu_c^{\top} \Sigma^{-1} h - \tfrac{1}{2}\, \mu_c^{\top} \Sigma^{-1} \mu_c ,
-\]
-luego $\pi_c\, p(h \mid y = c) = g(h) \exp\bigl(w_c^{\top} h + b_c\bigr)$, con $g(h) = e^{\kappa} \exp\bigl(-\tfrac{1}{2} h^{\top} \Sigma^{-1} h\bigr)$ igual para todas las clases. Por el teorema de Bayes,
-\[
-  \Prob(y = c \mid h) = \frac{\pi_c\, p(h \mid y = c)}{\sum_{c'} \pi_{c'}\, p(h \mid y = c')}
-  = \frac{g(h)\, e^{w_c^{\top} h + b_c}}{g(h) \sum_{c'} e^{w_{c'}^{\top} h + b_{c'}}}
-  = \softmax_c\bigl(w_1^{\top} h + b_1, \dots, w_C^{\top} h + b_C\bigr). \qedhere
-\]
-\end{demostracion}
+La demostración se recoge en la \cref{sec:dem-posthoc}.
 
 Así, la última capa de un clasificador softmax tiene exactamente la forma de la posterior de un clasificador gaussiano con covarianza común sobre las características. Los autores lo interpretan como un indicio de que, al entrenar la red, las características podrían ajustarse a gaussianas de clase, lo que motiva la \cref{def:mds}~\cite[ap.~A]{lee2018}.
 

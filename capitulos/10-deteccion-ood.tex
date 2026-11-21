@@ -63,6 +63,8 @@ mejores métodos de detección Near-OOD.
 En la tabla ~\ref{tab:ood-bootstrap-rmds} se aplica la técninca bootstrap para ver quién es significativamente mejor o peor en AUROC y aquellos casos con 
 Con $K = 144$, ya que antes se había considerado $K = 500$ en base a ~\cite{sevillano2026}, elegido solo con datos ID (\cref{sec:stoodx-seleccion-k}), \stoodx supera a todos ellos en las tres métricas: \AUROC 0,991 [0,990; 0,992], \FPRn{95} 0,026 [0,023; 0,028] y \CCRn{5} 0,951. Su ventaja sobre RMDS en \AUROC es de 0,037 [0,035; 0,040] (\cref{tab:ood-bootstrap-rmds}), mientras que con $K = 500$ ambos métodos eran indistinguibles.
 
+\input{tablas/t10_bootstrap_rmds}
+
 %No aporta nada, solo sirve para corroborar lo mismo que con las métricas conjuntas de AUROC y FPR@95
 %\begin{figure}[tbp]
 %  \centering
@@ -374,7 +376,7 @@ Por último, el valor medio de 0,120 en \FPRn{95} esconde situaciones muy distin
 % - STOOD-X en detalle (\cref{cap:stoodx}); selección de K solo con ID y K = 144
 %   (\cref{sec:stoodx-seleccion-k,tab:stoodx-k144-k500}).
 % - Umbral con garantía de falsas alarmas (\cref{sec:conforme-ood}).
-% - AUPR-In y AUPR-Out en el \cref{ap:aupr}; clases ADI, BACK, DEB y MUC en el \cref{ap:anexo-nct}.
+% - AUPR-In y AUPR-Out en el \cref{ap:aupr}.
 % - Corrupciones sintéticas (\cref{sec:ood-corrupciones}): STOOD-X es el más sensible a la presencia de
 %   covariate shift sintético (mejor AUROC en 25 de 27 celdas), pero gradúa la severidad peor que ViM y MDS
 %   (CEC); los basados en logits quedan por detrás.

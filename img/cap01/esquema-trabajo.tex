@@ -1,0 +1,51 @@
+% !TeX root = ../../tfg.tex
+% Esquema del trabajo (fig:esquema-trabajo). Se carga con \input desde el capítulo 1 y desde
+% img/cap01/standalone-esquema.tex. Requiere TikZ (lo carga pgfgantt) y xcolor.
+\definecolor{c1datos}{HTML}{DCE6F2}
+\definecolor{c1clasif}{HTML}{DDEEDD}
+\definecolor{c1ood}{HTML}{FBE5D0}
+\definecolor{c1xai}{HTML}{E8DFF0}
+\definecolor{c1fund}{HTML}{E6E6E6}
+\definecolor{c1borde}{HTML}{404040}
+\begin{tikzpicture}[
+    font=\scriptsize,
+    caja/.style={draw=c1borde, rounded corners=2pt, align=left, inner sep=4pt,
+                 text width=#1, minimum height=3.5cm, anchor=north west},
+    caja/.default=2.75cm,
+    tit/.style={font=\scriptsize\bfseries},
+    flecha/.style={-{Stealth[length=5pt]}, thick, c1borde},
+  ]
+  % Bloques
+  \node[caja, fill=c1datos] (datos) at (0,0) {%
+    {\bfseries Datos} \hfill Cap.~8\\[2pt]
+    \textit{ID:} próstata, H\&E, 14~clases, \num{126109} parches\\[2pt]
+    \textit{OOD:} NCT-CRC (TUM+NORM; control interno STR, LYM, MUS), PANDA, control de 128\,px,
+    corrupciones sintéticas y DTD};
+  \node[caja, fill=c1clasif] (clasif) at (3.45,0) {%
+    {\bfseries Clasificación} \hfill Cap.~9\\[2pt]
+    5 arquitecturas preentrenadas\\[2pt]
+    $\rightarrow$ Swin-S: detección OOD\\[2pt]
+    $\rightarrow$ ConvNeXt-S: explicabilidad y repetición de la detección OOD (ap.~D)};
+  \node[caja=3.3cm, fill=c1ood, minimum height=1.65cm] (ood) at (6.9,0) {%
+    {\bfseries Detección OOD} \hfill Caps.~10--11\\[1pt]
+    Post hoc: logits, activaciones, características y distancias; \stoodx; umbral conforme};
+  \node[caja=3.3cm, fill=c1xai, dashed, minimum height=1.65cm] (xai) at (6.9,-1.85) {%
+    {\bfseries Explicabilidad (RED)} \hfill Cap.~12\\[1pt]
+    LRP/CRP y EG en ConvNeXt-S $\rightarrow$ conceptos $\rightarrow$ sesgos $\rightarrow$ ablación};
+  \node[caja=1.45cm, fill=white, minimum height=3.5cm] (concl) at (10.9,0) {%
+    {\bfseries Conclu\-siones}\\[2pt] Cap.~13};
+  % Banda de fundamentos
+  \node[draw=c1borde, fill=c1fund, rounded corners=2pt, anchor=north west, align=center,
+        text width=12.05cm, inner sep=4pt] (fund) at (0,-3.85) {%
+    {\bfseries Fundamentos matemáticos} (caps.~3--7): aprendizaje supervisado y redes profundas $\cdot$
+    formalización OOD y métricas (\mbox{$\mathrm{AUROC}=U/(n_1 n_2)$}) $\cdot$ métodos post hoc $\cdot$
+    inferencia (Mann-Whitney, McNemar, \emph{bootstrap}, predicción conforme) $\cdot$ LRP y CRP};
+  % Flechas
+  \draw[flecha] (datos.east |- 0,-1.75) -- (clasif.west |- 0,-1.75);
+  \draw[flecha] (clasif.east |- ood.west) -- (ood.west);
+  \draw[flecha] (clasif.east |- xai.west) -- (xai.west);
+  \draw[flecha] (ood.east) -- (concl.west |- ood.east);
+  \draw[flecha] (xai.east) -- (concl.west |- xai.east);
+  \foreach \n in {datos, clasif, xai, concl}
+    \draw[flecha, densely dotted] (fund.north -| \n.south) -- ++(0,0.32);
+\end{tikzpicture}

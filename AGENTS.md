@@ -31,7 +31,7 @@ Además:
 - **Formato:** nada de `\\` para separar párrafos ni `\vspace` manuales. Un fichero por capítulo, con `% !TeX root = ../tfg.tex` en la cabecera.
 - Marcas: `\pendiente{}` (rojo) y `\revisar{}` (naranja); el interruptor `\borradorfalse` de `preambulo-propio.tex` las oculta en la versión final.
 - Flotantes con `[tbp]`, colocados en el código justo después del párrafo que los cita (o del primer párrafo de su sección si nadie los cita), para no dejar páginas de flotantes medio vacías.
-- Las matrices de confusión de 14 clases ocupan el ancho completo de texto. En el capítulo 11 solo va la figura de imágenes de colon aceptadas como ID; el resto de ejemplos de STOOD-X (también los de $K_c$) está en el apéndice C.
+- Las matrices de confusión de 14 clases ocupan el ancho completo de texto. En el capítulo 11 solo va la figura de imágenes de colon aceptadas como ID; los demás ejemplos de STOOD-X no se incluyen como figuras (si se añaden, serán los que incorporan la explicabilidad con Zennit-CRP).
 - Figuras de otros autores: "Fuente: …" en el caption. Figuras extraídas del .docx: `\revisar{figura extraída del docx, regenerar}`.
 - Tablas generadas por `scripts/generar_tablas.py` a partir de `OpenOOD/results_*` (salida en `tablas/`); no editar a mano las tablas generadas: se cambia el script y se vuelve a ejecutar. Cada `\caption` dice qué se mide y si más alto es mejor.
 
@@ -43,7 +43,7 @@ Frontmatter: declaración de originalidad, dedicatoria, agradecimientos, índice
 - **Parte II. Fundamentos matemáticos:** 3 Aprendizaje supervisado y redes profundas; 4 Formalización de la detección OOD y métricas; 5 Métodos de detección post hoc; 6 Inferencia estadística; 7 Explicabilidad.
 - **Parte III. Experimentación, resultados y discusión:** 8 Materiales y métodos; 9 Clasificación ID; 10 Detección OOD; 11 STOOD-X (incluye la detección OOD conforme como sección); 12 Explicabilidad y eliminación de sesgos.
 - **Parte IV. Conclusiones y trabajo futuro:** 13 Conclusiones y trabajo futuro.
-- **Apéndices:** A Tablas de AUPR-In y AUPR-Out; B Anexo NCT-CRC (ADI, BACK, DEB, MUC); C Material complementario; D Detección OOD con ConvNeXt-S; E Glosario (definiciones auxiliares de la parte teórica, citadas con `\cref{def:...}`).
+- **Apéndices:** A Demostraciones complementarias (las demostraciones secundarias de la Parte II; ninguna demostración se elimina, decisión del autor, 2026-11-21); B Tablas de AUPR-In y AUPR-Out; C Material complementario (corrupciones sintéticas y adenocarcinoma ductal frente a NORM/TUM); D Detección OOD con ConvNeXt-S. Sin glosario, sin anexo de ADI/BACK/DEB/MUC y sin imágenes de muestra (decisión del autor, 2026-11-21).
 
 Ficheros: `capitulos/NN-nombre.tex`, `apendices/X-nombre.tex`, figuras en `img/<capitulo>/`, tablas en `tablas/`.
 
@@ -53,7 +53,7 @@ Ficheros: `capitulos/NN-nombre.tex`, `apendices/X-nombre.tex`, figuras en `img/<
 - Debajo de cada tabla va el párrafo de análisis del autor que le corresponde. Donde falte, `\pendiente{análisis}` con las cifras clave en comentarios `%`.
 - Cada capítulo termina con una sección de **discusión global** que integra lo hallado en el capítulo. Las conclusiones de toda la experimentación van al capítulo 13.
 - Capítulo 10: la tabla principal OOD se divide en una tabla por bloque: near-OOD principal (TUM+NORM); control interno (TUM, NORM, STR, LYM, MUS: tabla compacta de AUROC y FPR@95, más `fig5_control_interno_nct`); cambio de centro y resolución (PANDA frente al control, más `fig4_panda_vs_control`); far-OOD (DTD); comparación de familias de métodos (logits y modificación de activaciones). El párrafo «Conclusión» del autor abre la discusión global.
-- Al apéndice solo van las tablas de AUPR-In/AUPR-Out y el anexo NCT-CRC (ADI, BACK, DEB, MUC). El apéndice D contiene la repetición de la detección OOD con ConvNeXt-S (`results_ood_convnext`), solo con tablas generadas y una conclusión breve; en el capítulo 10 solo hay una remisión a él.
+- Al apéndice solo van las tablas de AUPR-In/AUPR-Out. El apéndice D contiene la repetición de la detección OOD con ConvNeXt-S (`results_ood_convnext`), solo con tablas generadas y una conclusión breve; en el capítulo 10 solo hay una remisión a él.
 
 ## Material de entrada (solo lectura)
 

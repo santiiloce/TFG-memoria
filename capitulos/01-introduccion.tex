@@ -7,104 +7,223 @@
 
 \chapter{Introducción}\label{cap:introduccion}
 
-% Según la Guía de TFG de la UGR, la introducción describe los objetivos previstos inicialmente,
-% indica si se han alcanzado, los antecedentes, los resultados y las principales fuentes consultadas.
+% Según la Guía de TFG de la UGR, la introducción describe el contexto (qué), la motivación (por
+% qué), los objetivos (por tanto) y la estructura de la memoria; en un proyecto de investigación,
+% también las preguntas de investigación y las hipótesis (Guía, § 3.3 y cap. 4).
 
 \section{Contexto}\label{sec:contexto}
 
-% Puntos que debería cubrir:
-% - Clasificación de imágenes histopatológicas de próstata con aprendizaje profundo (tinción H&E,
-%   graduación de Gleason).
-% - Necesidad de que un modelo desplegado en clínica reconozca las entradas que no se parecen a
-%   sus datos de entrenamiento (detección OOD).
-% - Papel de la explicabilidad (XAI) en medicina.
-\pendiente{contexto}
+\revisar{borrador del agente: validar y ajustar al estilo del autor}
+
+El análisis histopatológico de las biopsias es la referencia clínica para saber si hay un tumor, de qué tipo es y cuán agresivo es~\cite{ayensa2026}. Las muestras de tejido se tiñen con hematoxilina y eosina (H\&E) y se digitalizan con un escáner, de modo que cada preparación se convierte en una \emph{imagen de lámina completa} (\emph{whole-slide image}, WSI)~\cite{ayensa2026}. En el cáncer de próstata, el patólogo gradúa el tumor con el sistema de Gleason, que clasifica el tejido en patrones según su arquitectura; es una valoración subjetiva, que varía entre patólogos e incluso en un mismo patólogo~\cite{bulten2022} (\cref{sec:ea-wsi-gleason}).
+
+Una WSI es demasiado grande para analizarla de una vez, así que lo habitual es dividirla en \emph{parches} pequeños y clasificar cada uno por separado~\cite{ayensa2026}. Para ello se usan redes neuronales profundas: modelos que aprenden a asignar una clase a cada imagen a partir de muchos ejemplos ya etiquetados, lo que se conoce como \emph{aprendizaje supervisado} (\cref{cap:aprendizaje}). Este trabajo parte del conjunto de datos de Ayensa-Jiménez et al.~\cite{ayensa2026}: \num{126109} parches de $224 \times 224$ píxeles extraídos de láminas de prostatectomía radical y anotados por patólogos en 14 clases histológicas, más detalladas que los grados de Gleason (\cref{sec:conjunto-id}).
+
+Un clasificador entrenado con esas 14 clases responde siempre con una de ellas, aunque la imagen que recibe no se parezca a nada de lo que ha visto: tejido de otro órgano, una muestra de otro hospital digitalizada con otro escáner o una imagen que ni siquiera es tejido. Se llama \emph{dentro de distribución} (\emph{in-distribution}, ID) a la distribución de los datos de entrenamiento y \emph{fuera de distribución} (\emph{out-of-distribution}, OOD) a los datos que no proceden de ella (\cref{def:ID}). La \emph{detección OOD} consiste en asignar a cada imagen una puntuación que indique cuánto se parece a los datos ID y rechazar las que quedan por debajo de un umbral (\cref{def:detector}). Los métodos \emph{post hoc}, que son los que se estudian aquí, calculan esa puntuación a partir de un clasificador ya entrenado, sin modificarlo (\cref{cap:metodos}).
+
+La otra cara del problema es entender por qué el modelo decide lo que decide. Los modelos clásicos, como los árboles de decisión, son \emph{cajas blancas}: una persona puede seguir su razonamiento. Las redes profundas, en cambio, se consideran \emph{cajas negras}, porque es muy difícil seguir paso a paso cómo llegan a una predicción~\cite{sevillano2025tesis}. La \emph{inteligencia artificial explicable} (\emph{explainable artificial intelligence}, XAI) reúne los métodos que tratan de hacer comprensible ese funcionamiento (\cref{sec:ea-explicabilidad}). Este trabajo se centra en dos de ellos: \emph{Layer-wise Relevance Propagation} (LRP), que reparte la predicción de la red entre los píxeles de la imagen recorriendo la red capa a capa hacia atrás (\cref{sec:lrp}), y \emph{Concept Relevance Propagation} (CRP), que restringe ese reparto a un concepto interno de la red para mostrar qué conceptos intervienen en una predicción y en qué parte de la imagen (\cref{sec:crp}). Entre ambos mundos se sitúa \stoodx~\cite{sevillano2026}, un detector OOD que, además de rechazar una imagen, la explica mostrando las imágenes de entrenamiento más parecidas (\cref{sec:metodo-stoodx}).
+
+La \cref{fig:esquema-trabajo} resume cómo se articulan estas piezas en el trabajo.
+
+\begin{figure}[tbp]
+  \centering
+  \input{img/cap01/esquema-trabajo}
+  \caption{Esquema del trabajo. Los datos (\cref{cap:materiales}) alimentan la comparación de clasificadores (\cref{cap:clasificacion-id}); sobre el Swin-S se evalúa la detección OOD (\cref{cap:deteccion-ood,cap:stoodx}) y sobre ConvNeXt-S, la explicabilidad (\cref{cap:xai-sesgos}) y la repetición de la detección OOD (\cref{ap:convnext}). Los fundamentos matemáticos (\cref{cap:aprendizaje,cap:ood-metricas,cap:metodos,cap:inferencia,cap:explicabilidad}) sostienen todos los bloques, y las conclusiones se recogen en el \cref{cap:conclusiones}.}
+  \label{fig:esquema-trabajo}
+\end{figure}
 
 \section{Descripción del problema}\label{sec:descripcion-problema}
 
-% Puntos que debería cubrir:
-% - Un clasificador asigna siempre una de las 14 clases, aunque la imagen no sea de próstata o
-%   venga de otro centro.
-% - Distinción entre cambio semántico y desplazamiento de covariables (cambio de centro, escáner,
-%   resolución).
-% - Fuga por lámina en la partición del conjunto de datos como limitación de la evaluación.
-\pendiente{descripción del problema}
+\revisar{borrador del agente: validar y ajustar al estilo del autor}
+
+El primer problema es que el clasificador no sabe cuándo no sabe. Una imagen puede ser ajena al modelo por dos motivos distintos. En un \emph{cambio semántico}, la imagen pertenece a una clase que no existe entre las de entrenamiento, como el tejido de colon (\cref{def:semantic-shift}). En un \emph{desplazamiento de covariables} (\emph{covariate shift}), la clase podría ser una de las conocidas, pero cambian las condiciones de adquisición: el centro, el escáner, la resolución o la presencia de artefactos como burbujas, marcas o desenfoque (\cref{def:covariate-shift}). En ambos casos el clasificador sigue respondiendo con una de sus 14 clases, y nada en esa respuesta avisa de que puede ser errónea. Un detector OOD útil debería señalar estos casos, y conviene saber a cuál de los dos cambios responde realmente.
+
+El segundo problema es que las explicaciones también pueden fallar. Un mapa de relevancia puede parecer razonable a la vista y, aun así, no reflejar lo que el modelo usa para decidir. Por eso no basta con generar explicaciones: hay que comprobar que son \emph{fieles} al modelo.
+
+El tercer problema es que el modelo puede acertar por motivos equivocados. Cuando un clasificador se apoya en rasgos que no tienen relación con la tarea, se habla de un predictor \emph{Clever Hans}~\cite{lapuschkin2019} (\cref{sec:ea-clever-hans}). En histopatología, ese rasgo podría ser la tinción, el escáner, el centro de origen o el fondo blanco de la preparación, en lugar de la morfología del tejido.
+
+Por último, la propia evaluación tiene un límite. La partición original del conjunto de datos se hizo por parche y no por paciente. Los nombres de fichero de los parches, que incluyen el identificador de la lámina, sugieren que parches de una misma lámina aparecen a la vez en el entrenamiento y en el test, de modo que las métricas medirían la capacidad de generalizar dentro de las mismas láminas y no a pacientes nuevos (\cref{sec:limitaciones}).
 
 \section{Motivación}\label{sec:motivacion}
-https://www.ideal.es/granada/marcar-camino-ia-etica-clave-evitar-riesgos-20260927234040-nt.html?ref=https%3A%2F%2Fwww.google.com%2F
-% Puntos que debería cubrir:
-% - Enlace con el doble grado: fundamentos matemáticos (estadística no paramétrica, predicción
-%   conforme, formalización de las métricas) y evaluación experimental.
-% - Petición del tutor de reforzar la parte matemática.
-% - Yang et al. (2024) señalan la explicabilidad como reto abierto de la detección OOD
-%   (frase de las notas, ubicada en \cref{sec:ea-explicabilidad}).
-\pendiente{motivación}
+
+% Texto del autor (literal).
+La integración de modelos de Inteligencia Artificial en medicina promete no solo mejorar la precisión de los diagnósticos sino también permitir que los profesionales sanitarios adquieran conocimiento nuevo ---por ejemplo, reglas clínicas o patrones de imágenes--- a partir del funcionamiento interno de dichos modelos. No obstante, la regulación de la Unión Europea clasifica a los sistemas IA destinados a uso médico como de alto riesgo, lo que impone exigencias rigurosas en transparencia, explicabilidad, supervisión humana y robustez. Para alinearse con estas normas, los sistemas no solo deben entregar resultados exactos, sino también ofrecer explicaciones comprensibles, abstenerse de emitir decisiones en situaciones de alta incertidumbre, y permitir que el humano, ya sea clínico o usuario experto, participe activamente en el proceso de interpretación y adaptación del modelo.
+
+\revisar{borrador del agente: validar y ajustar al estilo del autor}
+Cada una de estas exigencias se corresponde con una parte de este trabajo. Abstenerse de decidir en situaciones de alta incertidumbre es, en la práctica, detectar las entradas fuera de distribución y no clasificarlas (\cref{cap:deteccion-ood}). Ofrecer explicaciones comprensibles es lo que persiguen \stoodx, que justifica cada rechazo con imágenes de entrenamiento concretas (\cref{cap:stoodx}), y CRP, que describe las decisiones en términos de conceptos (\cref{cap:xai-sesgos}). Y la adaptación del modelo pasa por localizar los conceptos sesgados y comprobar qué ocurre cuando se intervienen (\cref{sec:xai-ablacion}). Además, el trabajo se enmarca en el Doble Grado en Ingeniería Informática y Matemáticas, y por eso, a petición del tutor, la parte experimental se apoya en una fundamentación matemática propia: la formalización de la detección OOD y de sus métricas, la estadística no paramétrica que sostiene \stoodx y la comparación de modelos, la predicción conforme para controlar las falsas alarmas y las reglas de propagación de LRP (\cref{part:fundamentos}).
 
 \section{Preguntas de investigación e hipótesis}\label{sec:preguntas}
 
-% Puntos que debería cubrir (según la Guía de TFG para proyectos de investigación):
-% - P1: ¿Qué arquitectura preentrenada clasifica mejor las 14 clases del conjunto ID?
-% - P2: ¿Qué familias de detectores post hoc separan mejor ID de OOD con un Swin Transformer?
-% - P3: ¿Los detectores responden al tipo de tejido o a las condiciones de adquisición (centro,
-%   resolución)?
-% - P4: ¿Es STOOD-X competitivo y están calibrados sus p-valores?
-% - P5: ¿Ofrece la predicción conforme garantías útiles (falsas alarmas, cobertura por clase)?
-% - Hipótesis asociadas a cada pregunta.
-\pendiente{preguntas de investigación e hipótesis}
+\revisar{borrador del agente: validar y ajustar al estilo del autor. Las hipótesis se formulan como se plantearon a priori; su resultado se resume en la \cref{sec:consecucion}}
+
+Siguiendo la estructura de un proyecto de investigación, el trabajo se organiza en torno a siete preguntas. Cada una lleva asociada la hipótesis con la que se abordó.
+
+\begin{description}
+  \item[P1. Clasificación ID.] ¿Qué arquitectura preentrenada clasifica mejor las 14 clases del conjunto ID?\\
+    \emph{H1:} las arquitecturas más recientes (Swin-S y ConvNeXt-S) superarán a las demás.
+  \item[P2. Familias de detectores.] ¿Qué familias de detectores post hoc separan mejor las imágenes ID de las OOD, en los casos near-OOD (parecidos a los datos ID) y far-OOD (muy distintos)?\\
+    \emph{H2:} los detectores que trabajan en el espacio de características superarán a los que solo usan los logits, sobre todo en el caso near-OOD.
+  \item[P3. Tejido frente a adquisición.] ¿Los detectores reaccionan al tipo de tejido o a las condiciones de adquisición (centro y resolución)?\\
+    \emph{H3:} los detectores serán más sensibles al cambio de condiciones de adquisición que al cambio semántico, como señalan Yang et al.~\cite{yang2024}, de modo que los tejidos de otro centro parecidos a los de la próstata se rechazarán casi igual que el tejido de colon.
+  \item[P4. Robustez frente a corrupciones.] ¿Detectan los detectores las corrupciones sintéticas habituales en patología digital y gradúan su severidad?\\
+    \emph{H4:} la detección mejorará con la severidad, y las corrupciones que formaban parte del aumento de datos del entrenamiento, como el brillo, pasarán desapercibidas.
+  \item[P5. \stoodx.] ¿Es \stoodx competitivo en este problema, están calibrados sus $p$-valores y cómo influyen el número de vecinos $K$ y la saturación de su estadístico? ¿Permite la predicción conforme fijar su umbral con una tasa de falsas alarmas controlada?\\
+    \emph{H5:} \stoodx será competitivo con los mejores detectores; al proceder de un contraste de hipótesis, sus $p$-valores estarán calibrados; y el umbral conforme controlará las falsas alarmas.
+  \item[P6. Dependencia del modelo.] ¿Se mantienen las conclusiones sobre los detectores al cambiar de clasificador?\\
+    \emph{H6:} la ordenación de los detectores se mantendrá al repetir la evaluación con ConvNeXt-S.
+  \item[P7. Explicabilidad.] ¿Son fieles las explicaciones de LRP y CRP en ConvNeXt-S y permiten identificar conceptos y sesgos del clasificador?\\
+    \emph{H7:} LRP y CRP darán explicaciones fieles que permitirán describir los conceptos de cada clase y localizar rasgos ajenos al tejido.
+\end{description}
 
 \section{Objetivos}\label{sec:objetivos}
 
-\subsection{Objetivos generales}
+\subsection{Objetivos generales}\label{sec:objetivos-generales}
 
-% - Parte matemática: formalizar la detección OOD, sus métricas y los métodos post hoc, y los
-%   fundamentos estadísticos (Mann-Whitney, bootstrap, McNemar, predicción conforme).
-% - Parte informática: evaluar empíricamente detectores OOD sobre un clasificador de
-%   histopatología de próstata.
-\pendiente{objetivos generales}
+% Texto del autor, recortado a lo realizado (sin las marcas de cita [1]-[5]).
+Aunque siguen existiendo una gran cantidad de líneas que explorar dentro del campo de la explicabilidad, este trabajo se centrará en la perspectiva de la explicabilidad RED (\emph{Research, Explore, Debug}), es decir, métodos de explicabilidad orientados a la validación del modelo y su robustez interna. En lugar de limitarse a justificar decisiones ante el usuario, se trabajará para que los modelos permitan ser interrogados: extraer conocimiento interno, errores o comportamientos inesperados, y asegurar que las explicaciones sean fieles al funcionamiento real del sistema. Para ello, se utilizarán diversas herramientas XAI. Se seleccionarán casos de uso clínico ---biopsias de pacientes de cáncer de próstata--- en los que se pueda observar cómo cambian las decisiones cuando se modifica parte del modelo. Se medirán variables como la fidelidad de la explicación (que refleje lo que realmente hace el modelo) y si con estos mecanismos se detectan casos atípicos.
+\revisar{ortografía corregida: «líneas», «centrará», «cáncer», rayas en el inciso. Recortes: se quita «y se enfocarán como medios para poder modificar el comportamiento erróneo o sesgado del modelo» (la eliminación de sesgos queda como trabajo futuro, \cref{sec:xai-discusion}); se sustituye «donde el profesional sanitario no solo reciba explicaciones externas, sino que interactúe con las componentes internas del modelo, pueda observar [...], explorar la atención interna, y sugerir hipótesis» por «en los que se pueda observar [...]», y «parte de la arquitectura» por «parte del modelo» (ablación de canales, \cref{sec:xai-ablacion}); se quitan la claridad, la capacidad de generar conocimiento, la confianza y la tasa de errores diagnósticos, que no se han medido}
 
-\subsection{Objetivos específicos}
+\revisar{borrador del agente: validar y ajustar al estilo del autor}
+Detectar casos atípicos es, precisamente, el papel de la detección de datos fuera de distribución: que el sistema reconozca las entradas para las que no fue entrenado y se abstenga de clasificarlas, en lugar de emitir una decisión en una situación de alta incertidumbre. En este trabajo esa detección y la explicabilidad no se tratan por separado. \stoodx, un detector que justifica cada decisión con imágenes de entrenamiento concretas, une ambas, y las herramientas de relevancia por conceptos se aplican al mismo clasificador para comprobar en qué se apoyan sus decisiones. Todo ello se apoya en una fundamentación matemática de los métodos empleados, propia del doble grado.
 
-% Para cada uno, indicar si se ha alcanzado (requisito de la Guía de TFG).
-% - Entrenar y comparar cinco arquitecturas (ViT-B/16, ResNet-50, ConvNeXt-S, EfficientNetV2-S,
-%   Swin-S) y elegir una.
-% - Diseñar conjuntos OOD que separen cambio semántico, cambio de centro y resolución.
-% - Evaluar 13 detectores de OpenOOD y STOOD-X con IC por bootstrap.
-% - Reimplementar STOOD-X según el artículo y analizar su calibración y su sensibilidad a K.
-% - Aplicar predicción conforme (detección OOD, APS/RAPS, Mondrian).
-% - Explicabilidad y eliminación de sesgos con CRP (en desarrollo).
-\pendiente{objetivos específicos y grado de consecución}
+En síntesis, el objetivo general del trabajo es estudiar métodos de detección OOD y de explicabilidad que permitan a un profesional decidir cuándo confiar en un clasificador de imágenes histopatológicas de próstata y entender en qué se basan sus decisiones, con una fundamentación matemática de cada método y una evaluación experimental rigurosa.
+
+\subsection{Objetivos específicos}\label{sec:objetivos-especificos}
+
+\revisar{borrador del agente: validar y ajustar al estilo del autor}
+
+El objetivo general se articula en seis objetivos específicos. Los primeros sirven de base a los siguientes, y cada uno indica cómo se mide su cumplimiento.
+
+\begin{description}
+  \item[OE1.] Formalizar matemáticamente los fundamentos del trabajo: el aprendizaje supervisado y las redes profundas (\cref{cap:aprendizaje}); la detección OOD y sus métricas, incluida la relación $\AUROC = U/(n_1 n_2)$ con el estadístico de Mann-Whitney (\cref{cap:ood-metricas}); los métodos de detección post hoc (\cref{cap:metodos}); los contrastes y técnicas de inferencia empleados ---Mann-Whitney, McNemar, Friedman y Nemenyi, \emph{bootstrap} y predicción conforme--- (\cref{cap:inferencia}); y LRP y CRP (\cref{cap:explicabilidad}).
+  \item[OE2.] Entrenar cinco arquitecturas preentrenadas (ViT-B/16, ResNet-50, ConvNeXt-S, EfficientNetV2-S y Swin-S) sobre las 14 clases del conjunto ID y compararlas por exactitud, F1 macro y \emph{balanced accuracy}, con intervalos de confianza y un contraste de McNemar entre los dos mejores (\cref{cap:clasificacion-id}).
+  \item[OE3.] Diseñar un banco de evaluación OOD que separe el cambio semántico (near-OOD y far-OOD), el cambio de centro, la resolución y las corrupciones sintéticas (9 corrupciones en 3 niveles de severidad), con un control interno que distinga el tejido de las condiciones de adquisición (\cref{cap:materiales,cap:deteccion-ood}).
+  \item[OE4.] Evaluar con ese banco 13 configuraciones de 11 detectores post hoc de OpenOOD y \stoodx mediante \AUROC, \FPRn{95} y \CCRn{5} con intervalos de confianza por \emph{bootstrap}, comparar los mejores con los tests de Friedman y Nemenyi y comprobar si las conclusiones se mantienen con ConvNeXt-S (\cref{cap:deteccion-ood,ap:convnext}).
+  \item[OE5.] Reimplementar \stoodx según su artículo y analizar la elección del número de vecinos $K$ con datos ID, la saturación de su estadístico, la calibración de sus $p$-valores, la fijación del umbral por predicción conforme y sus explicaciones por ejemplos (\cref{cap:stoodx}).
+  \item[OE6.] Aplicar LRP y CRP (con zennit y zennit-crp) a ConvNeXt-S, tratando la LayerNorm, y medir la fidelidad de sus explicaciones frente a métodos de gradientes; extraer conceptos con un atlas RelMax, identificar sesgos y comprobar con una ablación de conceptos cómo cambian las decisiones del modelo (\cref{cap:xai-sesgos}).
+\end{description}
+
+\revisar{borrador del agente: objetivos personales; confirmar o eliminar}
+Además, el trabajo perseguía tres objetivos personales: aprender a usar un banco de evaluación de investigación como OpenOOD y bibliotecas de explicabilidad como zennit-crp; trabajar con un clúster de GPU gestionado con SLURM; y conectar en un mismo problema lo aprendido en las dos titulaciones del doble grado.
+
+\subsection{Grado de consecución}\label{sec:consecucion}
+
+\revisar{borrador del agente: validar y ajustar al estilo del autor}
+
+La \cref{tab:consecucion} resume el grado de consecución de cada objetivo específico. El objetivo general se ha alcanzado en su parte de detección OOD y de fundamentación matemática, y de forma parcial en la de explicabilidad, porque la intervención sobre los conceptos sesgados ha quedado como trabajo futuro.
+
+\begin{table}[tbp]
+  \centering
+  \footnotesize
+  \caption{Grado de consecución de los objetivos específicos.}
+  \label{tab:consecucion}
+  \begin{tabularx}{\textwidth}{@{}l l l >{\raggedright\arraybackslash}X@{}}
+    \toprule
+    \textbf{Objetivo} & \textbf{Capítulos} & \textbf{Estado} & \textbf{Justificación} \\
+    \midrule
+    OE1 & 3--7 & Parcial & Formalizados todos los bloques; faltan la aprendibilidad de la detección OOD y la canonización y las reglas por capa de LRP. \revisar{pasa a «alcanzado» cuando se completen los \texttt{\textbackslash pendiente} de los caps. 4 y 7} \\
+    OE2 & 9 & Alcanzado & Cinco modelos entrenados y comparados; Swin-S y ConvNeXt-S, empatados (McNemar, $p = 0{,}19$). \\
+    OE3 & 8, 10 & Alcanzado & Nueve conjuntos OOD y 27 celdas de corrupciones, con control interno y control de resolución. \\
+    OE4 & 10, ap.~D & Alcanzado & 17 configuraciones evaluadas con IC por \emph{bootstrap}, test de Friedman y Nemenyi, y repetición con ConvNeXt-S. \\
+    OE5 & 11 & Alcanzado & Selección de $K = 144$ solo con datos ID, análisis de saturación y calibración, umbral conforme y ejemplos. \\
+    OE6 & 12 & Parcial & Fidelidad medida (ABPC), atlas RelMax, sesgo del criterio de presencia (canal 102) y ablación de conceptos; no se han eliminado los conceptos sesgados. \revisar{comprobar con el cap. 12} \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+En cuanto a las hipótesis de la \cref{sec:preguntas}:
+\begin{itemize}
+  \item \emph{H1} se confirma en parte: Swin-S y ConvNeXt-S obtienen la mayor exactitud, pero con intervalos por lámina solo se separan claramente de ResNet-50, y la diferencia entre ellos no es significativa (\cref{cap:clasificacion-id}).
+  \item \emph{H2} se confirma: los detectores basados en características superan de forma sistemática a los basados en logits y a los que modifican activaciones (\cref{sec:ood-discusion}).
+  \item \emph{H3} se confirma: los linfocitos, un tejido presente en la próstata, se detectan casi igual que el tejido de colon (\cref{sec:ood-control-interno}).
+  \item \emph{H4} se confirma en parte: el brillo apenas se detecta, pero la capacidad de graduar la severidad depende del detector, y \stoodx, el que mejor detecta las corrupciones, la gradúa peor que ViM y MDS por la saturación de su estadístico (\cref{sec:ood-corrupciones}).
+  \item \emph{H5} se confirma en cuanto al rendimiento, con $K = 144$, y en cuanto al control conforme de las falsas alarmas, pero no en cuanto a la calibración: con $K = 500$, la mayoría de las imágenes ID obtienen $p$-valores muy pequeños (\cref{cap:stoodx}).
+  \item \emph{H6} no se confirma: varias conclusiones cambian al repetir la evaluación con ConvNeXt-S (\cref{ap:convnext}).
+  \item \emph{H7} no se confirma: la variante de LRP empleada conserva la relevancia, pero es poco fiel, y los métodos de gradientes, más fieles, dan mapas ruidosos; aun así, el análisis identifica un sesgo del criterio de selección de características (\cref{sec:xai-discusion}).
+\end{itemize}
 
 \section{Principales fuentes consultadas}\label{sec:fuentes}
 
-% - Yang et al. (2024), survey de detección OOD generalizada.
-% - OpenOOD (implementación de referencia de los métodos).
-% - Artículo de STOOD-X (Sevillano-García et al.) y artículo del conjunto de datos
-%   (Ayensa-Jiménez et al.).
-% - Angelopoulos y Bates (2021) para predicción conforme.
-% - Declaración del uso de herramientas de IA generativa, si procede.
-\pendiente{principales fuentes consultadas}
+\revisar{borrador del agente: validar y ajustar al estilo del autor}
+
+\paragraph{\stoodx.} El artículo de Sevillano-García et al.~\cite{sevillano2026} describe el detector central del \cref{cap:stoodx}: un test de Mann-Whitney entre las distancias de una imagen a sus vecinos de entrenamiento y las de esos vecinos a los suyos, seguido de una explicación por ejemplos. La reimplementación de este trabajo sigue la descripción del artículo.
+
+\paragraph{OpenOOD.} Los dos artículos del banco de evaluación OpenOOD, la versión 1.0~\cite{openood} y la 1.5~\cite{openood15}, aportan la implementación de los detectores post hoc y el protocolo de evaluación (\cref{cap:metodos,cap:deteccion-ood}), además de la definición formal de la detección OOD del \cref{cap:ood-metricas}.
+
+\paragraph{CRP y zennit-crp.} Achtibat et al.~\cite{achtibat2023} proponen CRP y las explicaciones por conceptos, incluida la selección de referencias RelMax, que se formalizan en el \cref{cap:explicabilidad} y se aplican en el \cref{cap:xai-sesgos}.
+
+\paragraph{LRP.} Bach et al.~\cite{bach2015} introducen la propagación de relevancia capa a capa, y Montavon et al.~\cite{montavon2019lrp} resumen sus reglas y su aplicación práctica. Son la base de CRP y de las explicaciones de los \cref{cap:explicabilidad,cap:xai-sesgos}.
+
+\paragraph{Corrupciones sintéticas.} El banco de pruebas de Zhang et al.~\cite{zhang2022corruptions} proporciona las nueve corrupciones de patología digital con las que se genera el \emph{covariate shift} sintético (\cref{sec:corrupciones,sec:ood-corrupciones}). Su repositorio no tiene licencia, por lo que se cita y se usó solo para generar los datos, sin redistribuirlo.
+
+\paragraph{Conjunto de datos.} El artículo de Ayensa-Jiménez et al.~\cite{ayensa2026} describe los datos ID sobre los que se construye todo el trabajo (\cref{cap:materiales,cap:clasificacion-id}) y sirve de referencia para la clasificación agrupada; de la forma en que se distribuyen esos datos procede también la limitación de la partición.
+
+\paragraph{Detección OOD generalizada.} El \emph{survey} de Yang et al.~\cite{yang2024} aporta la taxonomía y la terminología usadas en toda la memoria ---near-OOD y far-OOD, cambio semántico y \emph{covariate shift}--- (\cref{cap:estado-arte,cap:ood-metricas}).
+
+\paragraph{Libros de apoyo.} El libro de Goodfellow et al.~\cite{goodfellow2016deep} sirve de referencia para el aprendizaje profundo (\cref{cap:aprendizaje}), y el de Canavos~\cite{canavos2003}, para la inferencia estadística (\cref{cap:inferencia}).
+
+Los documentos de todas las referencias citadas se han reunido en una carpeta del proyecto (\texttt{tfg-referencias/}), de la que procede toda la información teórica y bibliográfica de la memoria. El uso de herramientas de inteligencia artificial generativa se declara en la \cref{sec:uso-ia}.
 
 \section{Estructura de la memoria}\label{sec:estructura}
 
-% Describir las cuatro partes y los apéndices, capítulo a capítulo, con \cref.
-\pendiente{estructura de la memoria}
+\revisar{borrador del agente: validar y ajustar al estilo del autor}
+
+La memoria se organiza en cuatro partes y cinco apéndices (\cref{fig:esquema-trabajo}).
+
+\begin{itemize}
+  \item La \textbf{\cref{part:introduccion}} presenta el problema. El \cref{cap:introduccion} es esta introducción, y el \cref{cap:estado-arte} revisa la clasificación histopatológica con aprendizaje profundo, la detección OOD y la explicabilidad.
+  \item La \textbf{\cref{part:fundamentos}} reúne la base matemática. El \cref{cap:aprendizaje} formaliza el aprendizaje supervisado, las redes profundas y las arquitecturas empleadas; el \cref{cap:ood-metricas}, la detección OOD y sus métricas; el \cref{cap:metodos}, los métodos de detección post hoc, incluido \stoodx; el \cref{cap:inferencia}, los contrastes de hipótesis, el \emph{bootstrap} y la predicción conforme; y el \cref{cap:explicabilidad}, LRP y CRP.
+  \item La \textbf{\cref{part:experimentacion}} contiene el trabajo experimental. El \cref{cap:materiales} describe los datos, los conjuntos OOD y el protocolo de entrenamiento; el \cref{cap:clasificacion-id} compara los cinco clasificadores y elige el modelo de referencia; el \cref{cap:deteccion-ood} evalúa los detectores OOD por bloques; el \cref{cap:stoodx} estudia \stoodx en detalle, incluida la detección OOD conforme; y el \cref{cap:xai-sesgos} aplica la explicabilidad a ConvNeXt-S.
+  \item La \textbf{\cref{part:conclusiones}} cierra la memoria con las conclusiones, las limitaciones y el trabajo futuro (\cref{cap:conclusiones}).
+  \item Los \textbf{apéndices} recogen las tablas de AUPR-In y AUPR-Out (\cref{ap:aupr}), material complementario sobre las corrupciones sintéticas (\cref{ap:complementario}) y la repetición de la detección OOD con ConvNeXt-S (\cref{ap:convnext}).
+\end{itemize}
 
 \section{Planificación}\label{sec:planificacion}
 
-\subsection{Planificación temporal}
+\subsection{Planificación temporal}\label{sec:planificacion-temporal}
 
-% - Número de créditos ECTS y horas equivalentes.
-% - Fases: entrenamiento de modelos, evaluación OOD (fases A, B y C), STOOD-X, predicción
-%   conforme, análisis de láminas, explicabilidad, redacción.
-% - Diagrama de Gantt (paquete pgfgantt, ya cargado en preambulo-propio.tex) con la
-%   planificación inicial y la real.
-\pendiente{planificación temporal y diagrama de Gantt}
+\revisar{borrador del agente: validar y ajustar al estilo del autor}
 
-\subsection{Planificación económica}
+El TFG tiene 18 créditos ECTS y se ha desarrollado entre marzo y junio y entre septiembre y el 24 de noviembre de 2026; en julio y agosto no hubo actividad. En total se han dedicado unas 400 horas: unas 8 horas semanales durante las 17 semanas de marzo a junio (136 h), con dedicación parcial porque el autor cursaba asignaturas a la vez, y unas 22 horas semanales durante las 12 semanas de septiembre a noviembre (264 h). La \cref{fig:gantt} muestra el cronograma final con granularidad semanal.
 
-% - Coste de personal (horas).
-% - Coste de hardware (GPU del servidor: TITAN Xp para el entrenamiento, RTX 2080 Ti para la
-%   evaluación OOD) y software (libre).
-\pendiente{planificación económica}
+Las tareas son de cinco tipos: de aprendizaje (revisión bibliográfica y familiarización con OpenOOD y zennit-crp), de desarrollo (preparación de los datos y adaptación del modelo a OpenOOD), de experimentación, de redacción y de organización (reuniones con los tutores). La metodología ha sido de investigación iterativa por fases: cada fase experimental se planteaba con unas preguntas concretas, se ejecutaba en el clúster de GPU de la UGR y se documentaba en un fichero de decisiones (\texttt{decisiones.md}) y otro de resultados (\texttt{resumen.md}), que se revisaban con el tutor antes de pasar a la siguiente. Las reuniones fueron periódicas durante todo el proyecto y semanales desde el 30 de octubre.
+
+\revisar{fechas contrastadas con \texttt{sacct}, las carpetas de \texttt{tfg/executions} y \texttt{OpenOOD/results\_*} y el historial de git; no hay trabajos en el clúster entre abril y septiembre, así que las barras de ese periodo y las reuniones de marzo a septiembre son las del plan inicial: confirmar}
+Respecto a lo previsto al inicio, hubo varias desviaciones. El entrenamiento de los cinco modelos terminó antes de lo esperado: los trabajos del clúster se concentran entre el 13 y el 24 de marzo. En cambio, la evaluación OOD definitiva se concentró en octubre: las fases A, B y C se ejecutaron entre el 14 y el 20 de octubre, fecha en la que se congelaron los resultados, y entre el 21 y el 27 de octubre se añadieron las comprobaciones de integridad de la partición, la detección OOD conforme y la comparación de PANDA con el control de resolución. La explicabilidad, la repetición con ConvNeXt-S, las corrupciones sintéticas y la selección de $K$ de \stoodx se realizaron en noviembre. Por último, el alcance cambió durante la redacción: parte del trabajo realizado se dejó fuera de la memoria (los conjuntos de predicción conforme y el capítulo sobre la fuga por lámina), y la eliminación de los conceptos sesgados quedó como trabajo futuro.
+
+\begin{landscape}
+\begin{figure}[p]
+  \centering
+  \input{img/cap01/gantt}
+  \caption{Diagrama de Gantt del TFG, con una columna por semana. Julio y agosto, sin actividad, se comprimen en una sola columna. Colores por tipo de tarea; los rombos son hitos.}
+  \label{fig:gantt}
+\end{figure}
+\end{landscape}
+
+\subsection{Planificación económica}\label{sec:planificacion-economica}
+
+\revisar{borrador del agente: validar y ajustar al estilo del autor}
+
+En esta sección se estima cuánto costaría el proyecto si se ejecutara en la vida real, siguiendo el desglose de la Guía del TFG~\cite{guiatfg2025}: costes de personal, de material, de despliegue y mantenimiento, e indirectos. Todos los precios se han consultado el 21 de noviembre de 2026, y el cálculo lo hace un script (\texttt{scripts/costes\_tfg.py}) que genera la \cref{tab:costes}, para que pueda reproducirse.
+
+\paragraph{Personal.} Como salario de referencia se toma el de un ingeniero de aprendizaje automático al inicio de su carrera en España, \num{35534}\,€ brutos anuales~\cite{preciopayscale2026}. A ese salario se suma la cotización empresarial a la Seguridad Social de 2026~\cite{ordenpjc2026}: contingencias comunes (23,60\,\%), desempleo para un contrato indefinido (5,50\,\%), FOGASA (0,20\,\%), formación profesional (0,60\,\%) y MEI (0,75\,\%), un 30,65\,\% en total, más un 1,50\,\% de accidentes de trabajo y enfermedades profesionales para trabajo de oficina \revisar{comprobar en la tarifa de primas}. Con una jornada anual de referencia de \num{1800}\,h \revisar{fuente}, el coste es de 26,09\,€/h. Las 400 horas incluyen también el aprendizaje, la revisión bibliográfica, las reuniones y la redacción, como indica la Guía~\cite{guiatfg2025}. No se imputa el coste de los tutores.
+
+\paragraph{Hardware.} El portátil del autor, un HP Pavilion x360 14-dw0028ns sin GPU dedicada, se usó solo para redactar, programar y conectarse al clúster. Su precio actual es de 666,04\,€~\cite{preciohp2026}; con una vida útil de cuatro años y unos 6,8 meses de uso en el proyecto, su amortización es de 94,36\,€.
+
+Los experimentos se ejecutaron en el clúster de GPU de la UGR, que no tuvo coste para el proyecto. Para valorarlo se calcula lo que habría costado alquilar un equipo equivalente en la nube. Según el registro del gestor de colas (\texttt{sacct}), que incluye también los trabajos fallidos y cancelados, se usaron 174,27 horas de GPU ---112,86 en el entrenamiento de los cinco modelos, 7,71 en la inferencia y la evaluación OOD y 53,70 en la explicabilidad--- y 29,28 horas de trabajos solo de CPU con 12 núcleos (las corrupciones sintéticas, la repetición con ConvNeXt-S y pruebas de LRP). Todas las GPU empleadas (NVIDIA TITAN Xp, GeForce RTX 2080 Ti y Quadro RTX 8000) son de generaciones anteriores a la V100, por lo que se valoran con la instancia \texttt{g4dn.xlarge} de AWS (0,526\,USD/h)~\cite{precioawsg4dn}, y los trabajos de CPU, con la \texttt{c6i.4xlarge} (0,68\,USD/h)~\cite{precioawsc6i}. Con el cambio de 1,0968\,USD/€~\cite{cambiobde2026}, el coste equivalente es de 101,73\,€. No se ha añadido margen por ejecuciones fallidas, porque ya están incluidas en el registro. \revisar{el registro no recoge el cómputo hecho fuera de SLURM (por ejemplo, en Colab o en sesiones interactivas)}
+
+\paragraph{Software.} Todo el software empleado es libre o de código abierto, con coste nulo: Python, PyTorch (BSD-3), torchvision (BSD), fastai (Apache 2.0), timm (Apache 2.0), OpenOOD (MIT), zennit (LGPL-3.0 o posterior), zennit-crp (BSD-3 Clear), SciPy y NumPy (BSD), scikit-learn (BSD-3), pandas (BSD-3), Matplotlib (PSF) y \TeX~Live. El repositorio de las corrupciones sintéticas no tiene licencia; se usó solo para generar los datos y no se redistribuye.
+
+\paragraph{Bibliografía.} El acceso a los artículos de pago fue posible gracias a la suscripción de la Biblioteca de la UGR. Para estimar el coste evitado, las referencias se clasifican por editorial según su DOI o su revista: 8 de Elsevier, a 31,50\,USD por artículo~\cite{precioelsevier2026}; 9 de Springer, a 39,95\,USD~\cite{preciospringer2026}; y 19 de IEEE (fuera de las conferencias de acceso abierto de CVF) y de otras editoriales, para las que se toma como referencia conservadora el precio de Elsevier \revisar{precio no verificado}. Los artículos de acceso abierto (arXiv, NeurIPS, ICLR, ICML, JMLR, CVF y revistas abiertas) no suponen coste. En total, \num{1103,25}\,€. El precio de los libros está por completar \pendiente{precio de los libros}; la Guía del TFG tiene licencia CC BY-NC-SA y no tiene coste.
+
+\paragraph{Despliegue, mantenimiento y costes indirectos.} No hay costes de despliegue ni de mantenimiento, porque el resultado no es un sistema en producción. Los costes indirectos (electricidad y conexión a internet) se estiman como el 10\,\% del total, el porcentaje genérico que propone la Guía~\cite{guiatfg2025}.
+
+\input{tablas/t01_costes}
+
+El coste total es de \num{12907,94}\,€ con el clúster valorado a precio de mercado y de \num{12796,04}\,€ sin él. El personal supone más del 80\,\% del total, mientras que el cómputo, aun valorado a precio de alquiler, apenas llega a 102\,€: el proyecto es intensivo en trabajo humano, no en recursos de cálculo.
+
+\subsection{Declaración del uso de IA generativa}\label{sec:uso-ia}
+
+\pendiente{declaración de uso de IA generativa (ChatGPT/Codex/Claude): herramientas, para qué y anexo con los prompts}
 
 \endinput

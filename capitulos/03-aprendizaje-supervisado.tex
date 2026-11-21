@@ -424,38 +424,7 @@ $k$. Entonces $D_{\mathrm{KL}}(q\,\|\,p) \ge 0$, y la igualdad se da si y solo s
 $p = q$.
 \revisar{enunciado generalizado a petición del autor; antes decía «Si además $q_k > 0$ para todo $k$, la igualdad se da si y solo si $p = q$»}
 \end{lema}
-\begin{demostracion}
-Sea $g(t) = -\log t - (1 - t)$ para $t > 0$. Como $g'(t) = 1 - 1/t$ es negativa en
-$(0,1)$ y positiva en $(1,\infty)$, $g$ alcanza su mínimo únicamente en $t = 1$,
-donde $g(1) = 0$. Por tanto, $-\log t \ge 1 - t$, con igualdad si y solo si
-$t = 1$~\cite[ap.~C.5.1]{prince2023understanding}. Sea
-$S = \{k\in\{1,\dots,K\} : q_k > 0\}$ el conjunto de clases a las que $q$ asigna
-probabilidad positiva (el \emph{soporte} de $q$). Los sumandos con $k\notin S$
-son nulos, porque $q_k = 0$ y, por el convenio $0\log 0 = 0$, también
-$q_k\log q_k = 0$; además, para $k\in S$ el cociente $p_k/q_k$ está definido y es
-positivo. Agrupando las dos sumas de la definición con
-$\log q_k - \log p_k = -\log(p_k/q_k)$ y aplicando la desigualdad con
-$t = p_k/q_k$,
-\[
-  D_{\mathrm{KL}}(q\,\|\,p) = \sum_{k\in S} q_k\bigl(\log q_k - \log p_k\bigr)
-  = \sum_{k\in S} q_k\Bigl(-\log\frac{p_k}{q_k}\Bigr)
-  \ge \sum_{k\in S} q_k\Bigl(1 - \frac{p_k}{q_k}\Bigr)
-  = \sum_{k\in S} q_k - \sum_{k\in S} p_k
-  = 1 - \sum_{k\in S} p_k \ge 0,
-\]
-donde $\sum_{k\in S} q_k = 1$ porque $q_k = 0$ fuera de $S$, y
-$\sum_{k\in S} p_k \le \sum_{k=1}^{K} p_k = 1$ porque $p_k > 0$.
-\revisar{desarrollo añadido a petición del autor: se explica qué es $S$ (soporte de $q$, $k$ índice de clase), por qué se restringe la suma a $S$, la igualdad intermedia y de dónde salen $\sum_{k\in S} q_k = 1$ y $\sum_{k\in S} p_k \le 1$}
-Si $p = q$, todos los sumandos de la definición se anulan y
-$D_{\mathrm{KL}}(q\,\|\,p) = 0$. Recíprocamente, si $D_{\mathrm{KL}}(q\,\|\,p) = 0$,
-las dos desigualdades anteriores son igualdades. De la segunda,
-$\sum_{k\in S} p_k = 1$; como $p_k > 0$ para todo $k$, ninguna clase puede quedar
-fuera de $S$, así que $S = \{1,\dots,K\}$. De la primera, cada sumando cumple
-$-\log(p_k/q_k) = 1 - p_k/q_k$ (la diferencia entre ambos lados es una suma de
-términos no negativos, $q_k\,g(p_k/q_k)\ge 0$, que vale cero), luego $p_k/q_k = 1$
-para todo $k$, es decir, $p = q$.
-\revisar{caso de igualdad reescrito para el enunciado general; antes suponía $q_k > 0$ para todo $k$}
-\end{demostracion}
+La demostración se recoge en la \cref{sec:dem-aprendizaje}.
 
 \begin{proposicion}[Óptimo de la pérdida con \emph{label smoothing}]\label{prop:ls-optimo}
 Sean $\varepsilon\in(0,1]$, $y\in\{1,\dots,K\}$ la etiqueta de una entrada e
@@ -566,57 +535,18 @@ segundo orden, $\E[g_i^2] = \E[g^2]$ para todo $i$. Entonces, para todo $t \ge 1
 El resultado análogo se cumple para $m_t$ y $\widehat{m}_t$ si
 $\E[g_i] = \E[g]$ para todo $i$.
 \end{proposicion}
-\begin{demostracion}
-Desarrollando la recurrencia de la \cref{eq:adam-v} a partir de $v_0 = 0$ se
-obtiene, por inducción sobre $t$,
-\[
-  v_t = (1 - \beta_2) \sum_{i=1}^{t} \beta_2^{\,t-i}\, g_i^{2}.
-\]
-En efecto, para $t = 1$ la \cref{eq:adam-v} da
-$v_1 = \beta_2 v_0 + (1-\beta_2)\, g_1^2 = (1-\beta_2)\, g_1^2$, que es la
-fórmula con un único sumando. Si la fórmula se cumple para $t-1$, entonces
-\[
-  v_t = \beta_2\, v_{t-1} + (1-\beta_2)\, g_t^2
-      = \beta_2 (1-\beta_2) \sum_{i=1}^{t-1} \beta_2^{\,t-1-i}\, g_i^{2} + (1-\beta_2)\, g_t^2
-      = (1-\beta_2) \sum_{i=1}^{t} \beta_2^{\,t-i}\, g_i^{2},
-\]
-pues $\beta_2 \cdot \beta_2^{\,t-1-i} = \beta_2^{\,t-i}$ y el último sumando es
-el término $i = t$, con $\beta_2^{\,0} = 1$.
-Tomando esperanzas, por linealidad y por la hipótesis,
-\[
-  \E[v_t] = \E[g^2]\, (1 - \beta_2) \sum_{i=1}^{t} \beta_2^{\,t-i}
-          = \E[g^2]\, (1 - \beta_2)\, \frac{1 - \beta_2^{t}}{1 - \beta_2}
-          = \bigl(1 - \beta_2^{t}\bigr)\, \E[g^2],
-\]
-donde se ha usado la suma de la progresión geométrica
-$\sum_{i=1}^{t} \beta_2^{\,t-i} = \sum_{k=0}^{t-1} \beta_2^{\,k}$, válida porque
-$\beta_2 < 1$. Dividiendo entre $1 - \beta_2^t > 0$ se obtiene
-$\E[\widehat{v}_t] = \E[g^2]$. El caso de $m_t$ es idéntico, sustituyendo
-$g_i^2$ por $g_i$ y $\beta_2$ por $\beta_1$.
-\end{demostracion}
+La demostración se recoge en la \cref{sec:dem-aprendizaje}.
 
 El paso efectivo de Adam,
 $\Delta_t = \alpha\, \widehat{m}_t / \sqrt{\widehat{v}_t}$ (tomando
-$\varepsilon = 0$), tiene dos propiedades que explican su uso extendido:
-\begin{itemize}
-  \item \emph{Es invariante frente a reescalados del gradiente.} Si los
-  gradientes se multiplican por $c > 0$, $\widehat{m}_t$ se multiplica por $c$ y
-  $\widehat{v}_t$ por $c^2$, de modo que el cociente
-  $c\,\widehat{m}_t / \sqrt{c^2\, \widehat{v}_t}$ no cambia.
-  \item \emph{Está aproximadamente acotado por $\alpha$.} Kingma y Ba dan dos
-  cotas, componente a componente: $|\Delta_t| \le \alpha\,(1-\beta_1)/\sqrt{1-\beta_2}$
-  si $(1-\beta_1) > \sqrt{1-\beta_2}$, caso que solo se da cuando el gradiente
-  ha sido nulo en todas las iteraciones salvo la actual, y $|\Delta_t| \le \alpha$
-  en otro caso~\cite[sec.~2.1]{kingma2014}. En los casos habituales,
-  $\widehat{m}_t / \sqrt{\widehat{v}_t} \approx \E[g]/\sqrt{\E[g^2]}$, y este
-  cociente tiene valor absoluto como mucho $1$, porque
-  $\E[g^2] - \E[g]^2 = \operatorname{Var}(g) \ge 0$. Así,
-  $|\widehat{m}_t / \sqrt{\widehat{v}_t}| \lesssim 1$, lo que actúa
-  como una región de confianza alrededor de los parámetros actuales y facilita
-  elegir el orden de magnitud de $\alpha$~\cite[sec.~2.1]{kingma2014}.
-\end{itemize}
+$\varepsilon = 0$), es invariante frente a reescalados del gradiente: si los
+gradientes se multiplican por $c > 0$, $\widehat{m}_t$ se multiplica por $c$ y
+$\widehat{v}_t$ por $c^2$, de modo que el cociente
+$c\,\widehat{m}_t / \sqrt{c^2\, \widehat{v}_t}$ no cambia. Además, está
+aproximadamente acotado por $\alpha$, lo que facilita elegir el orden de magnitud
+de $\alpha$~\cite[sec.~2.1]{kingma2014}.
 
-\subsection{Regularización \texorpdfstring{$L_2$}{L2} y decaimiento de pesos}\label{sec:l2-wd}
+\subsection{Regularización \texorpdfstring{$L_2$}{L2} y AdamW}\label{sec:l2-wd}
 
 Para reducir el sobreajuste es habitual penalizar los pesos grandes. Hay dos
 formas de hacerlo que suelen confundirse:
@@ -643,16 +573,7 @@ SGD con tasa de aprendizaje $\alpha$ y decaimiento de pesos $\lambda$ sobre $L_t
 produce los mismos iterados que SGD sin decaimiento sobre $L_t^{\mathrm{reg}}$ con
 $\lambda' = \lambda / \alpha$.
 \end{proposicion}
-\begin{demostracion}
-Como $\nabla_\phi L_t^{\mathrm{reg}}(\phi) = \nabla_\phi L_t(\phi) + \lambda' \phi$,
-SGD sobre $L_t^{\mathrm{reg}}$ da
-\[
-  \phi_t = \phi_{t-1} - \alpha \nabla_\phi L_t(\phi_{t-1}) - \alpha \lambda'\, \phi_{t-1}
-           = (1 - \alpha\lambda')\, \phi_{t-1} - \alpha \nabla_\phi L_t(\phi_{t-1}),
-\]
-que coincide con la regla del decaimiento de pesos si y solo si
-$\alpha\lambda' = \lambda$.
-\end{demostracion}
+La demostración se recoge en la \cref{sec:dem-aprendizaje}.
 
 La equivalencia exige $\lambda' = \lambda / \alpha$: el mejor valor de la
 regularización $L_2$ depende de la tasa de aprendizaje, y ambos hiperparámetros
@@ -668,33 +589,16 @@ Entonces no existe ningún $\lambda' \in \R$ tal que aplicar el optimizador sin
 decaimiento a $L_t^{\mathrm{reg}}$ produzca los mismos iterados que aplicarlo con
 decaimiento $\lambda$ a $L_t$.
 \end{proposicion}
-\begin{demostracion}
-Sobre $L_t^{\mathrm{reg}}$, los iterados son
-\[
-  \phi_t = \phi_{t-1} - \alpha\lambda' M_t\, \phi_{t-1} - \alpha M_t \nabla_\phi L_t(\phi_{t-1}).
-\]
-Restando la regla con decaimiento de pesos, ambos iterados coinciden para todo
-$\phi_{t-1}$ si y solo si $\lambda\, \phi_{t-1} = \alpha\lambda' M_t\, \phi_{t-1}$
-para todo $\phi_{t-1}$, es decir, si $\alpha\lambda' M_t = \lambda I$. Como
-$\lambda > 0$, esto exige que $M_t$ sea un múltiplo de la identidad, en
-contradicción con la hipótesis.
-\end{demostracion}
+La demostración se recoge en la \cref{sec:dem-aprendizaje}.
 
-En Adam, el precondicionador es diagonal y depende de cada parámetro,
-\[
-  M_t = \operatorname{diag}\bigl(\sqrt{\widehat{v}_t} + \varepsilon\bigr)^{-1},
-\]
+En Adam, el precondicionador es diagonal,
+$M_t = \operatorname{diag}\bigl(\sqrt{\widehat{v}_t} + \varepsilon\bigr)^{-1}$,
 aunque Adam solo encaja de forma aproximada en el esquema de la
-\cref{prop:adaptativo-l2-wd}: actualiza con $\widehat{m}_t$ en lugar de con el
-gradiente $\nabla_\phi L_t(\phi_{t-1})$, y su $M_t$ depende de los propios
-gradientes, que cambian al añadir la penalización. La proposición da, por tanto,
-la intuición de lo que ocurre: con
-regularización $L_2$ el gradiente del término de penalización también se divide
-por $\sqrt{\widehat{v}_t}$, de modo que los pesos con gradientes históricamente
-grandes se regularizan menos que con el decaimiento de pesos, que los reduce a
-todos a la misma tasa $\lambda$~\cite{loshchilov2019}.
-
-\subsection{AdamW}\label{sec:adamw-def}
+\cref{prop:adaptativo-l2-wd}: actualiza con $\widehat{m}_t$ y su $M_t$ depende de
+los propios gradientes. Con regularización $L_2$ el gradiente del término de
+penalización también se divide por $\sqrt{\widehat{v}_t}$, de modo que los pesos
+con gradientes históricamente grandes se regularizan menos que con el decaimiento
+de pesos, que los reduce a todos a la misma tasa $\lambda$~\cite{loshchilov2019}.
 
 \begin{definicion}[AdamW~\cite{loshchilov2019}]\label{def:adamw}
 AdamW es Adam con decaimiento de pesos desacoplado: los momentos
@@ -760,42 +664,13 @@ En el contexto de las redes convolucionales, $x$ recibe el nombre de
 \cite[sec.~9.1]{goodfellow2016deep}.
 \end{definicion}
 
-\begin{observacion}[Buena definición]\label{obs:conv-L1}
-La hipótesis $x, w \in L^1(\R)$ garantiza que la integral de la
-\cref{eq:conv-continua} existe. Se usa el \emph{teorema de Fubini--Tonelli}: si
-$F\colon\R^2\to\R$ es medible y $\iint |F(a,t)|\,da\,dt < \infty$, entonces
-$\int F(a,t)\,da$ converge absolutamente para casi todo $t$, y las integrales
-iteradas en cualquier orden coinciden con la integral doble; si
-$F \ge 0$, las integrales iteradas coinciden siempre, aunque valgan $\infty$.
-Aplicándolo a $F(a,t) = |x(a)|\,|w(t-a)| \ge 0$ e integrando primero en $t$, con
-el cambio $u = t - a$,
-\[
-  \iint |x(a)|\,|w(t-a)|\,dt\,da
-  = \int |x(a)| \Bigl(\int |w(u)|\,du\Bigr) da
-  = \|x\|_1\,\|w\|_1 < \infty,
-\]
-de modo que la integral de la \cref{eq:conv-continua} converge absolutamente para
-casi todo $t$ y, además, $\|x * w\|_1 \le \|x\|_1\,\|w\|_1$, es decir,
-$x * w \in L^1(\R)$. En el caso discreto basta acotar
-$\sum_a |x(a)|\,|w(t-a)| \le \bigl(\sup_b |w(b)|\bigr)\,\|x\|_1 \le \|w\|_1\,\|x\|_1$,
-así que la serie de la \cref{eq:conv-discreta} converge absolutamente para todo $t$.
-\end{observacion}
+La buena definición de la convolución se justifica en la \cref{sec:dem-aprendizaje}.
+
 
 \begin{proposicion}[Conmutatividad de la convolución]\label{prop:conv-conmutativa}
 En las condiciones de la \cref{def:convolucion}, $x * w = w * x$.
 \end{proposicion}
-\begin{demostracion}
-En el caso continuo, con el cambio de variable $b = t - a$ (luego $da = -db$, y
-los límites $\pm\infty$ se intercambian),
-\[
-  (x * w)(t) = \int_{-\infty}^{\infty} x(a)\, w(t-a)\, da
-  = \int_{-\infty}^{\infty} x(t-b)\, w(b)\, db = (w * x)(t).
-\]
-En el caso discreto, $a \mapsto b = t - a$ es una biyección de $\mathbb{Z}$ en
-sí mismo, y reordenar los términos no cambia el valor de una serie
-absolutamente convergente, así que
-$\sum_{a} x(a)\,w(t-a) = \sum_{b} x(t-b)\,w(b)$.
-\end{demostracion}
+La demostración se recoge en la \cref{sec:dem-aprendizaje}.
 
 En la práctica, la entrada y el núcleo son tensores de valores finitos y se
 suponen nulos fuera de las posiciones almacenadas, de modo que la suma
@@ -804,14 +679,8 @@ el núcleo tengan soporte finito. En el procesamiento de imágenes digitales se 
 \begin{equation}\label{eq:conv-2d}
   S(i,j) = (I * K)(i,j) = \sum_{m=i-k}^{i+k}\sum_{n=j-k}^{j+k} I(m,n)\, K(i-m,\, j-n),
 \end{equation}
-y, al tratarse de una operación conmutativa (\cref{prop:conv-conmutativa}) (así como asociativa), resulta equivalente a
-\begin{equation}\label{eq:conv-2d-conmutativa}
-  S(i,j) = (K * I)(i,j) = \sum_{m=-k}^{k}\sum_{n=-k}^{k} I(i-m,\, j-n)\, K(m,n),
-\end{equation}
-que se obtiene de la \cref{eq:conv-2d} con el cambio de índices $m' = i - m$,
-$n' = j - n$, que recorren $\{-k,\dots,k\}$.
-Esta propiedad se debe a que el núcleo aparece \emph{volteado (flipped)} respecto de
-la entrada tanto horizontal como verticalmente ---lo que equivale geométricamente a rotarlo $180^{\circ}$---: al crecer $m$ y $n$, los índices de la entrada crecen mientras que los del núcleo decrecen \cite{goodfellow2016deep, mesejo2026vision}. Aunque la conmutatividad y la asociatividad son útiles en demostraciones teóricas y para precombinar filtros lineales, el volteo del núcleo no resulta relevante para el aprendizaje de parámetros en una red convolucional \cite[sec.~9.1]{goodfellow2016deep}.
+en la que el núcleo aparece \emph{volteado (flipped)} respecto de
+la entrada tanto horizontal como verticalmente \cite{goodfellow2016deep, mesejo2026vision}.
 
 \begin{definicion}[Correlación cruzada]\label{def:correlacion-cruzada}
 Sea $I$ una imagen bidimensional y $K$ un núcleo de tamaño $(2k+1) \times (2k+1)$. La \emph{correlación cruzada} de $I$ con $K$ se define como
@@ -820,12 +689,6 @@ Sea $I$ una imagen bidimensional y $K$ un núcleo de tamaño $(2k+1) \times (2k+
 \end{equation}
 A diferencia de la convolución, esta operación no voltea el núcleo (por lo que no es conmutativa ni asociativa) y puede interpretarse directamente como el producto escalar entre el núcleo y la vecindad local centrada en cada píxel $(i,j)$ \cite{mesejo2026vision}.
 \end{definicion}
-\begin{figure}[tbp]
-  \centering
-  \includegraphics[width=0.6\textwidth]{img/91_CNN.png}
-  \caption{Correlación cruzada bidimensional de una entrada de $3 \times 4$ con un núcleo de $2 \times 2$, sin volteo del núcleo: cada salida es la suma de los productos de una región de la entrada por el núcleo. Fuente: Goodfellow et al.~\cite[fig.~9.1]{goodfellow2016deep}.}
-  \label{fig:correlacion-cruzada}
-\end{figure}
 \begin{observacion}
 La correlación cruzada coincide con la convolución salvo por el volteo del
 núcleo. Muchas bibliotecas de aprendizaje automático implementan en realidad
@@ -860,14 +723,7 @@ y el $-1$ se debe a que los índices empiezan en $1$
 \cite[sec.~9.5]{goodfellow2016deep}.
 
 Para reducir el coste se puede evaluar la salida solo cada $s$ píxeles en
-cada dirección. La \emph{convolución con paso} (\emph{stride}) $s$ es
-\begin{equation}\label{eq:conv-stride}
-  \mathsf{Z}_{i,j,k} = c(\mathsf{K}, \mathsf{V}, s)_{i,j,k} = \sum_{l,m,n}
-  \mathsf{V}_{l,\, (j-1)s+m,\, (k-1)s+n}\, \mathsf{K}_{i,l,m,n},
-\end{equation}
-lo que equivale a una convolución con paso unidad seguida de un submuestreo,
-pero sin calcular los valores que se descartarían
-\cite[sec.~9.5]{goodfellow2016deep}.
+cada dirección (\emph{convolución con paso} o \emph{stride} $s$)~\cite[sec.~9.5]{goodfellow2016deep}.
 
 \subsubsection{Motivación: interacciones dispersas, parámetros compartidos y
 equivarianza}
@@ -902,18 +758,7 @@ traslación $(T_\tau I)(m,n) = I(m-\tau_1,\, n-\tau_2)$. Entonces
 \]
 \end{proposicion}
 
-\begin{demostracion}
-Para todo $(i,j) \in \mathbb{Z}^2$, por la definición
-\cref{eq:correlacion-cruzada},
-\begin{align*}
-  \bigl(K \star T_\tau I\bigr)(i,j)
-  &= \sum_{m}\sum_{n} \bigl(T_\tau I\bigr)(i+m,\, j+n)\, K(m,n)\\
-  &= \sum_{m}\sum_{n} I\bigl(i+m-\tau_1,\, j+n-\tau_2\bigr)\, K(m,n)\\
-  &= (K \star I)(i-\tau_1,\, j-\tau_2)
-  = \bigl(T_\tau(K \star I)\bigr)(i,j).
-\end{align*}
-Las sumas son finitas porque $K$ tiene soporte finito.
-\end{demostracion}
+La demostración se recoge en la \cref{sec:dem-aprendizaje}.
 
 \begin{observacion}
 En una imagen finita la igualdad solo se cumple lejos de los bordes, donde el
@@ -1002,10 +847,7 @@ entrada y de su transformación se llama \emph{bloque residual}.
 \end{definicion}
 
 Cada $f_\ell$ aprende, por tanto, un cambio aditivo sobre la representación
-actual. Sustituyendo las expresiones intermedias, la salida es la suma de la
-entrada y de varias redes más pequeñas; con $L$ bloques, la red puede verse como
-la combinación de $2^L$ caminos distintos desde la entrada hasta la salida
-\cite[sec.~11.2, fig.~11.4]{prince2023understanding}.
+actual~\cite[sec.~11.2]{prince2023understanding}.
 
 \begin{definicion}[{Normalización por lotes~\cite[sec.~11.4]{prince2023understanding}}]\label{def:batchnorm}
 Sea $h$ una activación y sean $h_i$, $i\in\mathcal{B}$, sus valores en los
@@ -1031,9 +873,7 @@ separado; en una red convolucional, los estadísticos se calculan sobre el lote 
 sobre todas las posiciones espaciales, con un par $(\gamma,\delta)$ por canal. En
 la fase de prueba no se dispone de un lote, así que $m_h$ y $s_h$ se calculan
 sobre el conjunto de entrenamiento y se congelan
-\cite[sec.~11.4]{prince2023understanding}. Entre sus ventajas, Prince señala que
-estabiliza la propagación hacia delante, permite usar tasas de aprendizaje más
-altas y actúa como regularizador~\cite[sec.~11.4.1]{prince2023understanding}.
+\cite[sec.~11.4]{prince2023understanding}.
 
 \begin{definicion}[{Normalización por capa~\cite[sec.~11.4]{prince2023understanding}}]\label{def:layernorm}
 La \emph{normalización por capa} (\emph{layer normalization}, LayerNorm) no usa
@@ -1047,16 +887,10 @@ $x\in\R^{D}$,
 \]
 con parámetros aprendidos $\gamma,\delta\in\R^{D}$, uno por canal.
 \end{definicion}
-Prince describe también variantes en las que los estadísticos se calculan sobre
-los canales y las posiciones espaciales (sec.~11.4) o sobre los tokens de la
-secuencia (sec.~12.4); la de la \cref{def:layernorm}, que normaliza cada token, o
+La de la \cref{def:layernorm}, que normaliza cada token, o
 cada posición espacial, sobre sus $D$ canales, es la que usan las implementaciones
-de ViT, Swin y ConvNeXt de este trabajo.
-
-A diferencia de BatchNorm, la salida de LayerNorm para un ejemplo no depende del
-resto del lote. Vaswani et al.\ la usaron en el transformer original porque los
-estadísticos del lenguaje varían mucho de un lote a otro
-\cite[cap.~12, notas]{prince2023understanding}.
+de ViT, Swin y ConvNeXt de este trabajo. A diferencia de BatchNorm, la salida de
+LayerNorm para un ejemplo no depende del resto del lote.
 
 \subsubsection{ResNet-50}\label{sec:resnet}
 
@@ -1105,8 +939,7 @@ $\sum_{m} a_{mn}\,v_m$, con pesos de atención
   a_{mn} = \frac{\exp\bigl(k_m^{\top} q_n/\sqrt{D_q}\bigr)}{\sum_{m'=1}^{N}\exp\bigl(k_{m'}^{\top} q_n/\sqrt{D_q}\bigr)},
 \]
 que son positivos y suman $1$: cada salida es una combinación convexa de los valores, que da más peso a las entradas más relevantes para ella.
-Así, al multiplicar por los valores se obtiene una nueva representación de los parches donde cada uno se ha actualizado incorporando el contexto
-global ponderado de toda la imagen. La división entre $\sqrt{D_q}$ evita que el mayor de los productos escalares domine la función \emph{softmax},
+La división entre $\sqrt{D_q}$ evita que el mayor de los productos escalares domine la función \emph{softmax},
 situación en la que los gradientes son muy pequeños~\cite[sec.~12.3.2]{prince2023understanding}. El número de parámetros no depende de $N$, de modo
 que el mismo bloque puede aplicarse a secuencias de cualquier longitud, pero el número de pesos de atención es $N^2$~\cite[sec.~12.2]{prince2023understanding}.
 
@@ -1150,49 +983,7 @@ Entonces
 y lo mismo ocurre con la autoatención multicabeza.
 \end{proposicion}
 
-\begin{demostracion}
-Cada columna de $P$ tiene un único uno, así que $\mathbf{1}^{\top}P = \mathbf{1}^{\top}$.
-Por tanto, los valores calculados a partir de $XP$ son
-\[
-  \beta_v\mathbf{1}^{\top} + \Omega_v XP = \bigl(\beta_v\mathbf{1}^{\top} + \Omega_v X\bigr)P = VP,
-\]
-y del mismo modo las consultas y las claves son $QP$ y $KP$. La matriz de
-compatibilidades pasa a ser $(KP)^{\top}QP/\sqrt{D_q} = P^{\top}AP$, con $A = K^{\top}Q/\sqrt{D_q}$.
-
-Veamos que $\Softmax(P^{\top}AP) = P^{\top}\Softmax(A)P$. Para un vector
-$z\in\R^{N}$ se tiene
-\[
-  (P^{\top}z)_m = e_{\pi(m)}^{\top}z = z_{\pi(m)}, \qquad m = 1,\dots,N,
-\]
-es decir,
-$P^{\top}z$ reordena las componentes de $z$. Como el denominador de la función
-\emph{softmax} no depende del orden,
-$\sum_{m'=1}^{N}\exp(z_{\pi(m')}) = \sum_{m'=1}^{N}\exp(z_{m'})$, y por tanto,
-componente a componente,
-\[
-  \bigl(\softmax(P^{\top}z)\bigr)_m
-  = \frac{\exp(z_{\pi(m)})}{\sum_{m'=1}^{N}\exp(z_{m'})}
-  = \bigl(\softmax(z)\bigr)_{\pi(m)}
-  = \bigl(P^{\top}\softmax(z)\bigr)_m,
-  \qquad\text{es decir,}\qquad
-  \softmax(P^{\top}z) = P^{\top}\softmax(z).
-\]
-La columna $n$-ésima de $AP$ es la columna $\pi(n)$-ésima de $A$, que denotamos
-$a_{\pi(n)}$, así que la columna $n$-ésima de $\Softmax(P^{\top}AP)$ es
-\[
-  \softmax\bigl(P^{\top}a_{\pi(n)}\bigr) = P^{\top}\softmax\bigl(a_{\pi(n)}\bigr),
-\]
-que es la columna $n$-ésima de $P^{\top}\Softmax(A)P$.
-
-Finalmente, como $PP^{\top} = I$,
-\[
-  \operatorname{Sa}(XP) = VP\,P^{\top}\Softmax(A)\,P = V\Softmax(A)\,P = \operatorname{Sa}(X)\,P.
-\]
-En la autoatención
-multicabeza, cada cabeza cumple $\operatorname{Sa}_h(XP) = \operatorname{Sa}_h(X)P$,
-de modo que la concatenación vertical de las cabezas queda multiplicada por $P$
-por la derecha, y también su producto por $\Omega_c$.
-\end{demostracion}
+La demostración se recoge en la \cref{sec:dem-aprendizaje}.
 
 Es decir, el bloque no sabe en qué posición está cada entrada, aunque el orden importa: en una imagen, cada parche ocupa una posición concreta.
 Por eso se incorpora la posición con una codificación \emph{absoluta}, que suma a la entrada $X$ una matriz que codifica la posición, o
@@ -1221,8 +1012,7 @@ misma red totalmente conectada para todas las columnas.
 \end{definicion}
 
 Una red transformer aplica varias de estas capas consecutivas, y la salida de cada una tiene el mismo tamaño $D\times N$ que su entrada.
-Prince presenta la capa con la LayerNorm después de cada suma residual y señala que cambiar su posición es una de las propuestas para estabilizar
-el entrenamiento~\cite[sec.~12.4 y cap.~12, notas]{prince2023understanding}; ViT y Swin la colocan antes de cada unidad, como en la
+ViT y Swin colocan la LayerNorm antes de cada unidad, como en la
 \cref{def:capa-transformer}~\cite[ecs.~(2)--(3)]{dosovitskiy2021}, \cite[ec.~(3)]{liu2021swin}.
 
 \subsection{Vision Transformer}\label{sec:vit}
@@ -1280,14 +1070,8 @@ canales~\cite[sec.~12.10.3]{prince2023understanding}. Un ejemplo representativo
 es el \emph{Swin Transformer} (\emph{shifted window transformer}) de Liu et
 al.~\cite{liu2021swin}.
 
-Liu et al.\ explican las dificultades de trasladar el transformer del lenguaje a
-la visión por dos diferencias entre ambos dominios: los objetos de una imagen
-pueden aparecer a escalas muy distintas, mientras que en los transformers
-existentes todos los tokens tienen una escala fija; y la resolución de los
-píxeles de una imagen es mucho mayor que la de las palabras de un texto, mientras
-que el coste de la autoatención es cuadrático en el tamaño de la
-imagen~\cite[sec.~1]{liu2021swin}. Swin responde a ambas con una representación
-jerárquica y con autoatención calculada dentro de ventanas locales.
+Swin usa una representación jerárquica y autoatención calculada dentro de
+ventanas locales~\cite[sec.~1]{liu2021swin}.
 
 \subsubsection{Arquitectura}
 
@@ -1348,38 +1132,11 @@ El primero es cuadrático en el número de parches $hw$ y el segundo es lineal e
 $hw$ para $M$ fijo.
 \end{proposicion}
 
-\begin{demostracion}
-Sean $T = hw$ el número de tokens, $X\in\R^{C\times T}$ la matriz de entrada y $H$
-el número de cabezas, cada una con consultas, claves y valores de dimensión
-$C/H$.
-
-\emph{Proyecciones.} Para cada cabeza, calcular $\Omega_{v_h}X$, con
-$\Omega_{v_h}\in\R^{(C/H)\times C}$, requiere $(C/H)\cdot C\cdot T$
-multiplicaciones; para las $H$ cabezas, $C^2T$. Lo mismo ocurre con las consultas
-y las claves, y con la proyección final $\Omega_c\in\R^{C\times C}$ de la
-\cref{def:multicabeza}. En total, $4C^2T = 4hwC^2$ multiplicaciones. Estas
-operaciones actúan sobre cada token por separado, así que su coste es el mismo en
-MSA y en W-MSA.
-
-\emph{Atención global.} Para cada cabeza, $K_h^{\top}Q_h$ es el producto de una
-matriz $T\times(C/H)$ por otra $(C/H)\times T$, con $T^2\,C/H$ multiplicaciones,
-y $V_h\Softmax(\cdot)$ es el producto de una matriz $(C/H)\times T$ por otra
-$T\times T$, con otras $T^2\,C/H$. Para las $H$ cabezas, $2T^2C = 2(hw)^2C$.
-Sumando, se obtiene $\Omega(\mathrm{MSA})$.
-
-\emph{Atención por ventanas.} Cada ventana contiene $M^2$ tokens y se procesa
-igual que en el caso global con $T = M^2$, con un coste de $2(M^2)^2C$. Como hay
-$hw/M^2$ ventanas, el coste total de la atención es
-$\frac{hw}{M^2}\cdot 2M^4C = 2M^2hwC$. Sumando las proyecciones, se obtiene
-$\Omega(\text{W-MSA})$.
-\end{demostracion}
+La demostración se recoge en la \cref{sec:dem-aprendizaje}.
 
 Liu et al.\ fijan $M = 7$ por defecto. En la primera etapa de Swin-S, con
 imágenes de $224\times224$, el mapa tiene $h = w = 56$; la parte de atención del
-coste se reduce en un factor $hw/M^2 = 3136/49 = 64$. Liu et al.\ indican que la
-atención global es inabordable para $hw$ grande, mientras que la atención por
-ventanas es escalable~\cite[sec.~3.2]{liu2021swin}. Si $M$ no divide a $h$ o a $w$,
-el mapa se rellena por la parte inferior derecha~\cite[sec.~3.2]{liu2021swin}.
+coste se reduce en un factor $hw/M^2 = 3136/49 = 64$.
 
 \subsubsection{Ventanas desplazadas}
 
@@ -1392,16 +1149,6 @@ parches respecto de la regular. Así, las nuevas ventanas cruzan los bordes de l
 de la capa anterior y las conectan~\cite[sec.~3.2]{liu2021swin}. Prince lo resume
 diciendo que, tras varias capas, la información puede propagarse por toda la
 imagen~\cite[fig.~12.18]{prince2023understanding}.
-
-La partición desplazada da lugar a más ventanas, de
-$\lceil h/M\rceil\times\lceil w/M\rceil$ a
-$(\lceil h/M\rceil+1)\times(\lceil w/M\rceil+1)$, y algunas son más pequeñas que
-$M\times M$. Para no aumentar el coste, Liu et al.\ desplazan cíclicamente el mapa
-hacia la esquina superior izquierda. Tras el desplazamiento, una ventana puede
-estar formada por varias subventanas que no son adyacentes en el mapa original,
-así que se aplica una máscara que limita la autoatención al interior de cada
-subventana. De este modo, el número de ventanas es el mismo que con la partición
-regular~\cite[sec.~3.2, fig.~4]{liu2021swin}.
 
 \subsubsection{Sesgo de posición relativa}
 
@@ -1417,10 +1164,7 @@ donde $d$ es la dimensión de las consultas y las claves, y el elemento de $B$
 correspondiente a dos parches de la ventana depende solo de su desplazamiento
 relativo~\cite[ec.~(4)]{liu2021swin}. Como el desplazamiento en cada eje está en
 $[-M+1, M-1]$, basta aprender una matriz $\widehat{B}\in\R^{(2M-1)\times(2M-1)}$
-de la que se toman los valores de $B$. Liu et al.\ observan mejoras significativas
-frente a no usar este sesgo o frente a usar embeddings de posición absolutos, y
-que añadir además embeddings absolutos a la entrada, como en ViT, empeora
-ligeramente el rendimiento~\cite[sec.~3.2]{liu2021swin}.
+de la que se toman los valores de $B$.
 
 \subsubsection{Swin-S}
 
@@ -1475,12 +1219,6 @@ espacial aplica la misma transformación lineal $\R^{C}\to\R^{C'}$ al vector de
 canales. Es, por tanto, equivalente a una capa totalmente conectada aplicada a
 cada posición por separado, como el MLP de una capa transformer a cada token.
 
-Esta factorización reduce mucho el número de parámetros: sin contar los sesgos,
-en la primera etapa del ConvNeXt-S usado en este trabajo, con
-$C = C' = 96$ y $k = 7$, una convolución completa tendría
-$96^2\cdot 49 = 451\,584$ pesos, mientras que la convolución por canal tiene
-$96\cdot 49 = 4704$.
-
 \subsubsection{El bloque ConvNeXt}
 
 Según Todi et al., un bloque ConvNeXt consta de una convolución por canal, una
@@ -1507,30 +1245,8 @@ Touvron et al.~(2021), \emph{Going deeper with image transformers}, ICCV (ref.~[
 Liu et al.), que no está en tfg-referencias/papers}
 
 Liu et al.\ modifican paso a paso una ResNet-50 siguiendo el diseño de Swin y
-comprueban en ImageNet-1K el efecto de cada cambio~\cite[sec.~2]{liu2022convnext}:
-% [agente] Lista redactada a partir de Liu et al. (2022), secs. 2.2-2.6 y fig. 4.
-\begin{itemize}
-  \item \emph{Diseño por etapas.} Cuatro etapas con conexiones residuales, como
-  ResNet-50 (\cref{sec:resnet}), pero con la proporción de bloques $1:1:3:1$ de
-  Swin-T~\cite[sec.~2.2]{liu2022convnext}; el ConvNeXt-S usado aquí tiene
-  $(3, 3, 27, 3)$ bloques~\cite[sec.~3]{liu2022convnext}.
-  \item \emph{Entrada por parches.} Una convolución de $4\times4$ con paso $4$,
-  como la división en parches de ViT y Swin, sustituye a la convolución de
-  $7\times7$ y al \emph{max pooling} iniciales~\cite[sec.~2.2]{liu2022convnext}.
-  \item \emph{Convolución por canal y cuello de botella invertido.} La convolución
-  por canal mezcla solo información espacial, como la suma ponderada de la
-  autoatención, y las convoluciones puntuales expanden los canales a $4C$ y los
-  reducen a $C$, como el MLP de un transformer~\cite[secs.~2.3--2.4]{liu2022convnext}.
-  \item \emph{Núcleos grandes.} Núcleos de $7\times7$, del tamaño de las ventanas
-  de Swin; con núcleos mayores la exactitud se satura~\cite[sec.~2.5]{liu2022convnext}.
-  \item \emph{Microdiseño.} GELU en lugar de ReLU, una sola activación y una sola
-  normalización por bloque, y LayerNorm en lugar de BatchNorm
-  \cite[sec.~2.6, fig.~4]{liu2022convnext}.
-  \item \emph{Capas de reducción separadas.} Convoluciones de $2\times2$ con paso
-  $2$ entre etapas, como la fusión de parches de Swin, precedidas de una LayerNorm
-  para estabilizar el entrenamiento~\cite[sec.~2.6]{liu2022convnext}.
-\end{itemize}
-Con todos estos cambios, ConvNeXt supera a Swin-T en ImageNet-1K con un coste
+comprueban en ImageNet-1K el efecto de cada cambio~\cite[sec.~2]{liu2022convnext}.
+Con estos cambios, ConvNeXt supera a Swin-T en ImageNet-1K con un coste
 similar y sin módulos especializados como la atención por ventanas desplazadas o
 el sesgo de posición relativa~\cite[sec.~2]{liu2022convnext}.
 

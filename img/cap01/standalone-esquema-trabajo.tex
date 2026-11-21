@@ -1,0 +1,17 @@
+% Compila esquema-trabajo.tex como documento independiente (para la presentación).
+% Uso (desde img/cap01): pdflatex standalone-esquema-trabajo.tex && pdfcrop standalone-esquema-trabajo.pdf esquema-trabajo.pdf
+\documentclass{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish, es-nodecimaldot]{babel}
+\usepackage[sc, osf]{mathpazo}\linespread{1.05}
+\usepackage{amsmath, xspace, xcolor, siunitx}
+\sisetup{output-decimal-marker={,}, group-separator={.}, group-minimum-digits=4}
+\usepackage{pgfgantt}
+\usetikzlibrary{arrows.meta, patterns}
+\usepackage[paperwidth=45cm, paperheight=30cm, margin=1cm]{geometry}
+\newcommand{\stoodx}{STOOD-X\xspace}
+\pagestyle{empty}
+\begin{document}
+\input{esquema-trabajo}
+\end{document}

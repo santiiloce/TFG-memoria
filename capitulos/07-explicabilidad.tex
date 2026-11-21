@@ -338,35 +338,7 @@ Supongamos que todas las neuronas $k$ de la capa superior son activas
 \end{enumerate}
 \end{proposicion}
 
-\begin{demostracion}
-Sustituyendo $c_k = R_k / z_k$ en la \cref{eq:dtd-propagacion} se obtiene
-\begin{equation}\label{eq:dtd-dem-base}
-  R_j = \sum_{k} \bigl(a_j - \tilde{a}^{(k)}_j\bigr) \, \frac{w_{jk}}{z_k} \, R_k .
-\end{equation}
-
-\emph{Caso 1.} Si $\tilde{a}^{(k)} = 0$, entonces
-$a_j - \tilde{a}^{(k)}_j = a_j$ para todo $k$, y la \cref{eq:dtd-dem-base} queda
-\[
-  R_j = \sum_{k} \frac{a_j w_{jk}}{z_k} \, R_k ,
-\]
-que es exactamente la regla LRP-0 (\cref{eq:lrp-0}).
-
-\emph{Caso 2.} Si $\tilde{a}^{(k)} = \frac{\varepsilon}{z_k + \varepsilon}\, a$,
-entonces, para cada $k$,
-\[
-  a_j - \tilde{a}^{(k)}_j
-  = a_j - \frac{\varepsilon}{z_k + \varepsilon}\, a_j
-  = \frac{z_k + \varepsilon - \varepsilon}{z_k + \varepsilon}\, a_j
-  = \frac{z_k}{z_k + \varepsilon}\, a_j ,
-\]
-donde el denominador no se anula porque $z_k > 0$ y $\varepsilon > 0$.
-Sustituyendo en la \cref{eq:dtd-dem-base}, el factor $z_k$ se cancela:
-\[
-  R_j = \sum_{k} \frac{z_k}{z_k + \varepsilon}\, a_j \, \frac{w_{jk}}{z_k} \, R_k
-      = \sum_{k} \frac{a_j w_{jk}}{\varepsilon + z_k} \, R_k ,
-\]
-que es la regla LRP-$\varepsilon$ (\cref{eq:lrp-epsilon}).
-\end{demostracion}
+La demostración se recoge en la \cref{sec:dem-explicabilidad}.
 
 La regla LRP-$\gamma$ también se obtiene de este modo, tomando como punto de
 referencia la intersección entre el punto de corte de la ReLU y una recta que
@@ -422,26 +394,7 @@ Sean $P \in \R^{n \times m}$ y $Q \in \R^{m \times r}$ estocásticas por columna
 \end{enumerate}
 \end{proposicion}
 
-\begin{proof}
-(1) Cada columna tiene norma 1 y entradas no negativas, así que $\lVert p_{\cdot k} - p_{\cdot k'} \rVert_1 \leq \lVert p_{\cdot k} \rVert_1 + \lVert p_{\cdot k'} \rVert_1 = 2$.
-
-(2) Se escribe $u = u^{+} - u^{-}$, con $u^{+}, u^{-} \geq 0$ sus partes positiva y negativa. Como $\sum_k u_k = 0$, ambas tienen la misma suma, $s = \lVert u^{+} \rVert_1 = \lVert u^{-} \rVert_1 = \lVert u \rVert_1 / 2$. Si $s = 0$ no hay nada que probar. En otro caso, como $\sum_{k'} u^{-}_{k'} / s = 1$ y $\sum_{k} u^{+}_{k} / s = 1$,
-\[
-  P u = \sum_{k} u^{+}_{k}\, p_{\cdot k} - \sum_{k'} u^{-}_{k'}\, p_{\cdot k'}
-      = \frac{1}{s} \sum_{k, k'} u^{+}_{k}\, u^{-}_{k'} \bigl(p_{\cdot k} - p_{\cdot k'}\bigr),
-\]
-y por la desigualdad triangular
-\[
-  \lVert P u \rVert_1 \leq \frac{1}{s} \sum_{k, k'} u^{+}_{k}\, u^{-}_{k'}\, 2\delta(P)
-  = \frac{1}{s}\, s^2\, 2 \delta(P) = \delta(P)\, \lVert u \rVert_1 .
-\]
-
-(3) La columna $k$ de $PQ$ es $P q_{\cdot k}$, así que $(PQ)_{\cdot k} - (PQ)_{\cdot k'} = P\,(q_{\cdot k} - q_{\cdot k'})$. El vector $q_{\cdot k} - q_{\cdot k'}$ suma cero, y por (2)
-\[
-  \bigl\lVert P\,(q_{\cdot k} - q_{\cdot k'}) \bigr\rVert_1 \leq \delta(P)\, \bigl\lVert q_{\cdot k} - q_{\cdot k'} \bigr\rVert_1 \leq \delta(P)\, 2 \delta(Q).
-\]
-Dividiendo entre 2 y tomando el máximo en $k, k'$ se obtiene el resultado.
-\end{proof}
+La demostración se recoge en la \cref{sec:dem-explicabilidad}.
 
 \begin{corolario}[Olvido de la relevancia inicial]\label{cor:olvido}
 Sean $P^{(1)}, \dots, P^{(L)}$ estocásticas por columnas, $\Pi = P^{(1)} \cdots P^{(L)}$, $u$ un vector de relevancia inicial con $s = \sum_k u_k$ y $r$ una distribución de probabilidad cualquiera. Entonces
